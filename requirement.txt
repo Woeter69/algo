@@ -1,0 +1,5 @@
+pip install flask
+pip install bcrypt
+pip install bs4
+pip install django
+
