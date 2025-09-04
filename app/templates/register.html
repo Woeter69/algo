@@ -8,20 +8,19 @@
 		<div class="main-box">
 			<div class="heading-div">
 				<h2 class="heading2">Join us</h2>
-				<h2 class="heading1">Start Connecting with your Alumni with <spa style="font-weight: 1500; color: #5C7542">ALUMNI</span></h2>
+				<h2 class="heading1">Start Connecting with your Alumni with <span style="font-weight: 1500; color: #5C7542">ALUMNI</span></h2>
 			</div>
 			<div class="register-div">
-
-				<input class="reg-firstname" placeholder="Enter First Name" required>
-				<input class="reg-lastname" placeholder="Enter Last Name" required>
-				<input class="reg-email" placeholder="Enter Email" required>
-				<input class="reg-username" placeholder="Enter Username" required>
-				<input class="reg-passwd" placeholder="Enter Password" type="password" required>
+  			<form method="POST" action="/register">
+    			<input class="reg-firstname" name="firstname" placeholder="Enter First Name" required>
+    			<input class="reg-lastname"  name="lastname"  placeholder="Enter Last Name" required>
+    			<input class="reg-email"     name="email"     placeholder="Enter Email" required>
+    			<input class="reg-username"  name="username"  placeholder="Enter Username" required>
+    			<input class="reg-passwd"    name="password" type="password" placeholder="Enter Password" required>
+    			<button class="register-button" type="submit">Register</button>
+  			</form>
 			</div>
-			<button class="register-button">
-				Register
-			</button>
 		</div>
-		<img class="img-people" src="../static/images/People.png"
+		<img class="img-people" src="../static/images/People.png">
 	</body>
 </html>
