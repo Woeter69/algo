@@ -1,11 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Complete Profile</title>
+    <link rel="stylesheet" href="../static/styles/complete_profile.css">
 </head>
 <body>
-    <h2>Complete Your Profile</h2>
-    <p>This page will have the additional profile fields.</p>
+    <div class="main-box">
+        <h2>Complete Your Profile</h2>
+        <div class="register-div">
+            <form>
+                <label>Enter University Name</label>
+                <input class="uni-name" name="uni-name">
+                <div class="dob-grad-div">
+                    <div class="dob-div">
+                        <label>Enter Date of Birth</label>
+                        <input type="date" class="dob" name="dob" class="dob">
+                    </div>
+                    <div class="grad-div">
+                        <label>Enter your Gradation year</label>
+                        <select class="grad_year" name="grad_year" class="grad_year" required>
+                            {% for year in range(1980, 2031) %}
+                                <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
 

@@ -3,10 +3,7 @@ body {
   height: 100vh;
   justify-content: center;
   align-items: center;
-  background-image: url("../static/images/bg.jpg");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 200px auto;
+  background-color: #D3D3FF;
 }
 
 .register-div {
@@ -15,14 +12,12 @@ body {
   background-color: white;
   height: 450px;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
 }
 
 .register-div form {
   display: flex;
   flex-direction: column;
-  align-items: center;
   row-gap: 20px;
   width: 100%;
 }
@@ -71,3 +66,34 @@ input {
   width: 800px;
   height: 100vh;
 }
+
+select {
+  width: 480px;
+  height: 40px;
+  border-radius: 20px;
+  padding-left: 20px;
+  border: 2px solid black;
+}
+
+.dob-grad-div {
+  display: flex;
+  width: 500px;
+  justify-content: space-between;
+}
+
+.dob-div,.grad-div {
+  display: flex;
+  flex-direction: column;
+  row-gap: 30px;
+}
+
+.dob,.grad_year {
+  width: 100px;
+}
+
+.grad_year {
+  width: 130px;
+  margin-left: 30px;
+}
+
+
