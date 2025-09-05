@@ -1,0 +1,39 @@
+body {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  background-image: url("../static/images/bg.jpg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 200px auto;
+}
+
+.main-box {
+  font-family: "Source Sans 3", sans-serif;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background-color: white;
+  row-gap: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  padding-bottom: 30px;
+  background-color: #F8F8F8;
+}
+
+.heading1 {
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+.heading2 {
+  margin: 0;
+  padding-bottom: 20px;
+}
+
+.img-people {
+  width: 800px;
+  height: 100vh;
+}

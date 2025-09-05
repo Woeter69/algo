@@ -25,6 +25,7 @@ body {
   align-items: center;
   row-gap: 20px;
   width: 100%;
+  background-color: #F8F8F8;
 }
 
 .main-box {
@@ -39,6 +40,7 @@ body {
   padding: 20px;
   border-radius: 10px;
   padding-bottom: 30px;
+  background-color: #F8F8F8;
 }
 
 input {
