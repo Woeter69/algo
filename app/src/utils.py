@@ -1,4 +1,5 @@
 import re,os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,3 +11,7 @@ def is_student_email(email):
     
     pattern = r".+@.+\.(edu|ac\.in|ac\.uk|edu\.au|ac\.ca|ac\.nz|ac\.jp|ac\.kr|ac\.us|college\.edu|uni\.edu)$"
     return re.match(pattern,email) is not None
+
+def load_cities():
+    with open("../static/data/cities-name-list.json", encoding="utf-8") as f:
+        return json.load(f)

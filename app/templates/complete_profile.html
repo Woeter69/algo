@@ -7,26 +7,42 @@
     <div class="main-box">
         <h2>Complete Your Profile</h2>
         <div class="register-div">
-            <form>
+            <form method="POST" action="/complete_profile">
                 <label>Enter University Name</label>
                 <input class="uni-name" name="uni-name">
+                <label>Enter College Name</label>
+                <input class="clg-name" name="clg-name">
                 <div class="dob-grad-div">
                     <div class="dob-div">
                         <label>Enter Date of Birth</label>
-                        <input type="date" class="dob" name="dob" class="dob">
+                        <input type="date" class="dob" name="dob" required max="{{cutoff_date}}">
                     </div>
                     <div class="grad-div">
-                        <label>Enter your Gradation year</label>
-                        <select class="grad_year" name="grad_year" class="grad_year" required>
+                        <label>Enter your Graduation year</label>
+                        <select name="grad_year" class="grad_year" required>
+                            <option value="" disabled selected>Select option</option>
                             {% for year in range(1980, 2031) %}
                                 <option value="{{ year }}">{{ year }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
+                <label class="city-label">City</label>
+                <select class="city" name="city" required>
+                    <option value="" disabled selected>Select option</option>
+                    {% for city in cities %}
+                        <option value="{{city}}">{{city}}</option>
+                    {% endfor %}
+                </select>
+                <div class="button-div">
+                    <button class="submit-button" type="submit">
+                        Submit
+                    </button>
+                </div>
             </form>
         </div>
     </div>
+    <img class="img-people" src="../static/images/People.png">
 </body>
 </html>
 
