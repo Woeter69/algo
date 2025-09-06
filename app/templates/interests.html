@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="../static/styles/interests.css">
+</head>
+<body>
+    <div class="main-box">
+        <div class="register-div">
+            <form method="POST" action="/thanks">
+                <h2>Tell us your Intrests</h2>
+                <div class="interests-div">
+                    {% for id, name in db_interests %}
+                        <input type="checkbox" name="interests" class="interests" value="{{ id }}"> {{ name }}<br>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="register-button">Next</button>
+            </form>
+        </div>
+    </div>
+    <img class="img-people" src="../static/images/People.png">
+</body>
+</html>
+

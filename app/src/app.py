@@ -3,7 +3,7 @@ import connection
 import os, secrets, datetime
 from flask_bcrypt import Bcrypt
 import utils, validators
-
+from connection import get_db_connection
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
 
@@ -14,6 +14,27 @@ def home():
   name = "Woeter"
   return render_template("index.html",name=name)
 
+@app.route("/login",methods=["GET","POST"])
+def login():
+    if request.method == "POST":
+        email = request.form["email"]
+        password = request.form["password"]
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+
+        cur.execute("SELECT user_id,password FROM users where email=%s",(email,))
+        row = cur.fetchone()
+
+        cur.close()
+        mydb.close()
+
+        if row:
+            user_id,hashed_password = row
+            if bcrypt.check_password_hash(hashed_password,password):
+                session['user_id'] = user_id
+                return redirect(url_for("complete_profile"))
+        return render_template("login.html",error="Invalid Credentials")
+    return render_template("login.html")
 
 @app.route('/register',methods=["GET","POST"])
 def register():
@@ -53,13 +74,43 @@ def register():
         return redirect(url_for("check_email"))
     return render_template("register.html")
 
-@app.route("/confirmation")
+@app.route("/confirmation",methods=["GET","POST"])
 def confirmation():
+    if request.method == "POST":
+        return redirect(url_for("login"))
     return render_template("confirmation.html")
 
-@app.route('/complete_profile')
+@app.route('/complete_profile',methods=["GET","POST"])
 def complete_profile():
-    return render_template('complete_profile.html')
+    cutoff_date = datetime.utcnow().date().replace(year=datetime.utcnow().year - 16)
+    cities = utils.load_cities()
+    if request.method == "POST":
+        uni_name = request.form["uni-name"]
+        clg_name = request.form["clg-name"]
+        dob = request.form["dob"]
+        grad_year = request.form["grad_year"]
+        city = request.form["city"]
+       
+        dob_date = datetime.strptime(dob, "%Y-%m-%d").date()
+        today = date.today()
+        age = today.year - dob_date.year - ((today.month, today.day) < (dob_date.month, dob_date.day))
+        
+        if age < 16:
+            return render_template("complete_profile.html",cities=cities,error="You must be atleast 16")
+
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+
+        user_id = session.get('user_id')
+
+        cur.execute("UPDATE users SET university_name=%s,college=%s,dob=%s,graduation_year=%s,current_city=%s WHERE user_id=%s",(uni_name,clg_name,dob,grad_year,city,user_id))
+
+        mydb.commit()
+        cur.close()
+        mydb.close()
+
+        return redirect(url_for("interests"))
+    return render_template('complete_profile.html',cities=cities,cutoff_date=cutoff_date)
 
 @app.route("/check_email")
 def check_email():
@@ -95,7 +146,7 @@ def verify(token):
         register_data['username'],
         register_data['password']
     ))
-
+    
     cur.execute("delete from verification_tokens WHERE token=%s",(token,))
     mydb.commit()
     
@@ -105,6 +156,40 @@ def verify(token):
     session.pop("register_data",None)
     return redirect(url_for("confirmation"))
 
+@app.route("/interests",methods=["GET","POST"])
+def interests():
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    
+    cur.execute("SELECT interest_id, name FROM interests ORDER BY name")
+    db_interests = cur.fetchall()
+    
+    if request.method == "POST":
+        selected_intrests = request.form.getlist('interests')
+        user_id = session.get('user_id')
+
+        cur.execute("DELETE FROM user_interests where user_id=%s",(user_id,))
+
+        for interest_id in selected_intrests:
+            cur.execute("INSERT INTO user_interests (user_id,interest_id) VALUES (%s,%s) ",(user_id,interest_id))
+        
+        mydb.commit()
+        cur.close()
+        mydb.close()
+
+        return redirect(url_for("thanks"))
+    cur.close()
+    mydb.close()
+    return render_template("interests.html",db_interests=db_interests)
+
+@app.route("/thanks", methods=["GET","POST"])
+def thanks():
+    if request.method == "POST":
+        if session.get('user_id'):
+            return redirect(url_for("home"))
+        else:
+            return redirect(url_for("login"))
+    return render_template("thanks.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
