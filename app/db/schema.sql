@@ -65,3 +65,16 @@ INSERT INTO interests (name) VALUES
 ('Volunteering / Social Work'),
 ('Travel'),
 ('Music / Arts / Creative Work');
+
+-- connections table
+CREATE TABLE IF NOT EXISTS connections(
+    connection_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    con_user_id INT NOT NULL,
+    request VARCHAR(500),
+    status ENUM('pending','accepted','denied') DEFAULT 'pending',
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (con_user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+
