@@ -15,10 +15,9 @@ This project is developed as part of the Smart India Hackathon (SIH) 2025 initia
 ```
 .
 ├── src/                # Source code files
-├── docs/               # Documentation
-├── tests/              # Test scripts
-├── scripts/            # Utility scripts
-├── .env.example        # Example environment config
+├── db/                 # Database
+├── static              # Styles and Images
+├── templates/          # Majorly HTML/JS Files
 ├── README.md           # This file
 ```
 
@@ -34,9 +33,9 @@ This project is developed as part of the Smart India Hackathon (SIH) 2025 initia
 
 2. **(Python projects)** Create and activate a virtual environment:
     ```bash
-    python -m venv .venv
-    source .venv/bin/activate   # On Linux/Mac
-    .venv\Scripts\activate      # On Windows
+    python -m venv venv
+    source venv/bin/activate   # On Linux/Mac
+    venv\Scripts\activate      # On Windows
     ```
 
 3. Install dependencies:
@@ -49,7 +48,7 @@ This project is developed as part of the Smart India Hackathon (SIH) 2025 initia
 4. **Configure environment variables:**
     - Copy `.env.example` to `.env`:
       ```bash
-      cp .env.example .env
+      cp .env.example src/.env
       ```
     - Edit `.env` with your settings (e.g., database URLs, API keys).
 
@@ -61,16 +60,6 @@ Explain how to run or use the project. For example:
 python src/main.py
 # or
 npm start
-```
-
-## 🧪 Testing
-
-Describe how to run tests:
-
-```bash
-pytest
-# or
-npm test
 ```
 
 ## 🤝 Contributing
