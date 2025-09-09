@@ -65,3 +65,41 @@ INSERT INTO interests (name) VALUES
 ('Volunteering / Social Work'),
 ('Travel'),
 ('Music / Arts / Creative Work');
+
+-- connections table
+CREATE TABLE IF NOT EXISTS connections(
+    connection_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    con_user_id INT NOT NULL,
+    request VARCHAR(500),
+    status ENUM('pending','accepted','denied') DEFAULT 'pending',
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (con_user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+
+
+-- education_details table it will basically store details of all the education a person has done phd masters bachelors etc
+CREATE TABLE IF NOT EXISTS education_details(
+    detail_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    degree_type ENUM('Bachelors','Masters','PHD','Doctorate') NOT NULL,
+    university_name VARCHAR(500) NOT NULL,
+    college_name VARCHAR(500),
+    major VARCHAR(500) NOT NULL,
+    graduation_year INT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+
+);
+
+--work experience table
+CREATE TABLE IF NOT EXISTS work_experience(
+    exp_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    company_name VARCHAR(255) NOT NULL,
+    job_title VARCHAR(500) NOT NULL,
+    join_year INT NOT NULL,
+    leave_year INT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    
+);
