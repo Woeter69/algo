@@ -82,7 +82,7 @@ def confirmation():
 
 @app.route('/complete_profile',methods=["GET","POST"])
 def complete_profile():
-    cutoff_date = datetime.utcnow().date().replace(year=datetime.utcnow().year - 16)
+    cutoff_date = datetime.datetime.utcnow().date().replace(year=datetime.datetime.utcnow().year - 16)
     cities = utils.load_cities()
     if request.method == "POST":
         uni_name = request.form["uni-name"]
@@ -90,9 +90,9 @@ def complete_profile():
         dob = request.form["dob"]
         grad_year = request.form["grad_year"]
         city = request.form["city"]
-       
-        dob_date = datetime.strptime(dob, "%Y-%m-%d").date()
-        today = date.today()
+         
+        dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
+        today = datetime.date.today()
         age = today.year - dob_date.year - ((today.month, today.day) < (dob_date.month, dob_date.day))
         
         if age < 16:
@@ -137,14 +137,15 @@ def verify(token):
     if not register_data:
         return redirect(url_for("register"))
     cur.execute("""
-        insert into users (firstname, lastname, email, username, password)
-        values (%s, %s, %s, %s, %s)
+        insert into users (firstname, lastname, email, username, password,veritfied)
+        values (%s, %s, %s, %s, %s, %s)
     """, (
         register_data['firstname'],
         register_data['lastname'],
         register_data['email'],
         register_data['username'],
-        register_data['password']
+        register_data['password'],
+        True
     ))
     
     cur.execute("delete from verification_tokens WHERE token=%s",(token,))

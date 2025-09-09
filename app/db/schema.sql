@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
     university_name VARCHAR(255),
     department VARCHAR(255),
     college VARCHAR(255),
-    current_city VARCHAR(255)
+    current_city VARCHAR(255),
+    pfp_path VARCHAR(255)
 );
 
 -- Table to store email verification tokens
