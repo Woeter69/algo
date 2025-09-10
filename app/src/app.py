@@ -11,8 +11,7 @@ bcrypt = Bcrypt(app)
 
 @app.route('/')
 def home():
-  name = "Woeter"
-  return render_template("index.html",name=name)
+    return render_template("home.html")
 
 @app.route("/login",methods=["GET","POST"])
 def login():
