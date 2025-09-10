@@ -1,0 +1,258 @@
+body {
+  font-family: 'Playfair Display', serif;
+}
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle at center, rgba(59,130,246,0.6), transparent 70%);
+  filter: blur(120px);
+  top: 20%;
+  left: 30%;
+  z-index: -1;
+}
+
+
+.rotating-text {
+  font-family: "Playfair Display",serif; 
+  position: relative;
+  width: 300px;
+  border-radius: 6px;
+  text-align: center; 
+  height: 3rem;
+  overflow: hidden; 
+  background-color: white;
+  padding-bottom: 25px;
+  margin-bottom: 20px;
+  margin-top: 28px;
+  margin-left: 15px;
+
+}
+
+.rotating-text span {
+  color: black;
+  width: 100%;
+  font-size: 3rem;
+  font-weight: bold;
+  position: absolute;
+  left: 0;              
+  right: 0;
+  text-align: center;
+  animation: rotate 8s infinite;
+  opacity: 0;
+  z-index: 0;
+}
+
+.rotating-text span:nth-child(1) { animation-delay: 0s; }
+.rotating-text span:nth-child(2) { animation-delay: 2s; }
+.rotating-text span:nth-child(3) { animation-delay: 4s; }
+.rotating-text span:nth-child(4) { animation-delay: 6s; }
+
+@keyframes rotate {
+  0% { transform: translateY(100%); opacity: 0; }
+  10% { transform: translateY(0); opacity: 1; }
+  25% { transform: translateY(0); opacity: 1; }
+  35% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+
+body {
+  margin: 0;
+
+  background: linear-gradient(
+    135deg,
+    #3a0066 0%,
+    #2e005f 40%,
+    #5a00b0 70%,
+    #7a00ff 100%
+  );
+  background-size: 150% 150%;           
+  animation: diagonalShift 10s linear infinite;  
+}
+
+@keyframes diagonalShift {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 60% 60%; }
+  100% { background-position: 0% 0%; }
+}
+
+
+
+
+
+.navbar {
+   font-family: 'Poppins', sans-serif;
+   position: fixed;
+   top: 0;
+   left: 50%;
+   transform: translateX(-50%);
+   width: 100%;
+   max-width: 1500px;
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 15px 25px;
+   height: 40px;
+   
+   /* Blur effect */
+   background-color: rgba(255, 255, 255, 0);
+   backdrop-filter: blur(10px);
+   -webkit-backdrop-filter: blur(10px);
+   
+   /* Border */
+   border: 1px solid rgba(255, 255, 255, 0.2);
+   
+   /* Shadow */
+   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+   z-index: 1000;
+}
+.navbar nav a {
+  color: gray;
+  text-decoration: none;
+  margin-left: 30px;
+  font-size: 16px;
+  font-family: 'Poppins', sans-serif;
+  transition: color,0.3s;
+
+}
+.navbar nav a:hover {
+  color: white;
+}
+
+.logo-nav {
+  font-family: 'Poppins', sans-serif;
+  font-weight: bold;
+  font-size: 30px;
+  display: flex;
+  width: 15px;
+  color:white;
+  align-items: center;
+  justify-content: center;
+  margin-left: 50px;
+  cursor: pointer;
+}
+
+.nav-img {
+  width: 40px;
+}
+
+.main-nav {
+  margin-left: 40px;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  justify-content: space-between;
+  font-family: "Albert Sans";
+  color: gray;
+}
+
+.main-nav a {
+  margin-left: 10px;
+}
+
+
+.log-in-button {
+  background-color: #75619D;
+  color: white;
+  width: 80px;
+  border: none;
+  border-radius: 20px;
+  height: 40px;
+  font-weight: bold;
+  margin-left: 10px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sign-up-button {
+  background-color: #E6EFF7;
+  color: #3A2D34;
+  width: 80px;
+  border: none;
+  border-radius: 20px;
+  height: 40px;
+  font-weight: bold;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sign-up-button:hover {
+  background-color: #75619D;
+  color: white;
+
+}
+
+.log-in-button:hover {
+  background-color: #E6EFF7;
+  color: #3A2D34;
+}
+
+.slogan-div {
+  color: white;
+  display: flex;
+  flex-direction: column;
+  font-size: 3rem;
+  align-items: center;     
+  margin-bottom: 15px;
+  justify-content: center;
+}
+
+
+.connect-with {
+  font-size: 3rem;
+  white-space: nowrap;  
+}
+
+.slogan-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+
+.team-rotation {
+  position: absolute;     
+  top: 110%;              
+  left: 26%;
+  transform: translate(-50%, -50%);
+  font-size: 1.8rem;
+  color: white;
+  text-align: center;
+  width: max-content;
+}
+
+.team-rotation span {
+  position: absolute;
+  width: 100%;
+  opacity: 0;
+  top: 50%;
+  left: 50%;
+  animation: fadeSequence 6s linear infinite;
+}
+
+.team-rotation .members {
+  animation-delay: 0s;
+}
+
+.team-rotation .team {
+  animation-delay: 3s;
+  font-size: 2.5rem;
+  margin-left: 225px;
+  font-weight: bold;
+}
+
+@keyframes fadeSequence {
+  0%, 20% { opacity: 0; }
+  25%, 50% { opacity: 1; }
+  55%, 100% { opacity: 0; }
+}
+
