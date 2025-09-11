@@ -92,7 +92,8 @@ CREATE TABLE IF NOT EXISTS education_details(
 
 );
 
--- contacts table for user feedback
+
+-- contacts table
 CREATE TABLE IF NOT EXISTS contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -103,7 +104,7 @@ CREATE TABLE IF NOT EXISTS contacts (
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )ENGINE=InnoDB;
 
--- work experience table    <-- This table is SUS!
+-- work experience table
 CREATE TABLE IF NOT EXISTS work_experience(
     exp_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
