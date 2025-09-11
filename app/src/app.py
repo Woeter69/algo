@@ -46,9 +46,6 @@ def register():
         password = request.form["password"]
         hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
-        if not utils.is_student_email(email):
-            return render_template("register.html",error="Only student emails are allowed")
-        
         session['register_data'] = {
             "firstname": firstname,
             "lastname": lastname,
@@ -137,7 +134,7 @@ def verify(token):
     if not register_data:
         return redirect(url_for("register"))
     cur.execute("""
-        insert into users (firstname, lastname, email, username, password,veritfied)
+        insert into users (firstname, lastname, email, username, password,verified)
         values (%s, %s, %s, %s, %s, %s)
     """, (
         register_data['firstname'],
