@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Alumni Connect</title>
+    <link rel="stylesheet" href="../static/styles/contact.css">
+</head>
+<body>
+    <div class="contact-container">
+
+        <!-- Intro Section -->
+        <section class="intro-section">
+            <h1>Get in Touch With Us</h1>
+            <p>
+                Whether you're a proud alumnus, a current student, or just interested in our initiative, 
+                we’d love to hear from you. Share your feedback, questions, or suggestions to help us build 
+                a stronger alumni network!
+            </p>
+        </section>
+
+        <div class="contact-content">
+
+            <!-- Feedback Form -->
+            <div class="form-section">
+                <h2>Send Us a Message</h2>
+
+                <form action="/contact" method="POST" class="contact-form">
+                    <div class="form-group">
+                        <label for="full_name">Full Name:</label>
+                        <input type="text" id="full_name" name="full_name" placeholder="Enter your name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address:</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Message:</label>
+                        <textarea id="message" name="message" placeholder="Write your message here..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">Submit</button>
+                </form>
+            </div>
+
+            <!-- Contact Info & Map -->
+            <div class="info-section">
+                <h2>Our Contact Details</h2>
+                <ul>
+                    <li><strong>Address:</strong> 123 Alumni Street, Education City, India</li>
+                    <li><strong>Email:</strong> info@alumniconnect.com</li>
+                    <li><strong>Phone:</strong> +91 9876543210</li>
+                    <li><strong>Website:</strong> www.alumniconnect.com</li>
+                </ul>
+
+                <div class="map-container">
+                    <h3>Find Us Here</h3>
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241317.11609775942!2d72.7410997076402!3d19.082197839077955!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7b63e1fbaa4d7%3A0x4c16f879e2827d1e!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1693465892377!5m2!1sen!2sin" 
+                        width="100%" 
+                        height="250" 
+                        style="border:0;" 
+                        allowfullscreen="" 
+                        loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
