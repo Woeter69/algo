@@ -92,7 +92,6 @@ CREATE TABLE IF NOT EXISTS education_details(
 
 );
 
---                                          ovesh start
 -- contacts table for user feedback
 CREATE TABLE IF NOT EXISTS contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -103,8 +102,6 @@ CREATE TABLE IF NOT EXISTS contacts (
     message TEXT NOT NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )ENGINE=InnoDB;
-
---                                          ovesh end
 
 -- work experience table    <-- This table is SUS!
 CREATE TABLE IF NOT EXISTS work_experience(
