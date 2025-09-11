@@ -5,4 +5,4 @@ bs4
 django
 python-dotenv
 mysql-connector-python
-vercel-python-wsgi
+vercel

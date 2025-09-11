@@ -92,7 +92,10 @@ CREATE TABLE IF NOT EXISTS education_details(
 
 );
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5bef8401dd0ae414d2dadb8f40ad580d1d8a106d
 --                                          ovesh start
 --contacts table for user feedback
 CREATE TABLE IF NOT EXISTS contacts (

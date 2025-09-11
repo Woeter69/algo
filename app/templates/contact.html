@@ -3,76 +3,571 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us - Alumni Connect</title>
-    <link rel="stylesheet" href="../static/styles/contact.css">
+    <title>Contact Us - ALGO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/styles/home.css">
+    <style>
+        /* ===== CONTACT PAGE SPECIFIC STYLES ===== */
+        :root {
+            --primary: #6D28D9;    /* Deep Purple */
+            --primary-dark: #5B21B6;
+            --secondary: #8B5CF6;  /* Much more visible purple */
+            --secondary-light: #C4B5FD; /* Clearly visible light purple */
+            --accent: #9F1239;     /* Wine Red */
+            --accent-light: #FECDD3; /* Light Pink */
+            --success: #10B981;    /* Emerald Green */
+            --dark: #1F2937;       /* Almost Black */
+            --light: #FAFAFA;      /* Off-White */
+            --text-light: #94a3b8; /* Lighter text color */
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        /* CONTACT HERO SECTION */
+        .contact-hero {
+            padding: 10rem 0 6rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--secondary-light) 0%, #ffffff 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(109, 40, 217, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+        }
+
+        .contact-hero .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-hero h1 {
+            font-size: 3.2rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, var(--dark) 0%, var(--primary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .contact-hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--text-light);
+        }
+
+        /* CONTACT CONTENT */
+        .contact-content {
+            padding: 5rem 0;
+            background-color: var(--light);
+        }
+
+        .contact-content-inner {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        /* Form Section */
+        .form-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient);
+        }
+
+        .form-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: var(--dark);
+            position: relative;
+            padding-bottom: 0.8rem;
+        }
+
+        .form-section h2::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 3px;
+            background: var(--gradient);
+            bottom: 0;
+            left: 0;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 1rem 1.2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .btn-submit {
+            padding: 1rem 2rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            box-shadow: 0 4px 6px rgba(109, 40, 217, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(109, 40, 217, 0.4);
+        }
+
+        /* Info Section */
+        .info-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--gradient);
+        }
+
+        .info-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: var(--dark);
+            position: relative;
+            padding-bottom: 0.8rem;
+        }
+
+        .info-section h2::after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 3px;
+            background: var(--gradient);
+            bottom: 0;
+            left: 0;
+        }
+
+        .info-section ul {
+            list-style: none;
+            margin-bottom: 2.5rem;
+        }
+
+        .info-section li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+            color: var(--dark);
+        }
+
+        .info-section li i {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-top: 0.2rem;
+        }
+
+        .info-section strong {
+            color: var(--primary-dark);
+        }
+
+        .map-container {
+            margin-top: 2rem;
+        }
+
+        .map-container h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .map-container h3::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 2px;
+            background: var(--gradient);
+            bottom: 0;
+            left: 0;
+        }
+
+        .map-container iframe {
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Social Media Links */
+        .social-media {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .social-media h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-icons a {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--gradient);
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(109, 40, 217, 0.4);
+        }
+
+        /* Success Message */
+        .success-message {
+            display: none;
+            background: var(--success);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* RESPONSIVE STYLES */
+        @media screen and (max-width: 968px) {
+            .contact-content-inner {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            
+            .contact-hero h1 {
+                font-size: 2.8rem;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .contact-hero {
+                padding: 8rem 0 4rem;
+            }
+            
+            .contact-hero h1 {
+                font-size: 2.4rem;
+            }
+            
+            .contact-hero p {
+                font-size: 1.1rem;
+            }
+            
+            .form-section,
+            .info-section {
+                padding: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="contact-container">
-
-        <!-- Intro Section -->
-        <section class="intro-section">
-            <h1>Get in Touch With Us</h1>
-            <p>
-                Whether you're a proud alumnus, a current student, or just interested in our initiative, 
-                we’d love to hear from you. Share your feedback, questions, or suggestions to help us build 
-                a stronger alumni network!
-            </p>
-        </section>
-
-        <div class="contact-content">
-
-            <!-- Feedback Form -->
-            <div class="form-section">
-                <h2>Send Us a Message</h2>
-
-                <form action="/contact" method="POST" class="contact-form">
-                    <div class="form-group">
-                        <label for="full_name">Full Name:</label>
-                        <input type="text" id="full_name" name="full_name" placeholder="Enter your name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address:</label>
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone">Phone Number:</label>
-                        <input type="tel" id="phone" name="phone" placeholder="Enter your phone number">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="message">Message:</label>
-                        <textarea id="message" name="message" placeholder="Write your message here..." required></textarea>
-                    </div>
-
-                    <button type="submit" class="btn-submit">Submit</button>
-                </form>
-            </div>
-
-            <!-- Contact Info & Map -->
-            <div class="info-section">
-                <h2>Our Contact Details</h2>
-                <ul>
-                    <li><strong>Address:</strong> 123 Alumni Street, Education City, India</li>
-                    <li><strong>Email:</strong> info@alumniconnect.com</li>
-                    <li><strong>Phone:</strong> +91 9876543210</li>
-                    <li><strong>Website:</strong> www.alumniconnect.com</li>
+    <!-- HEADER -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="{{ url_for('home') }}" class="logo">ALGO</a>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                    <li><a href="#" data-section="jobs">Job Board</a></li>
+                    <li><a href="#" data-section="events">Events</a></li>
+                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
                 </ul>
+                <div class="hamburger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
+            </nav>
+        </div>
+    </header>
 
-                <div class="map-container">
-                    <h3>Find Us Here</h3>
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241317.11609775942!2d72.7410997076402!3d19.082197839077955!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7b63e1fbaa4d7%3A0x4c16f879e2827d1e!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1693465892377!5m2!1sen!2sin" 
-                        width="100%" 
-                        height="250" 
-                        style="border:0;" 
-                        allowfullscreen="" 
-                        loading="lazy">
-                    </iframe>
+    <!-- CONTACT HERO SECTION -->
+    <section class="contact-hero">
+        <div class="container">
+            <h1>Get in Touch With Us</h1>
+            <p>Whether you're a proud alumnus, a current student, or just interested in our initiative, we'd love to hear from you. Share your feedback, questions, or suggestions to help us build a stronger alumni network!</p>
+        </div>
+    </section>
+
+    <!-- CONTACT CONTENT -->
+    <section class="contact-content">
+        <div class="container">
+            <div class="contact-content-inner">
+                <!-- Feedback Form -->
+                <div class="form-section">
+                    <h2>Send Us a Message</h2>
+
+                    <form id="contactForm" class="contact-form">
+                        <div class="form-group">
+                            <label for="full_name">Full Name:</label>
+                            <input type="text" id="full_name" name="full_name" placeholder="Enter your name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email Address:</label>
+                            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Phone Number:</label>
+                            <input type="tel" id="phone" name="phone" placeholder="Enter your phone number">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject">Subject:</label>
+                            <select id="subject" name="subject" required>
+                                <option value="">Select a subject</option>
+                                <option value="general">General Inquiry</option>
+                                <option value="feedback">Feedback</option>
+                                <option value="support">Technical Support</option>
+                                <option value="partnership">Partnership Opportunity</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Message:</label>
+                            <textarea id="message" name="message" placeholder="Write your message here..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-submit">Submit Message</button>
+                    </form>
+                    
+                    <div id="successMessage" class="success-message">
+                        <i class="fas fa-check-circle"></i> Thank you for your message! We'll get back to you soon.
+                    </div>
+                </div>
+
+                <!-- Contact Info & Map -->
+                <div class="info-section">
+                    <h2>Our Contact Details</h2>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> Cluster Innovation Centre, University of Delhi, Delhi - 110007</li>
+                        <li><i class="fas fa-envelope"></i> <strong>Email:</strong> info@alumniconnect.com</li>
+                        <li><i class="fas fa-phone"></i> <strong>Phone:</strong> +91 9876543210</li>
+                        <li><i class="fas fa-globe"></i> <strong>Website:</strong> www.alumniconnect.com</li>
+                        <li><i class="fas fa-clock"></i> <strong>Hours:</strong> Monday - Friday: 9AM - 5PM</li>
+                    </ul>
+
+                    <div class="social-media">
+                        <h3>Follow Us</h3>
+                        <div class="social-icons">
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="map-container">
+                        <h3>Find Us Here</h3>
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3501.366332321218!2d77.20872231508336!3d28.68864438240466!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0283c6fb5f2d%3A0xefb0b5ff1a89c0a3!2sCluster%20Innovation%20Centre%2C%20University%20of%20Delhi!5e0!3m2!1sen!2sin!4v1649840350935!5m2!1sen!2sin" 
+                            width="100%" 
+                            height="250" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy">
+                        </iframe>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo">ALGO</span>
+                    <p>Connecting students and alumni for career growth and opportunities.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="{{ url_for('home') }}">Home</a></li>
+                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                        <li><a href="#" data-section="jobs">Job Board</a></li>
+                        <li><a href="#" data-section="events">Events</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Career Tips</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Navigation
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        const links = document.querySelectorAll('.nav-links li');
+
+        hamburger.addEventListener('click', () => {
+            // Toggle Nav
+            navLinks.classList.toggle('open');
+            
+            // Animate Links
+            links.forEach((link, index) => {
+                if (link.style.animation) {
+                    link.style.animation = '';
+                } else {
+                    link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
+                }
+            });
+            
+            // Hamburger Animation
+            hamburger.classList.toggle('toggle');
+        });
+
+        // Close mobile menu when clicking on a nav link
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+                hamburger.classList.remove('toggle');
+                links.forEach(link => {
+                    link.style.animation = '';
+                });
+            });
+        });
+
+        // Scroll Header Effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Form Submission
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // In a real application, you would send the form data to a server here
+            // For demonstration, we'll just show the success message
+            
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            
+            // Reset form
+            this.reset();
+            
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+        });
+    </script>
 </body>
 </html>
