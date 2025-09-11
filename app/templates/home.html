@@ -19,7 +19,7 @@
                     <li><a href="#" data-section="browse">Browse Alumni</a></li>
                     <li><a href="#" data-section="jobs">Job Board</a></li>
                     <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="#" data-section="contact">Contact Us</a></li>
+                    <li><a href="{{ url_for('contact') }}" >Contact Us</a></li>
                     <li><a href="{{ url_for('login') }}">Login</a></li>
                     <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
                 </ul>
@@ -309,7 +309,7 @@
                     <h3>Support</h3>
                     <ul>
                         <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
                         <li><a href="#">Privacy Policy</a></li>
                         <li><a href="#">Terms of Service</a></li>
                     </ul>
