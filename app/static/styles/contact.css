@@ -1,0 +1,155 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    margin: 0;
+    padding: 0;
+}
+
+.contact-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+/* Intro Section */
+.intro-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.intro-section h1 {
+    font-size: 2.5rem;
+    color: #333;
+}
+
+.intro-section p {
+    color: #555;
+    max-width: 700px;
+    margin: 10px auto;
+    line-height: 1.6;
+}
+
+/* Main Layout */
+.contact-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Form Section */
+.form-section {
+    flex: 1;
+    min-width: 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.form-section h2 {
+    margin-bottom: 20px;
+    color: #4a90e2;
+}
+
+.contact-form .form-group {
+    margin-bottom: 15px;
+}
+
+.contact-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    border-color: #4a90e2;
+}
+
+.contact-form textarea {
+    height: 100px;
+    resize: none;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 10px;
+    background: #4a90e2;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-submit:hover {
+    background: #357abd;
+}
+
+/* Success Message */
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Info Section */
+.info-section {
+    flex: 1;
+    min-width: 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+.info-section h2 {
+    margin-bottom: 15px;
+    color: #4a90e2;
+}
+
+.info-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.info-section ul li {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.info-section strong {
+    color: #333;
+}
+
+/* Map */
+.map-container {
+    margin-top: 20px;
+}
+
+.map-container h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+iframe {
+    border-radius: 10px;
+    width: 100%;
+}
