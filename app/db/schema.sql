@@ -92,7 +92,20 @@ CREATE TABLE IF NOT EXISTS education_details(
 
 );
 
---work experience table
+--                                          ovesh start
+--contacts table for user feedback
+CREATE TABLE IF NOT EXISTS contacts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    message TEXT NOT NULL,
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--                                          ovesh end
+
+--work experience table    <-- This table is SUS!
 CREATE TABLE IF NOT EXISTS work_experience(
     exp_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
