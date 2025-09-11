@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALGO - Alumni Go</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/styles/home.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo" id="home-link">ALGO</a>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
+                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                    <li><a href="#" data-section="jobs">Job Board</a></li>
+                    <li><a href="#" data-section="events">Events</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
+                </ul>
+                <div class="hamburger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero" id="home-section">
+        <div class="container">
+            <h1>Your Network Is Your Net Worth</h1>
+            <p>ALGO is the premier platform for students and alumni to connect, mentor, and unlock exclusive career opportunities. Build your future, together.</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn" data-section="browse">Find an Alum</a>
+                <a href="#" class="btn btn-accent" data-section="jobs">Explore Jobs</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Join ALGO?</h2>
+                <p>We provide the tools to build your professional network and accelerate your career.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>Detailed Profiles</h3>
+                    <p>Find the right people with advanced search by company, role, skills, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h3>Exclusive Opportunities</h3>
+                    <p>Get first access to jobs and internships posted directly by trusted alumni.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Direct Mentorship</h3>
+                    <p>Get personalized advice and guidance from those who've been in your shoes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3>Career Development</h3>
+                    <p>Access resources and workshops to enhance your professional skills and growth.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>Networking Events</h3>
+                    <p>Join virtual and in-person events to connect with alumni across industries.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-hands-helping"></i>
+                    </div>
+                    <h3>Community Support</h3>
+                    <p>Become part of a supportive community that helps each other succeed.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA SECTION -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Launch Your Career?</h2>
+            <p>Join thousands of students and alumni already building their future on ALGO. It's free and always will be.</p>
+            <a href="register.html" class="btn">Sign Up - It's Free!</a>
+        </div>
+    </section>
+
+    <!-- COMING SOON SECTIONS -->
+    <section class="coming-soon" id="browse-section">
+        <div class="container">
+            <div class="coming-soon-content">
+                <div class="coming-soon-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h2>Browse Alumni</h2>
+                <p>We're building a powerful directory to help you connect with alumni from your institution. Our advanced search will let you filter by company, role, skills, location, and more.</p>
+                
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
+                
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-value">14</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">08</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">32</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                </div>
+                
+                <a href="#" class="btn" data-section="home">Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="coming-soon" id="jobs-section">
+        <div class="container">
+            <div class="coming-soon-content">
+                <div class="coming-soon-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <h2>Job Board</h2>
+                <p>Our exclusive job board is under development. Soon you'll find opportunities posted directly by alumni who want to help fellow graduates. Get ready for curated job listings with insider access.</p>
+                
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
+                
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-value">21</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">14</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">45</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                </div>
+                
+                <a href="#" class="btn" data-section="home">Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="coming-soon" id="events-section">
+        <div class="container">
+            <div class="coming-soon-content">
+                <div class="coming-soon-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h2>Events</h2>
+                <p>We're working on bringing you networking events, career workshops, and alumni meetups. Both virtual and in-person events will be available to help you expand your professional network.</p>
+                
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
+                
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-value">28</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">06</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">12</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                </div>
+                
+                <a href="#" class="btn" data-section="home">Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="coming-soon" id="login-section">
+        <div class="container">
+            <div class="coming-soon-content">
+                <div class="coming-soon-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <h2>Login</h2>
+                <p>The login functionality is currently being developed with enhanced security features. We're implementing secure authentication to protect your data and privacy.</p>
+                
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
+                
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-value">07</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">20</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">15</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                </div>
+                
+                <a href="#" class="btn" data-section="home">Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="coming-soon" id="register-section">
+        <div class="container">
+            <div class="coming-soon-content">
+                <div class="coming-soon-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h2>Sign Up</h2>
+                <p>Registration will be available soon. We're putting the finishing touches on our sign-up process to make it quick and easy while ensuring the highest security standards for your data.</p>
+                
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
+                
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-value">05</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">10</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-value">30</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                </div>
+                
+                <a href="#" class="btn" data-section="home">Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo">ALGO</span>
+                    <p>Connecting students and alumni for career growth and opportunities.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#" data-section="home">Home</a></li>
+                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                        <li><a href="#" data-section="jobs">Job Board</a></li>
+                        <li><a href="#" data-section="events">Events</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Career Tips</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Navigation
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        const links = document.querySelectorAll('.nav-links li');
+
+        hamburger.addEventListener('click', () => {
+            // Toggle Nav
+            navLinks.classList.toggle('open');
+            
+            // Animate Links
+            links.forEach((link, index) => {
+                if (link.style.animation) {
+                    link.style.animation = '';
+                } else {
+                    link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
+                }
+            });
+            
+            // Hamburger Animation
+            hamburger.classList.toggle('toggle');
+        });
+
+        // Close mobile menu when clicking on a nav link
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+                hamburger.classList.remove('toggle');
+                links.forEach(link => {
+                    link.style.animation = '';
+                });
+            });
+        });
+
+        // Scroll Header Effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Section Navigation
+        const allSections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('[data-section]');
+        
+        // Hide all coming soon sections initially
+        document.querySelectorAll('.coming-soon').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Handle navigation clicks
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Don't prevent default for login and register links
+                const sectionName = item.getAttribute('data-section');
+                if (sectionName === 'login' || sectionName === 'register') {
+                    return; // Let the link work normally
+                }
+                
+                e.preventDefault();
+                
+                if (sectionName === 'home') {
+                    // Show home section, hide others
+                    document.getElementById('home-section').style.display = 'block';
+                    document.querySelector('.features').style.display = 'block';
+                    document.querySelector('.cta').style.display = 'block';
+                    document.querySelectorAll('.coming-soon').forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    
+                    // Scroll to top
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // Hide main content, show the selected coming soon section
+                    document.getElementById('home-section').style.display = 'none';
+                    document.querySelector('.features').style.display = 'none';
+                    document.querySelector('.cta').style.display = 'none';
+                    document.querySelectorAll('.coming-soon').forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    
+                    const targetSection = document.getElementById(`${sectionName}-section`);
+                    if (targetSection) {
+                        targetSection.style.display = 'flex';
+                        
+                        // Scroll to the section
+                        window.scrollTo({
+                            top: targetSection.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+                
+                // Update active nav link
+                navItems.forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                item.classList.add('active');
+            });
+        });
+
+        // Initialize page - make sure home is shown
+        document.getElementById('home-section').style.display = 'block';
+        document.querySelector('.features').style.display = 'block';
+        document.querySelector('.cta').style.display = 'block';
+    </script>
+</body>
+</html>
