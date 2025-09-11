@@ -1,7 +1,8 @@
- flask
- flask-bcrypt
- bcrypt
- bs4
- django
- python-dotenv
- mysql-connector-python
+flask
+flask-bcrypt
+bcrypt
+bs4
+django
+python-dotenv
+mysql-connector-python
+vercel-python-wsgi
