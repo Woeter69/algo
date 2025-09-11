@@ -183,6 +183,46 @@ def interests():
     mydb.close()
     return render_template("interests.html",db_interests=db_interests)
 
+"""-------------------------Code block added by ovesh start----------------------------------------"""
+
+@app.route('/contact', methods=["GET", "POST"])
+def contact():
+    if request.method == "POST":
+        full_name = request.form.get("full_name")
+        email = request.form.get("email")
+        phone = request.form.get("phone")
+        message = request.form.get("message")
+
+        print("Received form:", full_name, email, phone, message)  # DEBUG
+
+        if not full_name or not email or not message:
+            return "Please fill in all required fields.", 400
+
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        try:
+            cur.execute("""
+                INSERT INTO contacts (full_name, email, phone, message)
+                VALUES (%s, %s, %s, %s)
+            """, (full_name, email, phone, message))
+            mydb.commit()
+            print("Insert successful!")  # DEBUG
+        except Exception as e:
+            mydb.rollback()
+            print("Database error:", e)
+            return "Database error", 500
+        finally:
+            cur.close()
+            mydb.close()
+
+        return redirect(url_for("contact"))  # clears form after POST
+
+    return render_template("contact.html")
+
+        
+
+"""-------------------------------code block added by ovesh finish----------------------------------------"""
+
 @app.route("/thanks", methods=["GET","POST"])
 def thanks():
     if request.method == "POST":
