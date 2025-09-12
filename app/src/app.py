@@ -1,6 +1,9 @@
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask,render_template,request, session, redirect, url_for
 from . import connection 
-import os, secrets, datetime,sys
+import secrets, datetime
 from flask_bcrypt import Bcrypt
 from . import utils, validators
 from .connection import get_db_connection
@@ -286,6 +289,10 @@ def thanks():
         else:
             return redirect(url_for("login"))
     return render_template("thanks.html")
+
+@app.route("/dashboard", methods=["GET","POST"])
+def dashboard():
+    return render_template("dashboard.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
