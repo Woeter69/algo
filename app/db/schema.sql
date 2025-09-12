@@ -92,17 +92,8 @@ CREATE TABLE IF NOT EXISTS education_details(
 
 );
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
->>>>>>> 5bef8401dd0ae414d2dadb8f40ad580d1d8a106d
---                                          ovesh start
---contacts table for user feedback
-=======
 
 -- contacts table
->>>>>>> 9fdc72160a1033c94540fc3196e601cfdf1c0b87
 CREATE TABLE IF NOT EXISTS contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
