@@ -13,5 +13,7 @@ def is_student_email(email):
     return re.match(pattern,email) is not None
 
 def load_cities():
-    with open("../static/data/cities-name-list.json", encoding="utf-8") as f:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # gives /app/src
+    DATA_PATH = os.path.join(BASE_DIR, "..", "static", "data", "cities-name-list.json")
+    with open(DATA_PATH, encoding="utf-8") as f:
         return json.load(f)
