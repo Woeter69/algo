@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS education_details(
 
 );
 
-
+-- contacts table
 CREATE TABLE IF NOT EXISTS contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
