@@ -1,9 +1,10 @@
 from flask import Flask,render_template,request, session, redirect, url_for
-import connection 
-import os, secrets, datetime
+from . import connection 
+import os, secrets, datetime,sys
 from flask_bcrypt import Bcrypt
-import utils, validators
-from connection import get_db_connection
+from . import utils, validators
+from .connection import get_db_connection
+
 
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
