@@ -97,6 +97,7 @@ nav {
 }
 
 .logo {
+    font-family: 'League Spartan', sans-serif;
     font-size: 2.2rem;
     font-weight: 800;
     background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
@@ -369,7 +370,9 @@ footer {
 }
 
 .footer-logo .logo {
+    font-family: 'League Spartan', sans-serif;
     font-size: 2.5rem;
+    font-weight: 800;
     margin-bottom: 1rem;
     display: block;
 }
