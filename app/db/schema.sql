@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS contacts (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
-    subject VARCHAR(255)
+    subject VARCHAR(255),
     message TEXT NOT NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )ENGINE=InnoDB;
