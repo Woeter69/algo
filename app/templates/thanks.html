@@ -291,6 +291,7 @@
         }
 
         /* ===== FOOTER ===== */
+       
         footer {
             background-color: var(--dark);
             color: white;
@@ -301,8 +302,8 @@
 
         .footer-content {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250极px, 1fr));
-            gap极: 2.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2.5rem;
             margin-bottom: 3rem;
             text-align: left;
         }
@@ -311,7 +312,7 @@
             margin-bottom: 2rem;
         }
 
-        .footer极-logo .logo {
+        .footer-logo .logo {
             font-size: 2.5rem;
             margin-bottom: 1rem;
             display: block;
@@ -328,7 +329,7 @@
             font-size: 1.3rem;
             margin-bottom: 1.5rem;
             position: relative;
-            padding-bottom: 0.5极rem;
+            padding-bottom: 0.5rem;
         }
 
         .footer-links h3::after {
@@ -492,7 +493,8 @@
     </section>
 
     <!-- FOOTER -->
-    <footer>
+    
+<footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-logo">
@@ -500,7 +502,7 @@
                     <p>Connecting students and alumni for career growth and opportunities.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></极i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-linkedin-in"></i></a>
                         <a href="#"><i class="fab fa-instagram"></i></a>
                     </div>
@@ -524,7 +526,7 @@
                     </ul>
                 </div>
                 <div class="footer-links">
-                    <h3>Support</极3>
+                    <h3>Support</h3>
                     <ul>
                         <li><a href="#">Help Center</a></li>
                         <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
