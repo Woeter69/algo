@@ -109,6 +109,8 @@ def confirmation():
 
 @app.route('/complete_profile',methods=["GET","POST"])
 def complete_profile():
+    mydb = None
+    cur = None
     try:
         cutoff_date = datetime.datetime.utcnow().date().replace(year=datetime.datetime.utcnow().year - 16)
         cities = utils.load_cities()
