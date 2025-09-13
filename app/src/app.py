@@ -235,7 +235,7 @@ def interests():
             mydb.commit()
            
 
-            return redirect(url_for("thanks"))
+            return redirect(url_for("dashboard"))
         return render_template("interests.html",db_interests=db_interests)
     
     except Exception as e:
