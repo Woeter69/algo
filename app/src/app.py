@@ -80,8 +80,9 @@ def register():
             mydb.commit()
             cur.close()
             mydb.close()
-
-            link = f"http://127.0.0.1:5000/verify/{token}"
+            
+            APP_URL = os.getenv("APP_URL")
+            link = f"{APP_URL}/verify/{token}"
             validators.send_verification_email(email, link)
 
             return redirect(url_for("check_email"))
