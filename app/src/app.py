@@ -34,11 +34,18 @@ def login():
 
             cur.execute("SELECT user_id,password FROM users where email=%s",(email,))
             row = cur.fetchone()
-
+            
+            cur.execute("SELECT dob FROM users where email=%s",(email,))
+            dob = cur.fetchone()
             cur.close()
             mydb.close()
 
             if row:
+                if dob:
+                    user_id,hashed_password = row
+                    if bcrypt.check_password_hash(hashed_password,password):
+                        session['user_id'] = user_id
+                        return redirect(url_for("dashboard"))
                 user_id,hashed_password = row
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
