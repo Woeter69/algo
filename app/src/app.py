@@ -41,17 +41,14 @@ def login():
             mydb.close()
 
             if row:
-                if dob:
-                    user_id,hashed_password = row
-                    if bcrypt.check_password_hash(hashed_password,password):
-                        session['user_id'] = user_id
-                        return redirect(url_for("dashboard"))
                 user_id,hashed_password = row
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
-                    return redirect(url_for("complete_profile"))
+                    if dob:
+                        return redirect(url_for(dashboard))
+                    else:
+                        return redirect(url_for(complete_profile))
             return render_template("login.html",error="Invalid Credentials")
-        
     except Exception as e:
         app.logger.error(f"Error during login: {str(e)}")
         flash("An unexpected error occurred. Please try again later.")
