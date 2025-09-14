@@ -45,9 +45,9 @@ def login():
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
                     if dob:
-                        return redirect(url_for(dashboard))
+                        return redirect(url_for("dashboard"))
                     else:
-                        return redirect(url_for(complete_profile))
+                        return redirect(url_for("complete_profile"))
             return render_template("login.html",error="Invalid Credentials")
     except Exception as e:
         app.logger.error(f"Error during login: {str(e)}")
