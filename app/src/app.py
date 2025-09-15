@@ -299,6 +299,8 @@ def thanks():
 
 @app.route("/dashboard", methods=["GET","POST"])
 def dashboard():
+    if request.method == "POST":
+        print("Redirecting to Home")
     return render_template("dashboard.html")
 
 if __name__ == "__main__":
