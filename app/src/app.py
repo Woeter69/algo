@@ -35,7 +35,9 @@ def login():
 
             cur.execute("SELECT user_id,password FROM users where email=%s",(email,))
             row = cur.fetchone()
-
+            
+            cur.execute("SELECT dob FROM users where email=%s",(email,))
+            dob = cur.fetchone()
             cur.close()
             mydb.close()
 
@@ -43,9 +45,11 @@ def login():
                 user_id,hashed_password = row
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
-                    return redirect(url_for("complete_profile"))
+                    if dob:
+                        return redirect(url_for("dashboard"))
+                    else:
+                        return redirect(url_for("complete_profile"))
             return render_template("login.html",error="Invalid Credentials")
-        
     except Exception as e:
         app.logger.error(f"Error during login: {str(e)}")
         flash("An unexpected error occurred. Please try again later.")
@@ -81,8 +85,9 @@ def register():
             mydb.commit()
             cur.close()
             mydb.close()
-
-            link = f"http://127.0.0.1:5000/verify/{token}"
+            
+            APP_URL = os.getenv("APP_URL")
+            link = f"{APP_URL}/verify/{token}"
             validators.send_verification_email(email, link)
 
             return redirect(url_for("check_email"))
@@ -109,6 +114,8 @@ def confirmation():
 
 @app.route('/complete_profile',methods=["GET","POST"])
 def complete_profile():
+    mydb = None
+    cur = None
     try:
         cutoff_date = datetime.datetime.utcnow().date().replace(year=datetime.datetime.utcnow().year - 16)
         cities = utils.load_cities()
@@ -233,7 +240,7 @@ def interests():
             mydb.commit()
            
 
-            return redirect(url_for("thanks"))
+            return redirect(url_for("dashboard"))
         return render_template("interests.html",db_interests=db_interests)
     
     except Exception as e:
@@ -298,7 +305,7 @@ def dashboard():
     return render_template("dashboard.html")
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
-
-# Fixed Flash issues
+    port = int(os.getenv("PORT", 5000))
+    debug = os.getenv("DEBUG", "True") == "True"
+    app.run(host="0.0.0.0", port=port, debug=debug)
+ # Fixed Flash issues

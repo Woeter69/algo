@@ -1,9 +1,9 @@
-flask
-flask-bcrypt
+Flask
+Flask-Bcrypt
 bcrypt
 bs4
 django
 python-dotenv
-mysql-connector-python
+psycopg2-binary
 vercel
 gunicorn
