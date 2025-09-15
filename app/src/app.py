@@ -1,4 +1,5 @@
 import sys, os
+#Fixed sys.path of won't clash later
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask,render_template,request, session, redirect, url_for,flash
@@ -292,6 +293,8 @@ def thanks():
 
 @app.route("/dashboard", methods=["GET","POST"])
 def dashboard():
+    if request.method == "POST":
+        print("Redirecting to Home")
     return render_template("dashboard.html")
 
 if __name__ == "__main__":
