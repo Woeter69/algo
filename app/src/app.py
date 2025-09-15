@@ -1,5 +1,5 @@
 import sys, os
-#Fixed sys.path of won't clash later
+# Fixed sys.path of won't clash later
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask,render_template,request, session, redirect, url_for,flash
@@ -9,7 +9,7 @@ from flask_bcrypt import Bcrypt
 from . import utils, validators
 from .connection import get_db_connection
 
-
+# Defining Flask app
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
 
