@@ -1,14 +1,15 @@
 import sys, os
+# Fixed sys.path of won't clash later
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from flask import Flask,render_template,request, session, redirect, url_for
+from flask import Flask,render_template,request, session, redirect, url_for,flash
 from . import connection 
 import secrets, datetime
 from flask_bcrypt import Bcrypt
 from . import utils, validators
 from .connection import get_db_connection
 
-
+# Defining Flask app
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
 
@@ -292,7 +293,12 @@ def thanks():
 
 @app.route("/dashboard", methods=["GET","POST"])
 def dashboard():
+    if request.method == "POST":
+        print("Redirecting to Home")
     return render_template("dashboard.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+# Fixed Flash issues
