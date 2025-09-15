@@ -2,7 +2,7 @@
 
 Welcome to the **SIH Project 2025** repository!
 
-This project is developed as part of the Smart India Hackathon (SIH) 2025 initiative. The goal is to build innovative solutions for real-world challenges, leveraging modern technologies and best practices.
+This project is developed as part of the Smart India Hackathon (SIH) 2025 initiative. The goal is to build innovative solutions for real-world challenges, leveraging modern technologies and best practices...
 
 ## 🚀 Project Overview
 
