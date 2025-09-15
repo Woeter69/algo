@@ -1,43 +1,41 @@
-CREATE DATABASE IF NOT EXISTS alumni_platform;
-USE alumni_platform;
+-- no CREATE DATABASE IF NOT EXISTS. In Postgres you run this once as superuser:
+-- CREATE DATABASE alumni_platform;
+
+-- Then connect to alumni_platform and run the rest:
 
 -- Users table
-CREATE TABLE IF NOT EXISTS users (
-    user_id INT PRIMARY KEY AUTO_INCREMENT,
-    firstname VARCHAR(255) NOT NULL,
-    lastname VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    firstname TEXT NOT NULL,
+    lastname TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    verified BOOLEAN DEFAULT FALSE,   -- Track email verification
+    verified BOOLEAN DEFAULT FALSE,
 
-    -- Profile info
     dob DATE,
     graduation_year INT,
-    university_name VARCHAR(255),
-    department VARCHAR(255),
-    college VARCHAR(255),
-    current_city VARCHAR(255),
-    pfp_path VARCHAR(255)
+    university_name TEXT,
+    department TEXT,
+    college TEXT,
+    current_city TEXT,
+    pfp_path TEXT
 );
 
--- Table to store email verification tokens
-CREATE TABLE IF NOT EXISTS verification_tokens (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    token VARCHAR(255) UNIQUE NOT NULL,
-    expiry DATETIME NOT NULL
+CREATE TABLE verification_tokens (
+    id SERIAL PRIMARY KEY,
+    email TEXT NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    expiry TIMESTAMP NOT NULL
 );
 
--- Table for all possible interests
-CREATE TABLE IF NOT EXISTS interests (
-    interest_id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) UNIQUE NOT NULL
+CREATE TABLE interests (
+    interest_id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
 );
 
--- Many-to-many table linking users and interests
-CREATE TABLE IF NOT EXISTS user_interests (
+CREATE TABLE user_interests (
     user_id INT NOT NULL,
     interest_id INT NOT NULL,
     PRIMARY KEY(user_id, interest_id),
@@ -45,7 +43,6 @@ CREATE TABLE IF NOT EXISTS user_interests (
     FOREIGN KEY (interest_id) REFERENCES interests(interest_id) ON DELETE CASCADE
 );
 
--- Populate interests (relevant for alumni networking)
 INSERT INTO interests (name) VALUES
 ('Career Guidance'),
 ('Internships / Job Opportunities'),
@@ -66,51 +63,43 @@ INSERT INTO interests (name) VALUES
 ('Travel'),
 ('Music / Arts / Creative Work');
 
--- connections table
-CREATE TABLE IF NOT EXISTS connections(
-    connection_id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE connections (
+    connection_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     con_user_id INT NOT NULL,
-    request VARCHAR(500),
-    status ENUM('pending','accepted','denied') DEFAULT 'pending',
+    request TEXT,
+    status TEXT CHECK (status IN ('pending','accepted','denied')) DEFAULT 'pending',
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (con_user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-
-
--- education_details table it will basically store details of all the education a person has done phd masters bachelors etc
-CREATE TABLE IF NOT EXISTS education_details(
-    detail_id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE education_details (
+    detail_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
-    degree_type ENUM('Bachelors','Masters','PHD','Doctorate') NOT NULL,
-    university_name VARCHAR(500) NOT NULL,
-    college_name VARCHAR(500),
-    major VARCHAR(500) NOT NULL,
+    degree_type TEXT CHECK (degree_type IN ('Bachelors','Masters','PHD','Doctorate')) NOT NULL,
+    university_name TEXT NOT NULL,
+    college_name TEXT,
+    major TEXT NOT NULL,
     graduation_year INT,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-
 );
 
-
--- contacts table
-CREATE TABLE IF NOT EXISTS contacts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    full_name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    subject VARCHAR(255),
+CREATE TABLE contacts (
+    id SERIAL PRIMARY KEY,
+    full_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    subject TEXT,
     message TEXT NOT NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-)ENGINE=InnoDB;
+);
 
--- work experience table
-CREATE TABLE IF NOT EXISTS work_experience(
-    exp_id INT PRIMARY KEY AUTO_INCREMENT,
+CREATE TABLE work_experience (
+    exp_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
-    company_name VARCHAR(255) NOT NULL,
-    job_title VARCHAR(500) NOT NULL,
+    company_name TEXT NOT NULL,
+    job_title TEXT NOT NULL,
     join_year INT NOT NULL,
     leave_year INT,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-)ENGINE=InnoDB;
+);
