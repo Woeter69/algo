@@ -26,6 +26,9 @@ def home():
 
 @app.route("/login",methods=["GET","POST"])
 def login():
+    cur = None
+    mydb = None
+
     try:
         if request.method == "POST":
             email = request.form["email"]
@@ -41,7 +44,7 @@ def login():
                 user_id,hashed_password,login_count = row
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
-                    cur.execute("UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s", (datetime.utcnow(), user_id))
+                    cur.execute("UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s", (datetime.datetime.utcnow(), user_id))
 
                     if login_count == 0:
                         return redirect(url_for("complete_profile"))
@@ -56,9 +59,9 @@ def login():
         return render_template("login.html"), 500
     
     finally:
-        if cur:
+        if cur is not None:
             cur.close()
-        if mydb:
+        if mydb is not None:
             mydb.close()
 
 @app.route('/register',methods=["GET","POST"])
