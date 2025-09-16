@@ -28,11 +28,12 @@ def login():
     try:
         if request.method == "POST":
             email = request.form["email"]
+            username = request.form["email"]
             password = request.form["password"]
             mydb = get_db_connection()
             cur = mydb.cursor()
 
-            cur.execute("SELECT user_id,password FROM users where email=%s",(email,))
+            cur.execute("SELECT user_id,password FROM users where email=%s OR username=%s ",(email,username))
             row = cur.fetchone()
             
             cur.execute("SELECT dob FROM users where email=%s",(email,))
