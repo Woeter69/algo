@@ -1,22 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Profile - ALGO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         /* ===== BASE STYLES & COLOR PALETTE ===== */
         :root {
-            --primary: #6D28D9;    /* Deep Purple */
+            --primary: #6D28D9;
+            /* Deep Purple */
             --primary-dark: #5B21B6;
-            --secondary: #8B5CF6;  /* Much more visible purple */
-            --secondary-light: #C4B5FD; /* Clearly visible light purple */
-            --accent: #9F1239;     /* Wine Red */
-            --dark: #1F2937;       /* Almost Black */
-            --light: #FAFAFA;      /* Off-White */
-            --text-light: #94a3b8; /* Lighter text color */
+            --secondary: #8B5CF6;
+            /* Much more visible purple */
+            --secondary-light: #C4B5FD;
+            /* Clearly visible light purple */
+            --accent: #9F1239;
+            /* Wine Red */
+            --dark: #1F2937;
+            /* Almost Black */
+            --light: #FAFAFA;
+            /* Off-White */
+            --text-light: #94a3b8;
+            /* Lighter text color */
         }
 
         * {
@@ -254,7 +263,7 @@
             font-size: 0.95rem;
         }
 
-        .form-group input, 
+        .form-group input,
         .form-group select {
             padding: 1rem 1.2rem;
             border: 1px solid #e2e8f0;
@@ -268,6 +277,78 @@
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+        }
+
+        /* ===== PROFILE PICTURE UPLOAD STYLES ===== */
+        .profile-picture-group {
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-picture-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-picture-preview {
+            width: 120px;
+            height: 120px;
+            border: 3px dashed #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #f8fafc;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-picture-preview:hover {
+            border-color: var(--primary);
+            background-color: rgba(109, 40, 217, 0.05);
+        }
+
+        .profile-picture-preview i {
+            font-size: 3rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-picture-preview .preview-text {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .profile-picture-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-picture-preview.has-image i,
+        .profile-picture-preview.has-image .preview-text {
+            display: none;
+        }
+
+        .profile-picture-input {
+            display: none;
+        }
+
+        .upload-info {
+            text-align: center;
+        }
+
+        .upload-info small {
+            color: var(--text-light);
+            font-size: 0.85rem;
         }
 
         .form-row {
@@ -456,12 +537,13 @@
         }
     </style>
 </head>
+
 <body>
     <!-- HEADER -->
     <header>
         <div class="container">
             <nav>
-                <a href="{{ url_for('home') }}" class="logo">ALGO</a>
+                <a href="{{ url_for('home') }}" class="logo">algo</a>
                 <ul class="nav-links">
                     <li><a href="{{ url_for('home') }}">Home</a></li>
                     <li><a href="#" data-section="browse">Browse Alumni</a></li>
@@ -487,44 +569,61 @@
                 <h2>Complete Your Profile</h2>
                 <p>Help us personalize your ALGO experience</p>
             </div>
-            <form method="POST" action="/complete_profile" class="profile-form">
+            <form method="POST" action="/complete_profile" class="profile-form" enctype="multipart/form-data">
+                <div class="form-group profile-picture-group">
+                    <label for="profile-picture">Profile Picture</label>
+                    <div class="profile-picture-container">
+                        <div class="profile-picture-preview" id="profile-preview">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="preview-text">Click to upload photo</span>
+                        </div>
+                        <input type="file" id="profile-picture" name="pfp" accept="image/*"
+                            class="profile-picture-input">
+                        <div class="upload-info">
+                            <small>Recommended: Square image, max 5MB (JPG, PNG, GIF)</small>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="uni-name">University Name</label>
-                    <input type="text" id="uni-name" name="uni-name" class="uni-name" placeholder="Enter your university name">
+                    <input type="text" id="uni-name" name="uni-name" class="uni-name"
+                        placeholder="Enter your university name">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="clg-name">College Name</label>
-                    <input type="text" id="clg-name" name="clg-name" class="clg-name" placeholder="Enter your college name">
+                    <input type="text" id="clg-name" name="clg-name" class="clg-name"
+                        placeholder="Enter your college name">
                 </div>
-                
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="dob">Date of Birth</label>
                         <input type="date" id="dob" name="dob" class="dob" required max="{{cutoff_date}}">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="grad_year">Graduation Year</label>
                         <select id="grad_year" name="grad_year" class="grad_year" required>
                             <option value="" disabled selected>Select graduation year</option>
                             {% for year in range(1980, 2031) %}
-                                <option value="{{ year }}">{{ year }}</option>
+                            <option value="{{ year }}">{{ year }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="city">City</label>
                     <select id="city" name="city" class="city" required>
                         <option value="" disabled selected>Select your city</option>
                         {% for city in cities %}
-                            <option value="{{city}}">{{city}}</option>
+                        <option value="{{city}}">{{city}}</option>
                         {% endfor %}
                     </select>
                 </div>
-                
+
                 <button type="submit" class="submit-button">
                     Complete Profile
                 </button>
@@ -537,7 +636,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-logo">
-                    <span class="logo">ALGO</span>
+                    <span class="logo">algo</span>
                     <p>Connecting students and alumni for career growth and opportunities.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
@@ -587,7 +686,7 @@
         hamburger.addEventListener('click', () => {
             // Toggle Nav
             navLinks.classList.toggle('open');
-            
+
             // Animate Links
             links.forEach((link, index) => {
                 if (link.style.animation) {
@@ -596,7 +695,7 @@
                     link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
                 }
             });
-            
+
             // Hamburger Animation
             hamburger.classList.toggle('toggle');
         });
@@ -617,7 +716,73 @@
             const header = document.querySelector('header');
             header.classList.toggle('scrolled', window.scrollY > 50);
         });
+
+        // Profile Picture Upload Functionality
+        const profilePictureInput = document.getElementById('profile-picture');
+        const profilePreview = document.getElementById('profile-preview');
+
+        // Click on preview to trigger file input
+        profilePreview.addEventListener('click', () => {
+            profilePictureInput.click();
+        });
+
+        // Handle file selection and preview
+        profilePictureInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+
+            if (file) {
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Please select a valid image file (JPG, PNG, or GIF)');
+                    return;
+                }
+
+                // Validate file size (5MB max)
+                const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                if (file.size > maxSize) {
+                    alert('File size must be less than 5MB');
+                    return;
+                }
+
+                // Create preview
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    profilePreview.innerHTML = `<img src="${e.target.result}" alt="Profile Preview">`;
+                    profilePreview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Allow drag and drop
+        profilePreview.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            profilePreview.style.borderColor = 'var(--primary)';
+            profilePreview.style.backgroundColor = 'rgba(109, 40, 217, 0.1)';
+        });
+
+        profilePreview.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            profilePreview.style.borderColor = '#e2e8f0';
+            profilePreview.style.backgroundColor = '#f8fafc';
+        });
+
+        profilePreview.addEventListener('drop', (e) => {
+            e.preventDefault();
+            profilePreview.style.borderColor = '#e2e8f0';
+            profilePreview.style.backgroundColor = '#f8fafc';
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                profilePictureInput.files = files;
+                profilePictureInput.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+    <script>
+        (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="rUFhD5wxmCkjLaxaWfwKk";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
     </script>
 </body>
-</html>
 
+</html>

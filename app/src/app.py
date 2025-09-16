@@ -26,35 +26,44 @@ def home():
 
 @app.route("/login",methods=["GET","POST"])
 def login():
+    cur = None
+    mydb = None
+
     try:
         if request.method == "POST":
             email = request.form["email"]
+            username = request.form["email"]
             password = request.form["password"]
             mydb = get_db_connection()
             cur = mydb.cursor()
 
-            cur.execute("SELECT user_id,password FROM users where email=%s",(email,))
+            cur.execute("SELECT user_id,password,login_count FROM users where email=%s OR username=%s ",(email,username))
             row = cur.fetchone()
             
-            cur.execute("SELECT dob FROM users where email=%s",(email,))
-            dob = cur.fetchone()
-            cur.close()
-            mydb.close()
-
             if row:
-                user_id,hashed_password = row
+                user_id,hashed_password,login_count = row
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
-                    if dob:
-                        return redirect(url_for("dashboard"))
-                    else:
+                    cur.execute("UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s", (datetime.datetime.utcnow(), user_id))
+                    mydb.commit()
+
+                    if login_count == 0:
                         return redirect(url_for("complete_profile"))
+                    else:
+                        return redirect(url_for("user_dashboard"))
             return render_template("login.html",error="Invalid Credentials")
+        return render_template("login.html")
+
     except Exception as e:
         app.logger.error(f"Error during login: {str(e)}")
         flash("An unexpected error occurred. Please try again later.")
         return render_template("login.html"), 500
-    return render_template("login.html")
+    
+    finally:
+        if cur is not None:
+            cur.close()
+        if mydb is not None:
+            mydb.close()
 
 @app.route('/register',methods=["GET","POST"])
 def register():
@@ -125,6 +134,11 @@ def complete_profile():
             dob = request.form["dob"]
             grad_year = request.form["grad_year"]
             city = request.form["city"]
+
+            pfp_file = request.files.get("pfp")
+            pfp_url = None
+            if pfp_file and validators.allowed_file(pfp_file.filename):
+                pfp_url = utils.upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
             
             dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
             today = datetime.date.today()
@@ -138,7 +152,7 @@ def complete_profile():
 
             user_id = session.get('user_id')
 
-            cur.execute("UPDATE users SET university_name=%s,college=%s,dob=%s,graduation_year=%s,current_city=%s WHERE user_id=%s",(uni_name,clg_name,dob,grad_year,city,user_id))
+            cur.execute("UPDATE users SET university_name=%s,college=%s,dob=%s,graduation_year=%s,current_city=%s,pfp_path=%s WHERE user_id=%s",(uni_name,clg_name,dob,grad_year,city,pfp_url,user_id))
 
             mydb.commit()
             return redirect(url_for("interests"))
@@ -229,14 +243,16 @@ def interests():
         db_interests = cur.fetchall()
         
         if request.method == "POST":
-            selected_intrests = request.form.getlist('interests')
+            selected_interests = request.form.getlist('interests')
             user_id = session.get('user_id')
+            
+            if not user_id:
+              return redirect(url_for("login"))
 
             cur.execute("DELETE FROM user_interests where user_id=%s",(user_id,))
 
-            for interest_id in selected_intrests:
+            for interest_id in selected_interests:
                 cur.execute("INSERT INTO user_interests (user_id,interest_id) VALUES (%s,%s) ",(user_id,interest_id))
-            
             mydb.commit()
            
 
@@ -252,15 +268,10 @@ def interests():
             cur.close()
         if mydb is not None:
             mydb.close()
-
   
-   
-
-
 @app.route('/contact', methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        print("get",request.form)
         full_name = request.form.get("full_name")
         email = request.form.get("email")
         phone = request.form.get("phone")
@@ -298,11 +309,26 @@ def thanks():
             return redirect(url_for("login"))
     return render_template("thanks.html")
 
-@app.route("/dashboard", methods=["GET","POST"])
-def dashboard():
-    if request.method == "POST":
-        print("Redirecting to Home")
-    return render_template("dashboard.html")
+
+@app.route("/user_dashboard", methods=["GET", "POST"])
+@validators.login_required
+def user_dashboard():
+    if 'user_id' not in session:
+        flash("Please log in to access your dashboard.")
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    cur.execute("SELECT username FROM users WHERE user_id = %s", (user_id,))
+    row = cur.fetchone()
+    cur.close()
+    mydb.close()
+
+    username = row[0] if row else None
+
+    return render_template("user_dashboard.html", username=username)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))

@@ -1,5 +1,5 @@
-import re,os
-import json
+import re,os,base64
+import json,requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,3 +17,16 @@ def load_cities():
     DATA_PATH = os.path.join(BASE_DIR, "..", "static", "data", "cities-name-list.json")
     with open(DATA_PATH, encoding="utf-8") as f:
         return json.load(f)
+
+
+def upload_to_imgbb(file, api_key):
+    """Uploads a file object to ImgBB and returns the image URL."""
+    payload = {
+        "key": api_key,
+        "image": base64.b64encode(file.read()).decode('utf-8')
+    }
+    response = requests.post("https://api.imgbb.com/1/upload", data=payload)
+    if response.status_code == 200:
+        return response.json()['data']['url']
+    else:
+        return None
