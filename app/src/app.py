@@ -299,7 +299,14 @@ def thanks():
 
 @app.route("/dashboard", methods=["GET","POST"])
 def dashboard():
-    return render_template("dashboard.html")
+    return render_template("user_dashboard.html")
+
+@app.route("/user_dashboard", methods=["GET","POST"])
+def user_dashboard():
+    if 'user_id' not in session:
+        flash("Please log in to access your dashboard.")
+        return redirect(url_for('login'))
+    return render_template("user_dashboard.html")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
