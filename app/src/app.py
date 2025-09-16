@@ -1,7 +1,7 @@
 import sys, os
 # Fixed sys.path of won't clash later
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask import Flask,render_template,request, session, redirect, url_for,flash
 from . import connection 
 import secrets, datetime
@@ -12,6 +12,8 @@ from .connection import get_db_connection
 # Defining Flask app
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
+
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 bcrypt = Bcrypt(app)
 
@@ -45,6 +47,7 @@ def login():
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
                     cur.execute("UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s", (datetime.datetime.utcnow(), user_id))
+                    mydb.commit()
 
                     if login_count == 0:
                         return redirect(url_for("complete_profile"))
@@ -136,8 +139,8 @@ def complete_profile():
 
             pfp_file = request.files.get("pfp")
             pfp_url = None
-            if pfp_file and allowed_file(pfp_file.filename):
-                pfp_url = upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
+            if pfp_file and validators.allowed_file(pfp_file.filename):
+                pfp_url = utils.upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
             
             dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
             today = datetime.date.today()
@@ -308,13 +311,75 @@ def thanks():
             return redirect(url_for("login"))
     return render_template("thanks.html")
 
-@app.route("/user_dashboard", methods=["GET","POST"])
+
+@app.route("/user_dashboard", methods=["GET", "POST"])
 @validators.login_required
 def user_dashboard():
     if 'user_id' not in session:
         flash("Please log in to access your dashboard.")
         return redirect(url_for('login'))
-    return render_template("user_dashboard.html")
+    
+    user_id = session['user_id']
+
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    cur.execute("SELECT username FROM users WHERE user_id = %s", (user_id,))
+    row = cur.fetchone()
+    cur.close()
+    mydb.close()
+
+    username = row[0] if row else None
+
+    return render_template("user_dashboard.html", username=username)
+
+
+@app.route("/chat/<int:other_user_id>")
+def chat(other_user_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    
+    cur.execute("""
+        SELECT m.sender_id, m.receiver_id, m.content, m.created_at, u.username
+        FROM messages m
+        JOIN users u ON m.sender_id = u.user_id
+        WHERE (m.sender_id=%s AND m.receiver_id=%s) OR (m.sender_id=%s AND m.receiver_id=%s)
+        ORDER BY m.created_at
+    """, (user_id, other_user_id, other_user_id, user_id))
+
+    conversation = cur.fetchall()
+    cur.close()
+    mydb.close()
+
+    return render_template("chat.html", conversation=conversation, other_user_id=other_user_id)
+
+@socketio.on('join')
+def handle_join(data):
+    room = get_room_id(data['user1'], data['user2'])
+    join_room(room)
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    room = get_room_id(data['sender_id'], data['receiver_id'])
+    # Save to DB
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    cur.execute(
+        "INSERT INTO messages (sender_id, receiver_id, content) VALUES (%s,%s,%s)",
+        (data['sender_id'], data['receiver_id'], data['message'])
+    )
+    mydb.commit()
+    cur.close()
+    mydb.close()
+
+    emit('receive_message', data, room=room)
+
+def get_room_id(user1, user2):
+    """Consistent room id for two users"""
+    return f"room_{min(user1,user2)}_{max(user1,user2)}"
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
