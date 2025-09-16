@@ -253,15 +253,10 @@ def interests():
             cur.close()
         if mydb is not None:
             mydb.close()
-
   
-   
-
-
 @app.route('/contact', methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        print("get",request.form)
         full_name = request.form.get("full_name")
         email = request.form.get("email")
         phone = request.form.get("phone")
