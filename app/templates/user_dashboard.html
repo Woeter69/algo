@@ -1,28 +1,604 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALGO - User Dashboard</title>
+    <title>Dashboard - algo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../static/styles/home.css">
-    <link rel="stylesheet" href="../static/styles/user_dashboard.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== BASE STYLES & COLOR PALETTE ===== */
+        :root {
+            --primary: #6D28D9;
+            --primary-dark: #5B21B6;
+            --secondary: #8B5CF6;
+            --secondary-light: #C4B5FD;
+            --accent: #9F1239;
+            --dark: #1F2937;
+            --light: #FAFAFA;
+            --text-light: #94a3b8;
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            color: var(--dark);
+            line-height: 1.6;
+            background-color: #fff;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: var(--gradient);
+            color: white;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(109, 40, 217, 0.3);
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(109, 40, 217, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            background-color: rgba(255, 255, 255, 0);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            padding: 0.8rem 0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        header.scrolled {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-family: 'League Spartan', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+            font-weight: 500;
+            align-items: center;
+        }
+
+        .nav-links a {
+            position: relative;
+            padding: 0.5rem 0;
+            font-weight: 500;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background-color: var(--accent);
+            left: 0;
+            bottom: 0;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--accent);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            background-color: rgba(109, 40, 217, 0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .hamburger {
+            display: none;
+            cursor: pointer;
+        }
+
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background-color: var(--dark);
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            padding: 12rem 0 8rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--secondary-light) 0%, #ffffff 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(109, 40, 217, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+        }
+
+        .hero .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, var(--dark) 0%, var(--primary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 700px;
+            margin: 0 auto 3rem auto;
+            color: var(--text-light);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== SLIDER SECTION ===== */
+        .slider-section {
+            padding: 6rem 0;
+            background-color: var(--light);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.8rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 1rem;
+        }
+
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 3px;
+            background-color: var(--primary);
+            bottom: 0;
+            left: 25%;
+        }
+
+        .section-title p {
+            color: var(--text-light);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .slider-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .slide {
+            min-width: 100%;
+            padding: 4rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .slide-1 {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .slide-2 {
+            background: linear-gradient(135deg, var(--accent) 0%, #881337 100%);
+            color: white;
+        }
+
+        .slide-3 {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: white;
+        }
+
+        .slide h3 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .slide p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .slide-icon {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .slider-nav {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
+        .slider-arrows {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            padding: 1rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .slider-arrows:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .prev {
+            left: 2rem;
+        }
+
+        .next {
+            right: 2rem;
+        }
+
+        /* ===== QUICK ACTIONS ===== */
+        .quick-actions {
+            padding: 6rem 0;
+            background: white;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            margin-top: 4rem;
+        }
+
+        .action-card {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s ease;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            cursor: pointer;
+        }
+
+        .action-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(109, 40, 217, 0.15);
+        }
+
+        .action-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 90px;
+            height: 90px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--secondary-light) 0%, #ffffff 100%);
+            color: var(--primary);
+            box-shadow: 0 8px 16px rgba(109, 40, 217, 0.15);
+        }
+
+        .action-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .action-card p {
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 3rem 0 1rem 0;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .footer-logo .logo {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .footer-logo p {
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: var(--text-light);
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--gradient);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            opacity: 0.7;
+            font-size: 0.9rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* ===== RESPONSIVE STYLES ===== */
+        @media screen and (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                right: 0;
+                height: calc(100vh - 70px);
+                width: 100%;
+                background-color: white;
+                flex-direction: column;
+                justify-content: flex-start;
+                padding-top: 3rem;
+                clip-path: circle(0px at 90% -10%);
+                -webkit-clip-path: circle(0px at 90% -10%);
+                transition: all 0.5s ease-out;
+                pointer-events: none;
+            }
+
+            .nav-links.open {
+                clip-path: circle(1000px at 90% -10%);
+                -webkit-clip-path: circle(1000px at 90% -10%);
+                pointer-events: all;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .user-profile {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .slide {
+                padding: 2rem;
+            }
+
+            .slide h3 {
+                font-size: 2rem;
+            }
+
+            .slider-arrows {
+                display: none;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <!-- HEADER -->
     <header>
         <div class="container">
             <nav>
-                <a href="{{ url_for('user_dashboard') }}" class="logo" id="home-link">algo</a>
+                <a href="{{ url_for('user_dashboard') }}" class="logo">algo</a>
                 <ul class="nav-links">
                     <li><a href="{{ url_for('user_dashboard') }}" class="active">Dashboard</a></li>
                     <li><a href="#" data-section="browse">Browse Alumni</a></li>
                     <li><a href="#" data-section="jobs">Job Board</a></li>
                     <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <li><a href="#" class="nav-logout">Logout</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contact</a></li>
                 </ul>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span>John Doe</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
                 <div class="hamburger">
                     <div class="line1"></div>
                     <div class="line2"></div>
@@ -32,44 +608,69 @@
         </div>
     </header>
 
-    <!-- USER WELCOME SECTION -->
-    <section class="user-welcome">
+    <!-- HERO SECTION -->
+    <section class="hero">
         <div class="container">
-            <h1>Welcome back</h1>
-            <p>Ready to connect with your alumni network and explore new opportunities?</p>
+            <div class="hero-content">
+                <h1>Welcome Back!</h1>
+                <p>Ready to connect with your alumni network and explore new opportunities? Your journey to success
+                    continues here.</p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn" data-section="browse">Find Alumni</a>
+                    <a href="#" class="btn btn-outline" data-section="jobs">Explore Jobs</a>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- DASHBOARD STATS -->
-    <section class="dashboard-stats">
+    <!-- SLIDER SECTION -->
+    <section class="slider-section">
         <div class="container">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-number">24</div>
-                <div class="stat-label">Alumni Connections</div>
+            <div class="section-title">
+                <h2>Your ALGO Journey</h2>
+                <p>Discover the power of alumni connections and unlock your potential</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-briefcase"></i>
+            <div class="slider-container">
+                <div class="slider" id="slider">
+                    <div class="slide slide-1">
+                        <div class="slide-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Connect & Network</h3>
+                        <p>Build meaningful relationships with alumni from your institution. Expand your professional
+                            network and discover new opportunities through trusted connections.</p>
+                        <a href="#" class="btn btn-outline">Start Networking</a>
+                    </div>
+                    <div class="slide slide-2">
+                        <div class="slide-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3>Career Growth</h3>
+                        <p>Access exclusive job opportunities posted by alumni who want to help fellow graduates. Get
+                            insider access to positions that aren't publicly advertised.</p>
+                        <a href="#" class="btn btn-outline">Browse Jobs</a>
+                    </div>
+                    <div class="slide slide-3">
+                        <div class="slide-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h3>Learn & Grow</h3>
+                        <p>Join workshops, mentorship programs, and networking events. Learn from successful alumni and
+                            accelerate your professional development.</p>
+                        <a href="#" class="btn btn-outline">Join Events</a>
+                    </div>
                 </div>
-                <div class="stat-number">8</div>
-                <div class="stat-label">Job Applications</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-alt"></i>
+                <button class="slider-arrows prev" onclick="changeSlide(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="slider-arrows next" onclick="changeSlide(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <div class="slider-nav">
+                    <div class="nav-dot active" onclick="currentSlide(1)"></div>
+                    <div class="nav-dot" onclick="currentSlide(2)"></div>
+                    <div class="nav-dot" onclick="currentSlide(3)"></div>
                 </div>
-                <div class="stat-number">3</div>
-                <div class="stat-label">Upcoming Events</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-comments"></i>
-                </div>
-                <div class="stat-number">12</div>
-                <div class="stat-label">New Messages</div>
             </div>
         </div>
     </section>
@@ -88,7 +689,7 @@
                     </div>
                     <h3>Find Alumni</h3>
                     <p>Search for alumni by company, role, skills, or location to expand your professional network.</p>
-                    <div class="action-btn">Start Searching</div>
+                    <div class="btn">Start Searching</div>
                 </div>
                 <div class="action-card" onclick="location.href='#'">
                     <div class="action-icon">
@@ -96,15 +697,15 @@
                     </div>
                     <h3>Browse Jobs</h3>
                     <p>Discover exclusive job opportunities posted by alumni who want to help fellow graduates.</p>
-                    <div class="action-btn">View Jobs</div>
+                    <div class="btn">View Jobs</div>
                 </div>
                 <div class="action-card" onclick="location.href='#'">
                     <div class="action-icon">
-                        <i class="fas fa-calendar-plus"></i>
+                        <i class="fas fa-calendar-alt"></i>
                     </div>
                     <h3>Join Events</h3>
                     <p>Participate in networking events, workshops, and alumni meetups happening near you.</p>
-                    <div class="action-btn">See Events</div>
+                    <div class="btn">See Events</div>
                 </div>
                 <div class="action-card" onclick="location.href='#'">
                     <div class="action-icon">
@@ -112,94 +713,23 @@
                     </div>
                     <h3>Update Profile</h3>
                     <p>Keep your profile fresh with latest achievements, skills, and career updates.</p>
-                    <div class="action-btn">Edit Profile</div>
+                    <div class="btn">Edit Profile</div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- RECENT ACTIVITY -->
-    <section class="recent-activity">
-        <div class="container">
-            <div class="section-title">
-                <h2>Recent Activity</h2>
-                <p>Stay updated with your latest interactions and opportunities</p>
-            </div>
-            <div class="activity-list">
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-user-plus"></i>
+                <div class="action-card" onclick="location.href='#'">
+                    <div class="action-icon">
+                        <i class="fas fa-comments"></i>
                     </div>
-                    <div class="activity-content">
-                        <div class="activity-title">New Connection</div>
-                        <div class="activity-description">Sarah Johnson accepted your connection request</div>
-                    </div>
-                    <div class="activity-time">2 hours ago</div>
+                    <h3>Messages</h3>
+                    <p>Connect with alumni through direct messages and build meaningful professional relationships.</p>
+                    <div class="btn">View Messages</div>
                 </div>
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-briefcase"></i>
+                <div class="action-card" onclick="location.href='#'">
+                    <div class="action-icon">
+                        <i class="fas fa-chart-line"></i>
                     </div>
-                    <div class="activity-content">
-                        <div class="activity-title">Job Application</div>
-                        <div class="activity-description">Applied for Software Engineer position at TechCorp</div>
-                    </div>
-                    <div class="activity-time">1 day ago</div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-calendar"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">Event Registration</div>
-                        <div class="activity-description">Registered for "Networking for Success" workshop</div>
-                    </div>
-                    <div class="activity-time">3 days ago</div>
-                </div>
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas fa-comment"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-title">New Message</div>
-                        <div class="activity-description">Received a message from Mike Chen about mentorship</div>
-                    </div>
-                    <div class="activity-time">5 days ago</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- PROFILE SECTION -->
-    <section class="profile-section">
-        <div class="container">
-            <div class="section-title">
-                <h2>Your Profile</h2>
-                <p>Manage your professional presence on ALGO</p>
-            </div>
-            <div class="profile-card">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="profile-name">John Doe</div>
-                <div class="profile-title">Software Engineer • Class of 2020</div>
-                <div class="profile-stats">
-                    <div class="profile-stat">
-                        <div class="profile-stat-number">95%</div>
-                        <div class="profile-stat-label">Profile Complete</div>
-                    </div>
-                    <div class="profile-stat">
-                        <div class="profile-stat-number">4.8</div>
-                        <div class="profile-stat-label">Rating</div>
-                    </div>
-                    <div class="profile-stat">
-                        <div class="profile-stat-number">24</div>
-                        <div class="profile-stat-label">Connections</div>
-                    </div>
-                </div>
-                <div style="margin-top: 2rem;">
-                    <div class="action-btn" onclick="location.href='#'">Edit Profile</div>
-                    <div class="action-btn" onclick="location.href='#'" style="background: var(--accent); margin-left: 1rem;">View Public Profile</div>
+                    <h3>Analytics</h3>
+                    <p>Track your networking progress, profile views, and connection growth over time.</p>
+                    <div class="btn">View Analytics</div>
                 </div>
             </div>
         </div>
@@ -216,7 +746,8 @@
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
                         <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho" target="_blank"><i
+                                class="fab fa-instagram"></i></a>
                     </div>
                 </div>
                 <div class="footer-links">
@@ -247,94 +778,110 @@
                     </ul>
                 </div>
             </div>
-            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+            <p class="copyright">&copy; 2025 algo - Alumni Go. All rights reserved.</p>
         </div>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
     <script>
-        // Dashboard-specific JavaScript
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add click animations to action cards
-            const actionCards = document.querySelectorAll('.action-card');
-            actionCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    this.style.transform = 'scale(0.98)';
-                    setTimeout(() => {
-                        this.style.transform = 'translateY(-5px)';
-                    }, 150);
+        // Slider functionality
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.nav-dot');
+        const slider = document.getElementById('slider');
+
+        function showSlide(index) {
+            slider.style.transform = `translateX(-${index * 100}%)`;
+
+            dots.forEach(dot => dot.classList.remove('active'));
+            dots[index].classList.add('active');
+
+            currentSlideIndex = index;
+        }
+
+        function changeSlide(direction) {
+            currentSlideIndex += direction;
+
+            if (currentSlideIndex >= slides.length) {
+                currentSlideIndex = 0;
+            } else if (currentSlideIndex < 0) {
+                currentSlideIndex = slides.length - 1;
+            }
+
+            showSlide(currentSlideIndex);
+        }
+
+        function currentSlide(index) {
+            showSlide(index - 1);
+        }
+
+        // Auto-slide every 5 seconds
+        setInterval(() => {
+            changeSlide(1);
+        }, 5000);
+
+        // Mobile Navigation
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        const links = document.querySelectorAll('.nav-links li');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('open');
+            hamburger.classList.toggle('toggle');
+
+            links.forEach((link, index) => {
+                if (link.style.animation) {
+                    link.style.animation = '';
+                } else {
+                    link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
+                }
+            });
+        });
+
+        // Close mobile menu when clicking on a nav link
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+                hamburger.classList.remove('toggle');
+                links.forEach(link => {
+                    link.style.animation = '';
                 });
             });
+        });
 
-            // Animate stats on scroll
-            const observerOptions = {
-                threshold: 0.5,
-                rootMargin: '0px 0px -100px 0px'
-            };
+        // Scroll Header Effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.animation = 'fadeInUp 0.6s ease forwards';
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.stat-card, .action-card, .activity-item').forEach(el => {
-                observer.observe(el);
+        // Action card animations
+        const actionCards = document.querySelectorAll('.action-card');
+        actionCards.forEach(card => {
+            card.addEventListener('mouseenter', function () {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
             });
 
-            // Mobile Navigation
-            const hamburger = document.querySelector('.hamburger');
-            const navLinks = document.querySelector('.nav-links');
-            const links = document.querySelectorAll('.nav-links li');
-
-            hamburger.addEventListener('click', () => {
-                navLinks.classList.toggle('open');
-                hamburger.classList.toggle('toggle');
-                
-                links.forEach((link, index) => {
-                    if (link.style.animation) {
-                        link.style.animation = '';
-                    } else {
-                        link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
-                    }
-                });
-            });
-
-            // Close mobile menu when clicking on a nav link
-            links.forEach(link => {
-                link.addEventListener('click', () => {
-                    navLinks.classList.remove('open');
-                    hamburger.classList.remove('toggle');
-                    links.forEach(link => {
-                        link.style.animation = '';
-                    });
-                });
-            });
-
-            // Scroll Header Effect
-            window.addEventListener('scroll', () => {
-                const header = document.querySelector('header');
-                header.classList.toggle('scrolled', window.scrollY > 50);
+            card.addEventListener('mouseleave', function () {
+                this.style.transform = 'translateY(-10px)';
             });
         });
 
         // Add CSS animations
         const style = document.createElement('style');
         style.textContent = `
-            @keyframes fadeInUp {
+            @keyframes navLinkFade {
                 from {
                     opacity: 0;
-                    transform: translateY(30px);
+                    transform: translateX(50px);
                 }
                 to {
                     opacity: 1;
-                    transform: translateY(0);
+                    transform: translateX(0px);
                 }
             }
         `;
         document.head.appendChild(style);
     </script>
 </body>
+
 </html>
