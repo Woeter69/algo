@@ -1,6 +1,7 @@
 import sys, os
-# Fixed sys.path of won't clash later
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import eventlet
+eventlet.monkey_patch()
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask import Flask,render_template,request, session, redirect, url_for,flash
 from . import connection 
@@ -331,6 +332,11 @@ def user_dashboard():
     username = row[0] if row else None
 
     return render_template("user_dashboard.html", username=username)
+
+
+@app.route("/channels", methods=["GET","POST"])
+def channels():
+    return render_template("channels.html")
 
 
 @app.route("/chat/<int:other_user_id>")
