@@ -1,4 +1,5 @@
 import sys, os
+# Fixed sys.path of won't clash later
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from flask import Flask,render_template,request, session, redirect, url_for,flash
@@ -8,7 +9,7 @@ from flask_bcrypt import Bcrypt
 from . import utils, validators
 from .connection import get_db_connection
 
-
+# Defining Flask app
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
 
@@ -45,7 +46,7 @@ def login():
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
                     if dob:
-                        return redirect(url_for("dashboard"))
+                        return redirect(url_for("user_dashboard"))
                     else:
                         return redirect(url_for("complete_profile"))
             return render_template("login.html",error="Invalid Credentials")
@@ -297,10 +298,6 @@ def thanks():
             return redirect(url_for("login"))
     return render_template("thanks.html")
 
-@app.route("/dashboard", methods=["GET","POST"])
-def dashboard():
-    return render_template("user_dashboard.html")
-
 @app.route("/user_dashboard", methods=["GET","POST"])
 def user_dashboard():
     if 'user_id' not in session:
@@ -312,3 +309,4 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("DEBUG", "True") == "True"
     app.run(host="0.0.0.0", port=port, debug=debug)
+ # Fixed Flash issues
