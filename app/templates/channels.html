@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channels - algo</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6D28D9;
+            --primary-dark: #5B21B6;
+            --secondary: #8B5CF6;
+            --secondary-light: #C4B5FD;
+            --accent: #9F1239;
+            --dark: #1F2937;
+            --light: #FAFAFA;
+            --text-light: #94a3b8;
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--secondary-light) 0%, #ffffff 100%);
+            color: var(--dark);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .top-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(109, 40, 217, 0.1);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(109, 40, 217, 0.1);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-family: 'League Spartan', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-center {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+        }
+
+        .search-bar {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            padding-right: 3rem;
+            border: 2px solid rgba(109, 40, 217, 0.1);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+            background: white;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--gradient);
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(109, 40, 217, 0.1);
+            border: none;
+            border-radius: 12px;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--gradient);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .app-container {
+            display: flex;
+            height: calc(100vh - 80px);
+            margin-top: 80px;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, var(--secondary-light) 0%, #ffffff 100%);
+            border-right: 1px solid rgba(109, 40, 217, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 4px 0 20px rgba(109, 40, 217, 0.1);
+        }
+
+        .server-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(109, 40, 217, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .institution-dropdown {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid rgba(109, 40, 217, 0.1);
+            border-radius: 12px;
+            background: white;
+            font-weight: 600;
+            color: var(--dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .channels-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .channel-category {
+            margin-bottom: 1.5rem;
+        }
+
+        .channel-category h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            margin-bottom: 0.75rem;
+            padding: 0 0.5rem;
+        }
+
+        .channel {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .channel:hover {
+            background: rgba(109, 40, 217, 0.1);
+            transform: translateX(4px);
+        }
+
+        .channel.active {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+
+        .channel-icon {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .channel.active .channel-icon {
+            opacity: 1;
+        }
+
+        .user-profile {
+            padding: 1rem;
+            border-top: 1px solid rgba(109, 40, 217, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+
+        .user-status {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(109, 40, 217, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .channel-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .current-channel-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .current-channel-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .channel-description {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: linear-gradient(180deg, rgba(196, 181, 253, 0.05) 0%, rgba(255, 255, 255, 0.8) 100%);
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 16px;
+            background: rgba(109, 40, 217, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(109, 40, 217, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .message:hover {
+            background: rgba(109, 40, 217, 0.08);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.15);
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .message-author {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .message-text {
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        .message-input-container {
+            padding: 1rem;
+            border-top: 1px solid rgba(109, 40, 217, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .message-input {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .message-input input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid rgba(109, 40, 217, 0.1);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .message-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
+            background: white;
+        }
+
+        .send-btn {
+            padding: 1rem 1.5rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(109, 40, 217, 0.4);
+        }
+
+        .right-sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, var(--secondary-light) 0%, #ffffff 100%);
+            border-left: 1px solid rgba(109, 40, 217, 0.1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -4px 0 20px rgba(109, 40, 217, 0.1);
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(109, 40, 217, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: rgba(109, 40, 217, 0.05);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tab-panel {
+            display: none;
+            padding: 1rem;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .announcement {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(109, 40, 217, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .announcement:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(109, 40, 217, 0.15);
+        }
+
+        .announcement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .announcement-title {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+
+        .announcement-date {
+            background: var(--gradient);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .announcement-content {
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        .connection {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            margin-bottom: 0.75rem;
+            border: 1px solid rgba(109, 40, 217, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .connection:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(109, 40, 217, 0.15);
+        }
+
+        .connection-avatar-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .connection-info {
+            flex: 1;
+        }
+
+        .connection-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .connection-details {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .connection-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .connection-status.online {
+            background: #10b981;
+        }
+
+        .connection-status.offline {
+            background: #6b7280;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-nav">
+        <div class="nav-left">
+            <a href="{{ url_for('user_dashboard') }}" class="logo">algo</a>
+        </div>
+        <div class="nav-center">
+            <div class="search-bar">
+                <input type="text" placeholder="Search alumni, channels, or messages...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+        <div class="nav-right">
+            <a href="{{ url_for('user_dashboard') }}" class="nav-btn" style="text-decoration: none;">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <button class="nav-btn">
+                <i class="fas fa-calendar"></i>
+                <span>Events</span>
+            </button>
+            <button class="nav-btn">
+                <i class="fas fa-briefcase"></i>
+                <span>Jobs</span>
+            </button>
+            <button class="nav-btn">
+                <i class="fas fa-handshake"></i>
+                <span>Mentorship</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="server-header">
+                <select class="institution-dropdown">
+                    <option value="cluster-innovation-center">Cluster Innovation Center</option>
+                    <option value="add-institution">+ Add Institution</option>
+                </select>
+            </div>
+
+            <div class="channels-container">
+                <div class="channel-category">
+                    <h3>General Channels</h3>
+                    <div class="channel active" data-channel="general">
+                        <span class="channel-icon"><i class="fas fa-hashtag"></i></span>
+                        <span class="channel-name">general</span>
+                    </div>
+                    <div class="channel" data-channel="announcements">
+                        <span class="channel-icon"><i class="fas fa-bullhorn"></i></span>
+                        <span class="channel-name">announcements</span>
+                    </div>
+                </div>
+
+                <div class="channel-category">
+                    <h3>Batch Wise</h3>
+                    <div class="channel" data-channel="batch-2020">
+                        <span class="channel-icon"><i class="fas fa-users"></i></span>
+                        <span class="channel-name">batch-2020</span>
+                    </div>
+                    <div class="channel" data-channel="batch-2021">
+                        <span class="channel-icon"><i class="fas fa-users"></i></span>
+                        <span class="channel-name">batch-2021</span>
+                    </div>
+                    <div class="channel" data-channel="batch-2022">
+                        <span class="channel-icon"><i class="fas fa-users"></i></span>
+                        <span class="channel-name">batch-2022</span>
+                    </div>
+                </div>
+
+                <div class="channel-category">
+                    <h3>Career</h3>
+                    <div class="channel" data-channel="internships">
+                        <span class="channel-icon"><i class="fas fa-briefcase"></i></span>
+                        <span class="channel-name">internships</span>
+                    </div>
+                    <div class="channel" data-channel="job-opportunities">
+                        <span class="channel-icon"><i class="fas fa-rocket"></i></span>
+                        <span class="channel-name">job-opportunities</span>
+                    </div>
+                    <div class="channel" data-channel="career-advice">
+                        <span class="channel-icon"><i class="fas fa-lightbulb"></i></span>
+                        <span class="channel-name">career-advice</span>
+                    </div>
+                </div>
+
+                <div class="channel-category">
+                    <h3>Faculty</h3>
+                    <div class="channel" data-channel="faculty-announcements">
+                        <span class="channel-icon"><i class="fas fa-graduation-cap"></i></span>
+                        <span class="channel-name">faculty-announcements</span>
+                    </div>
+                </div>
+
+                <div class="channel-category">
+                    <h3>Community</h3>
+                    <div class="channel" data-channel="fundraising">
+                        <span class="channel-icon"><i class="fas fa-dollar-sign"></i></span>
+                        <span class="channel-name">fundraising</span>
+                    </div>
+                    <div class="channel" data-channel="events">
+                        <span class="channel-icon"><i class="fas fa-calendar-days"></i></span>
+                        <span class="channel-name">events</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-avatar-circle">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-info">
+                    <div class="username">John Doe</div>
+                    <div class="user-status">Class of 2020</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="chat-header">
+                <div class="channel-info">
+                    <span class="current-channel-icon">
+                        <i class="fas fa-hashtag"></i>
+                    </span>
+                    <span class="current-channel-name">general</span>
+                </div>
+                <div class="channel-description">Welcome to the general discussion channel</div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message">
+                    <div class="message-avatar">AS</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">Alice Smith</span>
+                            <span class="message-time">Today at 2:30 PM</span>
+                        </div>
+                        <div class="message-text">Hey everyone! Just wanted to share that I got a new job at Google.
+                            Thanks to all the alumni who helped me with referrals! 🎉</div>
+                    </div>
+                </div>
+                <div class="message">
+                    <div class="message-avatar">BJ</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">Bob Johnson</span>
+                            <span class="message-time">Today at 2:45 PM</span>
+                        </div>
+                        <div class="message-text">Congratulations Alice! That's amazing news. Google is lucky to have
+                            you!</div>
+                    </div>
+                </div>
+                <div class="message">
+                    <div class="message-avatar">CD</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">Carol Davis</span>
+                            <span class="message-time">Today at 3:15 PM</span>
+                        </div>
+                        <div class="message-text">Does anyone know about internship opportunities in data science? I'm
+                            looking for summer 2024 positions.</div>
+                    </div>
+                </div>
+                <div class="message">
+                    <div class="message-avatar">DW</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">David Wilson</span>
+                            <span class="message-time">Today at 3:30 PM</span>
+                        </div>
+                        <div class="message-text">@Carol Davis I can help you with that! My startup is looking for data
+                            science interns. Let's connect!</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message-input-container">
+                <div class="message-input">
+                    <input type="text" placeholder="Message #general" id="messageInput">
+                    <button class="send-btn" id="sendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-sidebar">
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" data-tab="announcements">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Announcements</span>
+                </button>
+                <button class="tab-btn" data-tab="connections">
+                    <i class="fas fa-users"></i>
+                    <span>Connections</span>
+                </button>
+            </div>
+
+            <div class="tab-content">
+                <div class="tab-panel active" id="announcements-panel">
+                    <div class="announcement">
+                        <div class="announcement-header">
+                            <span class="announcement-title">Alumni Meetup 2024</span>
+                            <span class="announcement-date">Dec 15</span>
+                        </div>
+                        <div class="announcement-content">
+                            Join us for the annual alumni meetup. Registration opens next week!
+                        </div>
+                    </div>
+                    <div class="announcement">
+                        <div class="announcement-header">
+                            <span class="announcement-title">Career Fair</span>
+                            <span class="announcement-date">Jan 20</span>
+                        </div>
+                        <div class="announcement-content">
+                            Top companies will be recruiting. Update your profiles!
+                        </div>
+                    </div>
+                    <div class="announcement">
+                        <div class="announcement-header">
+                            <span class="announcement-title">Scholarship Program</span>
+                            <span class="announcement-date">Nov 30</span>
+                        </div>
+                        <div class="announcement-content">
+                            New scholarship opportunities for current students. Alumni can contribute!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="connections-panel">
+                    <div class="connection">
+                        <div class="connection-avatar-circle"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="connection-info">
+                            <div class="connection-name">Alice Smith</div>
+                            <div class="connection-details">Software Engineer • Class of 2019</div>
+                        </div>
+                        <div class="connection-status online"></div>
+                    </div>
+                    <div class="connection">
+                        <div class="connection-avatar-circle"
+                            style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="connection-info">
+                            <div class="connection-name">Bob Johnson</div>
+                            <div class="connection-details">Product Manager • Class of 2018</div>
+                        </div>
+                        <div class="connection-status offline"></div>
+                    </div>
+                    <div class="connection">
+                        <div class="connection-avatar-circle"
+                            style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="connection-info">
+                            <div class="connection-name">Carol Davis</div>
+                            <div class="connection-details">Data Scientist • Class of 2020</div>
+                        </div>
+                        <div class="connection-status online"></div>
+                    </div>
+                    <div class="connection">
+                        <div class="connection-avatar-circle"
+                            style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="connection-info">
+                            <div class="connection-name">David Wilson</div>
+                            <div class="connection-details">Startup Founder • Class of 2017</div>
+                        </div>
+                        <div class="connection-status online"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Channel switching
+        const channels = document.querySelectorAll('.channel');
+        const currentChannelName = document.querySelector('.current-channel-name');
+        const currentChannelIcon = document.querySelector('.current-channel-icon');
+        const messageInput = document.getElementById('messageInput');
+
+        channels.forEach(channel => {
+            channel.addEventListener('click', () => {
+                channels.forEach(c => c.classList.remove('active'));
+                channel.classList.add('active');
+
+                const channelName = channel.querySelector('.channel-name').textContent;
+                const channelIcon = channel.querySelector('.channel-icon i').className;
+
+                currentChannelName.textContent = channelName;
+                currentChannelIcon.innerHTML = `<i class="${channelIcon}"></i>`;
+                messageInput.placeholder = `Message #${channelName}`;
+            });
+        });
+
+        // Tab switching
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.getAttribute('data-tab');
+
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanels.forEach(p => p.classList.remove('active'));
+
+                btn.classList.add('active');
+                document.getElementById(`${tabName}-panel`).classList.add('active');
+            });
+        });
+
+        // Message sending
+        const sendBtn = document.getElementById('sendBtn');
+        const chatMessages = document.getElementById('chatMessages');
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">JD</div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">John Doe</span>
+                            <span class="message-time">Now</span>
+                        </div>
+                        <div class="message-text">${message}</div>
+                    </div>
+                `;
+
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                input.value = '';
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    </script>
+</body>
+
+</html>
