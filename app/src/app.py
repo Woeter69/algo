@@ -44,7 +44,6 @@ def login():
                 user_id,hashed_password,login_count = row
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
-                    print(user_id,type(user_id))
                     cur.execute("UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s", (datetime.datetime.utcnow(), user_id))
                     mydb.commit()
 
@@ -310,13 +309,26 @@ def thanks():
             return redirect(url_for("login"))
     return render_template("thanks.html")
 
-@app.route("/user_dashboard", methods=["GET","POST"])
+
+@app.route("/user_dashboard", methods=["GET", "POST"])
 @validators.login_required
 def user_dashboard():
     if 'user_id' not in session:
         flash("Please log in to access your dashboard.")
         return redirect(url_for('login'))
-    return render_template("user_dashboard.html")
+    
+    user_id = session['user_id']
+
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    cur.execute("SELECT username FROM users WHERE user_id = %s", (user_id,))
+    row = cur.fetchone()
+    cur.close()
+    mydb.close()
+
+    username = row[0] if row else None
+
+    return render_template("user_dashboard.html", username=username)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
