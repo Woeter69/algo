@@ -577,7 +577,7 @@
                             <i class="fas fa-user-circle"></i>
                             <span class="preview-text">Click to upload photo</span>
                         </div>
-                        <input type="file" id="profile-picture" name="profile-picture" accept="image/*"
+                        <input type="file" id="pfp" name="pfp" accept="image/*"
                             class="profile-picture-input">
                         <div class="upload-info">
                             <small>Recommended: Square image, max 5MB (JPG, PNG, GIF)</small>
@@ -779,6 +779,9 @@
                 profilePictureInput.dispatchEvent(new Event('change'));
             }
         });
+    </script>
+    <script>
+        (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="rUFhD5wxmCkjLaxaWfwKk";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
     </script>
 </body>
 
