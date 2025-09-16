@@ -44,7 +44,9 @@ def login():
                 user_id,hashed_password,login_count = row
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
+                    print(user_id,type(user_id))
                     cur.execute("UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s", (datetime.datetime.utcnow(), user_id))
+                    mydb.commit()
 
                     if login_count == 0:
                         return redirect(url_for("complete_profile"))
@@ -136,8 +138,8 @@ def complete_profile():
 
             pfp_file = request.files.get("pfp")
             pfp_url = None
-            if pfp_file and allowed_file(pfp_file.filename):
-                pfp_url = upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
+            if pfp_file and validators.allowed_file(pfp_file.filename):
+                pfp_url = utils.upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
             
             dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
             today = datetime.date.today()
