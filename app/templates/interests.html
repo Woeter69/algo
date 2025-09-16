@@ -480,7 +480,7 @@
                 <h2>Tell Us Your Interests</h2>
                 <p>Select topics that interest you to personalize your ALGO experience</p>
             </div>
-            <form method="POST" action="/thanks">
+            <form method="POST" action="/interests">
                 <div class="interests-grid">
                     {% for id, name in db_interests %}
                     <div class="interest-item">
@@ -592,6 +592,9 @@
                 }
             });
         });
+    </script>
+    <script>
+        (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="rUFhD5wxmCkjLaxaWfwKk";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
     </script>
 </body>
 </html>
