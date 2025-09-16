@@ -136,8 +136,8 @@ def complete_profile():
 
             pfp_file = request.files.get("pfp")
             pfp_url = None
-            if pfp_file and allowed_file(pfp_file.filename):
-                pfp_url = upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
+            if pfp_file and validators.allowed_file(pfp_file.filename):
+                pfp_url = utils.upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
             
             dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
             today = datetime.date.today()
