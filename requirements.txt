@@ -7,5 +7,4 @@ python-dotenv
 psycopg2-binary
 vercel
 gunicorn
-base64
 requests
