@@ -1,7 +1,7 @@
 import sys, os
 # Fixed sys.path of won't clash later
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask import Flask,render_template,request, session, redirect, url_for,flash
 from . import connection 
 import secrets, datetime
@@ -12,6 +12,8 @@ from .connection import get_db_connection
 # Defining Flask app
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
+
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 bcrypt = Bcrypt(app)
 
@@ -329,6 +331,55 @@ def user_dashboard():
     username = row[0] if row else None
 
     return render_template("user_dashboard.html", username=username)
+
+
+@app.route("/chat/<int:other_user_id>")
+def chat(other_user_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    
+    cur.execute("""
+        SELECT m.sender_id, m.receiver_id, m.content, m.created_at, u.username
+        FROM messages m
+        JOIN users u ON m.sender_id = u.user_id
+        WHERE (m.sender_id=%s AND m.receiver_id=%s) OR (m.sender_id=%s AND m.receiver_id=%s)
+        ORDER BY m.created_at
+    """, (user_id, other_user_id, other_user_id, user_id))
+
+    conversation = cur.fetchall()
+    cur.close()
+    mydb.close()
+
+    return render_template("chat.html", conversation=conversation, other_user_id=other_user_id)
+
+@socketio.on('join')
+def handle_join(data):
+    room = get_room_id(data['user1'], data['user2'])
+    join_room(room)
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    room = get_room_id(data['sender_id'], data['receiver_id'])
+    # Save to DB
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    cur.execute(
+        "INSERT INTO messages (sender_id, receiver_id, content) VALUES (%s,%s,%s)",
+        (data['sender_id'], data['receiver_id'], data['message'])
+    )
+    mydb.commit()
+    cur.close()
+    mydb.close()
+
+    emit('receive_message', data, room=room)
+
+def get_room_id(user1, user2):
+    """Consistent room id for two users"""
+    return f"room_{min(user1,user2)}_{max(user1,user2)}"
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
