@@ -46,7 +46,7 @@ def login():
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
                     if dob:
-                        return redirect(url_for("dashboard"))
+                        return redirect(url_for("user_dashboard"))
                     else:
                         return redirect(url_for("complete_profile"))
             return render_template("login.html",error="Invalid Credentials")
@@ -298,11 +298,12 @@ def thanks():
             return redirect(url_for("login"))
     return render_template("thanks.html")
 
-@app.route("/dashboard", methods=["GET","POST"])
-def dashboard():
-    if request.method == "POST":
-        print("Redirecting to Home")
-    return render_template("dashboard.html")
+@app.route("/user_dashboard", methods=["GET","POST"])
+def user_dashboard():
+    if 'user_id' not in session:
+        flash("Please log in to access your dashboard.")
+        return redirect(url_for('login'))
+    return render_template("user_dashboard.html")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
