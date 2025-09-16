@@ -29,11 +29,12 @@ def login():
     try:
         if request.method == "POST":
             email = request.form["email"]
+            username = request.form["email"]
             password = request.form["password"]
             mydb = get_db_connection()
             cur = mydb.cursor()
 
-            cur.execute("SELECT user_id,password FROM users where email=%s",(email,))
+            cur.execute("SELECT user_id,password FROM users where email=%s OR username=%s ",(email,username))
             row = cur.fetchone()
             
             cur.execute("SELECT dob FROM users where email=%s",(email,))
@@ -46,7 +47,7 @@ def login():
                 if bcrypt.check_password_hash(hashed_password,password):
                     session['user_id'] = user_id
                     if dob:
-                        return redirect(url_for("dashboard"))
+                        return redirect(url_for("user_dashboard"))
                     else:
                         return redirect(url_for("complete_profile"))
             return render_template("login.html",error="Invalid Credentials")
@@ -252,15 +253,10 @@ def interests():
             cur.close()
         if mydb is not None:
             mydb.close()
-
   
-   
-
-
 @app.route('/contact', methods=["GET", "POST"])
 def contact():
     if request.method == "POST":
-        print("get",request.form)
         full_name = request.form.get("full_name")
         email = request.form.get("email")
         phone = request.form.get("phone")
@@ -298,11 +294,12 @@ def thanks():
             return redirect(url_for("login"))
     return render_template("thanks.html")
 
-@app.route("/dashboard", methods=["GET","POST"])
-def dashboard():
-    if request.method == "POST":
-        print("Redirecting to Home")
-    return render_template("dashboard.html")
+@app.route("/user_dashboard", methods=["GET","POST"])
+def user_dashboard():
+    if 'user_id' not in session:
+        flash("Please log in to access your dashboard.")
+        return redirect(url_for('login'))
+    return render_template("user_dashboard.html")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
