@@ -97,7 +97,6 @@ def register():
                 "email": email,
                 "username": username,
                 "password": hashed_password,
-                "enum": enum
             }
 
             token = secrets.token_urlsafe(32)
@@ -219,7 +218,7 @@ def verify(token):
         if not register_data:
             return redirect(url_for("register"))
         cur.execute("""
-            insert into users (firstname, lastname, email, username, password,enrollment_number,verified)
+            insert into users (firstname, lastname, email, username, password,verified)
             values (%s, %s, %s, %s, %s, %s)
         """, (
             register_data['firstname'],
@@ -227,7 +226,6 @@ def verify(token):
             register_data['email'],
             register_data['username'],
             register_data['password'],
-            register_data['enum'],
             True
         ))
         
