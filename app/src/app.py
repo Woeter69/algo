@@ -1,6 +1,7 @@
 import sys, os
-# Fixed sys.path of won't clash later
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import eventlet
+eventlet.monkey_patch()
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask import Flask,render_template,request, session, redirect, url_for,flash
 from . import connection 
@@ -26,41 +27,52 @@ def home():
         flash("An error occurred while loading the page. Please try again later.")
         return render_template("home.html"), 500
 
-@app.route("/login",methods=["GET","POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     cur = None
     mydb = None
 
     try:
         if request.method == "POST":
-            email = request.form["email"]
-            username = request.form["email"]
+            email_or_username = request.form["email"]  # user can enter either
             password = request.form["password"]
+
             mydb = get_db_connection()
             cur = mydb.cursor()
 
-            cur.execute("SELECT user_id,password,login_count FROM users where email=%s OR username=%s ",(email,username))
+            # Check both email and username
+            cur.execute(
+                "SELECT user_id, password, login_count FROM users WHERE email=%s OR username=%s",
+                (email_or_username, email_or_username)
+            )
             row = cur.fetchone()
-            
+
             if row:
-                user_id,hashed_password,login_count = row
-                if bcrypt.check_password_hash(hashed_password,password):
+                user_id, hashed_password, login_count = row
+                if bcrypt.check_password_hash(hashed_password, password):
                     session['user_id'] = user_id
-                    cur.execute("UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s", (datetime.datetime.utcnow(), user_id))
+
+                    # Update last login and increment login_count
+                    cur.execute(
+                        "UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s",
+                        (datetime.datetime.utcnow(), user_id)
+                    )
                     mydb.commit()
 
                     if login_count == 0:
-                        return redirect(url_for("complete_profile"))
+                        return redirect(url_for("register"))  # <- change here
                     else:
                         return redirect(url_for("user_dashboard"))
-            return render_template("login.html",error="Invalid Credentials")
+
+            return render_template("login.html", error="Invalid Credentials")
+
         return render_template("login.html")
 
     except Exception as e:
         app.logger.error(f"Error during login: {str(e)}")
         flash("An unexpected error occurred. Please try again later.")
         return render_template("login.html"), 500
-    
+
     finally:
         if cur is not None:
             cur.close()
@@ -83,7 +95,7 @@ def register():
                 "lastname": lastname,
                 "email": email,
                 "username": username,
-                "password": hashed_password
+                "password": hashed_password,
             }
 
             token = secrets.token_urlsafe(32)
@@ -331,6 +343,11 @@ def user_dashboard():
     username = row[0] if row else None
 
     return render_template("user_dashboard.html", username=username)
+
+
+@app.route("/channels", methods=["GET","POST"])
+def channels():
+    return render_template("channels.html")
 
 
 @app.route("/chat/<int:other_user_id>")
