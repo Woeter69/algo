@@ -88,7 +88,6 @@ def register():
             email = request.form["email"]
             username = request.form["username"]
             password = request.form["password"]
-            enum = request.form["enum"]
             hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
             session['register_data'] = {
