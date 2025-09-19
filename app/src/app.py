@@ -42,15 +42,16 @@ def login():
 
             # Check both email and username
             cur.execute(
-                "SELECT user_id, password, login_count FROM users WHERE email=%s OR username=%s",
+                "SELECT user_id, password, login_count, username FROM users WHERE email=%s OR username=%s",
                 (email_or_username, email_or_username)
             )
             row = cur.fetchone()
 
             if row:
-                user_id, hashed_password, login_count = row
+                user_id, hashed_password, login_count, username = row
                 if bcrypt.check_password_hash(hashed_password, password):
                     session['user_id'] = user_id
+                    session['username'] = username
 
                     # Update last login and increment login_count
                     cur.execute(
@@ -136,6 +137,7 @@ def confirmation():
         return "<h1>Error loading confirmation page. Please try again later.</h1>", 500
 
 @app.route('/complete_profile',methods=["GET","POST"])
+@validators.login_required
 def complete_profile():
     mydb = None
     cur = None
@@ -246,6 +248,7 @@ def verify(token):
 
     
 @app.route("/interests",methods=["GET","POST"])
+@validators.login_required
 def interests():
     mydb = None
     cur = None
@@ -258,10 +261,7 @@ def interests():
         
         if request.method == "POST":
             selected_interests = request.form.getlist('interests')
-            user_id = session.get('user_id')
-            
-            if not user_id:
-              return redirect(url_for("login"))
+            user_id = session['user_id']
 
             cur.execute("DELETE FROM user_interests where user_id=%s",(user_id,))
 
@@ -315,22 +315,16 @@ def contact():
     return render_template("contact.html")
 
 @app.route("/thanks", methods=["GET","POST"])
+@validators.login_required
 def thanks():
     if request.method == "POST":
-        if session.get('user_id'):
-            return redirect(url_for("home"))
-        else:
-            return redirect(url_for("login"))
+        return redirect(url_for("home"))
     return render_template("thanks.html")
 
 
 @app.route("/user_dashboard", methods=["GET", "POST"])
 @validators.login_required
 def user_dashboard():
-    if 'user_id' not in session:
-        flash("Please log in to access your dashboard.")
-        return redirect(url_for('login'))
-    
     user_id = session['user_id']
 
     mydb = get_db_connection()
@@ -346,14 +340,14 @@ def user_dashboard():
 
 
 @app.route("/channels", methods=["GET","POST"])
+@validators.login_required
 def channels():
     return render_template("channels.html")
 
 
 @app.route("/chat/<int:other_user_id>")
+@validators.login_required
 def chat(other_user_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
 
     user_id = session['user_id']
     mydb = get_db_connection()
@@ -397,6 +391,17 @@ def handle_send_message(data):
 def get_room_id(user1, user2):
     """Consistent room id for two users"""
     return f"room_{min(user1,user2)}_{max(user1,user2)}"
+
+@app.route("/profile")
+@validators.login_required
+def profile_redirect():
+    return redirect(url_for("profile", user_id=session["username"]))
+
+# actual profile page
+@app.route("/profile/<user_id>")
+@validators.login_required
+def profile(user_id):
+    return render_template("profile.html", user=user_id)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
