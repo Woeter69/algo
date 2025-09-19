@@ -43,11 +43,19 @@
             <div class="profile-header">
                 <div class="profile-cover">
                     <div class="profile-avatar has-placeholder" id="profileAvatarContainer">
-                        <img alt="Profile Picture" id="profilePicture" style="display: none;">
-                        <div class="avatar-placeholder" id="avatarPlaceholder" style="display: flex;">
-                            <i class="fas fa-user"></i>
-                            <span>Upload a profile picture</span>
-                        </div>
+                        {% if user_data[11] %}
+                            <img alt="Profile Picture" id="profilePicture" src="{{ user_data[11] }}" style="display: block;">
+                            <div class="avatar-placeholder" id="avatarPlaceholder" style="display: none;">
+                                <i class="fas fa-user"></i>
+                                <span>Upload a profile picture</span>
+                            </div>
+                        {% else %}
+                            <img alt="Profile Picture" id="profilePicture" style="display: none;">
+                            <div class="avatar-placeholder" id="avatarPlaceholder" style="display: flex;">
+                                <i class="fas fa-user"></i>
+                                <span>Upload a profile picture</span>
+                            </div>
+                        {% endif %}
                         <div class="avatar-overlay">
                             <i class="fas fa-camera"></i>
                         </div>
@@ -56,18 +64,24 @@
             </div>
             <div class="profile-info">
                 <h1 class="profile-name">
-                    <span id="displayFirstName">John</span>
-                    <span id="displayLastName">Doe</span>
+                    <span id="displayFirstName">{{ user_data[1] if user_data[1] else 'First' }}</span>
+                    <span id="displayLastName">{{ user_data[2] if user_data[2] else 'Last' }}</span>
                 </h1>
-                <p class="profile-username">@<span id="displayUsername">johndoe</span></p>
+                <p class="profile-username">@<span id="displayUsername">{{ user_data[4] if user_data[4] else 'username' }}</span></p>
                 <p class="profile-location">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span id="displayCurrentCity">New York, NY</span>
+                    <span id="displayCurrentCity">{{ user_data[10] if user_data[10] else 'Location not specified' }}</span>
                 </p>
                 <p class="profile-university">
                     <i class="fas fa-graduation-cap"></i>
-                    <span id="displayUniversityName">Harvard University</span>
+                    <span id="displayUniversityName">{{ user_data[7] if user_data[7] else 'University not specified' }}</span>
                 </p>
+                {% if user_data[13] %}
+                <p class="profile-role">
+                    <i class="fas fa-user-tag"></i>
+                    <span id="displayRole">{{ user_data[13].title() }}</span>
+                </p>
+                {% endif %}
             </div>
             <div class="profile-actions">
                 <button class="btn btn-edit" id="editProfileBtn">
@@ -93,28 +107,58 @@
                     <div class="info-grid">
                         <div class="info-item">
                             <label>Email</label>
-                            <span id="displayEmail">john.doe@example.com</span>
+                            <span id="displayEmail">{{ user_data[3] if user_data[3] else 'Email not provided' }}</span>
                         </div>
                         <div class="info-item">
-                            <label>Phone</label>
-                            <span id="displayPhone">+1 (555) 123-4567</span>
+                            <label>Date of Birth</label>
+                            <span id="displayDOB">{{ user_data[5].strftime('%B %d, %Y') if user_data[5] else 'Not specified' }}</span>
                         </div>
                         <div class="info-item">
                             <label>University</label>
-                            <span id="displayUniversityNameCard">Harvard University</span>
+                            <span id="displayUniversityNameCard">{{ user_data[7] if user_data[7] else 'Not specified' }}</span>
                         </div>
                         <div class="info-item">
                             <label>Graduation Year</label>
-                            <span id="displayGraduationYear">2023</span>
+                            <span id="displayGraduationYear">{{ user_data[6] if user_data[6] else 'Not specified' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Department</label>
+                            <span id="displayDepartment">{{ user_data[8] if user_data[8] else 'Not specified' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>College</label>
+                            <span id="displayCollege">{{ user_data[9] if user_data[9] else 'Not specified' }}</span>
                         </div>
                         <div class="info-item">
                             <label>Current City</label>
-                            <span id="displayCurrentCityCard">New York, NY</span>
+                            <span id="displayCurrentCityCard">{{ user_data[10] if user_data[10] else 'Not specified' }}</span>
                         </div>
                         <div class="info-item">
                             <label>Username</label>
-                            <span id="displayUsernameCard">@johndoe</span>
+                            <span id="displayUsernameCard">@{{ user_data[4] if user_data[4] else 'username' }}</span>
                         </div>
+                        {% if user_data[14] %}
+                        <div class="info-item">
+                            <label>Enrollment Number</label>
+                            <span id="displayEnrollmentNumber">{{ user_data[14] }}</span>
+                        </div>
+                        {% endif %}
+                        {% if community_name %}
+                        <div class="info-item">
+                            <label>Community</label>
+                            <span id="displayCommunity">{{ community_name }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-item">
+                            <label>Member Since</label>
+                            <span id="displayRegistrationDate">{{ user_data[12].strftime('%B %Y') if user_data[12] else 'Not available' }}</span>
+                        </div>
+                        {% if user_data[16] %}
+                        <div class="info-item">
+                            <label>Last Login</label>
+                            <span id="displayLastLogin">{{ user_data[16].strftime('%B %d, %Y at %I:%M %p') if user_data[16] else 'Never' }}</span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -170,11 +214,83 @@
                 </div>
                 <div class="card-content">
                     <div class="interests-container" id="interestsContainer">
-                        <span class="interest-tag">Technology</span>
-                        <span class="interest-tag">Artificial Intelligence</span>
-                        <span class="interest-tag">Web Development</span>
-                        <span class="interest-tag">Machine Learning</span>
-                        <span class="interest-tag">Entrepreneurship</span>
+                        {% if user_interests %}
+                            {% for interest in user_interests %}
+                                <span class="interest-tag">{{ interest }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-data">No interests specified yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education Section -->
+            {% if education_data %}
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+                </div>
+                <div class="card-content">
+                    <div class="education-info">
+                        <div class="education-item">
+                            <h3>{{ education_data[0] if education_data[0] else 'Degree' }}</h3>
+                            <p class="education-details">
+                                <strong>{{ education_data[1] if education_data[1] else 'University' }}</strong>
+                                {% if education_data[2] %} - {{ education_data[2] }}{% endif %}
+                            </p>
+                            <p class="education-major">{{ education_data[3] if education_data[3] else 'Major not specified' }}</p>
+                            {% if education_data[4] %}
+                                <p class="education-year">Graduated: {{ education_data[4] }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Work Experience Section -->
+            {% if work_experience %}
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-briefcase"></i> Work Experience</h2>
+                </div>
+                <div class="card-content">
+                    <div class="experience-list">
+                        {% for exp in work_experience %}
+                            <div class="experience-item">
+                                <h3>{{ exp[1] if exp[1] else 'Job Title' }}</h3>
+                                <p class="company-name">{{ exp[0] if exp[0] else 'Company' }}</p>
+                                <p class="experience-duration">
+                                    {{ exp[2] if exp[2] else 'Year' }}
+                                    {% if exp[3] and exp[3] != exp[2] %}
+                                        - {{ exp[3] }}
+                                    {% elif not exp[3] %}
+                                        - Present
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Connections Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-users"></i> Network</h2>
+                </div>
+                <div class="card-content">
+                    <div class="network-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">{{ connections_count }}</span>
+                            <span class="stat-label">Connections</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ user_data[17] if user_data[17] else 0 }}</span>
+                            <span class="stat-label">Login Count</span>
+                        </div>
                     </div>
                 </div>
             </div>

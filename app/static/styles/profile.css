@@ -898,6 +898,147 @@ footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* ===== EDUCATION & EXPERIENCE STYLES ===== */
+.education-info {
+    padding: 1rem 0;
+}
+
+.education-item {
+    background: rgba(109, 40, 217, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 4px solid var(--primary);
+}
+
+.education-item h3 {
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.education-details {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.education-major {
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.education-year {
+    color: var(--accent);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.experience-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.experience-item {
+    background: rgba(159, 18, 57, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 4px solid var(--accent);
+    transition: all 0.3s ease;
+}
+
+.experience-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(159, 18, 57, 0.15);
+}
+
+.experience-item h3 {
+    color: var(--accent);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.company-name {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+    font-weight: 500;
+}
+
+.experience-duration {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.network-stats {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--secondary-light) 0%, rgba(255, 255, 255, 0.8) 100%);
+    border-radius: 16px;
+    border: 2px solid rgba(109, 40, 217, 0.1);
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(109, 40, 217, 0.2);
+    border-color: var(--primary);
+}
+
+.stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.no-data {
+    color: var(--text-light);
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+    background: rgba(148, 163, 184, 0.1);
+    border-radius: 8px;
+    border: 2px dashed rgba(148, 163, 184, 0.3);
+}
+
+.profile-role {
+    margin-top: 0.5rem;
+}
+
+.profile-role i {
+    color: var(--secondary);
+    margin-right: 0.5rem;
+}
+
+.profile-role span {
+    color: var(--secondary);
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
 /* ===== RESPONSIVE STYLES ===== */
 @media screen and (max-width: 768px) {
     .profile-section {
@@ -1083,5 +1224,25 @@ footer {
         font-size: 0.75rem;
         padding: 0.6rem 0.8rem;
         min-width: 100px;
+    }
+
+    .network-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .stat-item {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .education-item,
+    .experience-item {
+        padding: 1rem;
+    }
+
+    .education-item h3,
+    .experience-item h3 {
+        font-size: 1.1rem;
     }
 }

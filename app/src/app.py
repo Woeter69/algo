@@ -395,13 +395,96 @@ def get_room_id(user1, user2):
 @app.route("/profile")
 @validators.login_required
 def profile_redirect():
-    return redirect(url_for("profile", user_id=session["username"]))
+    return redirect(url_for("profile", username=session["username"]))
 
 # actual profile page
-@app.route("/profile/<user_id>")
+@app.route("/profile/<username>")
 @validators.login_required
-def profile(user_id):
-    return render_template("profile.html", user=user_id)
+def profile(username):
+    mydb = None
+    cur = None
+    try:
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        user_id = session.get('user_id')
+        # Get user basic information
+        cur.execute("""
+            SELECT user_id, firstname, lastname, email, username, dob, graduation_year, 
+                   university_name, department, college, current_city, pfp_path, 
+                   registration_date, role, enrollment_number, community_id, last_login, login_count
+            FROM users 
+            WHERE username = %s OR user_id = %s
+        """, (username, user_id))
+        
+        user_data = cur.fetchone()
+        if not user_data:
+            flash("User not found")
+            return redirect(url_for('home'))
+        
+        # Get user interests
+        cur.execute("""
+            SELECT i.name 
+            FROM interests i
+            JOIN user_interests ui ON i.interest_id = ui.interest_id
+            WHERE ui.user_id = %s
+        """, (user_data[0],))
+        
+        user_interests = [row[0] for row in cur.fetchall()]
+        
+        # Get education details
+        cur.execute("""
+            SELECT degree_type, university_name, college_name, major, graduation_year
+            FROM education_details 
+            WHERE user_id = %s
+        """, (user_data[0],))
+        
+        education_data = cur.fetchone()
+        
+        # Get work experience
+        cur.execute("""
+            SELECT company_name, job_title, join_year, leave_year
+            FROM work_experience 
+            WHERE user_id = %s
+            ORDER BY join_year DESC
+        """, (user_data[0],))
+        
+        work_experience = cur.fetchall()
+        
+        # Get connections count
+        cur.execute("""
+            SELECT COUNT(*) 
+            FROM connections 
+            WHERE (user_id = %s OR con_user_id = %s) AND status = 'accepted'
+        """, (user_data[0], user_data[0]))
+        
+        connections_count = cur.fetchone()[0]
+        
+        # Get community name if user has community_id
+        community_name = None
+        if user_data[15]:  # community_id
+            cur.execute("SELECT name FROM communities WHERE community_id = %s", (user_data[15],))
+            community_result = cur.fetchone()
+            if community_result:
+                community_name = community_result[0]
+        
+        return render_template("profile.html", 
+                             user_data=user_data,
+                             user_interests=user_interests,
+                             education_data=education_data,
+                             work_experience=work_experience,
+                             connections_count=connections_count,
+                             community_name=community_name)
+    
+    except Exception as e:
+        app.logger.error(f"Error fetching profile data: {str(e)}")
+        flash("Error loading profile data")
+        return redirect(url_for('home'))
+    
+    finally:
+        if cur:
+            cur.close()
+        if mydb:
+            mydb.close()
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
