@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Profile - ALGO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/complete_profile.css') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../static/styles/complete_profile.css">
+
 </head>
 
 <body>
@@ -42,6 +45,7 @@
                 <p>Help us personalize your ALGO experience</p>
             </div>
             <form method="POST" action="/complete_profile" class="profile-form" enctype="multipart/form-data">
+                <!-- Profile Picture Section -->
                 <div class="form-group profile-picture-group">
                     <label for="profile-picture">Profile Picture</label>
                     <div class="profile-picture-container">
@@ -57,46 +61,176 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="uni-name">University Name</label>
-                    <input type="text" id="uni-name" name="uni-name" class="uni-name"
-                        placeholder="Enter your university name">
-                </div>
-
-                <div class="form-group">
-                    <label for="clg-name">College Name</label>
-                    <input type="text" id="clg-name" name="clg-name" class="clg-name"
-                        placeholder="Enter your college name">
+                <!-- Personal Information Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-user"></i> Personal Information</h3>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="dob">Date of Birth</label>
-                        <input type="date" id="dob" name="dob" class="dob" required max="{{cutoff_date}}">
+                        <label for="first-name">First Name *</label>
+                        <input type="text" id="first-name" name="first_name" required
+                            placeholder="Enter your first name">
                     </div>
-
                     <div class="form-group">
-                        <label for="grad_year">Graduation Year</label>
-                        <select id="grad_year" name="grad_year" class="grad_year" required>
+                        <label for="last-name">Last Name *</label>
+                        <input type="text" id="last-name" name="last_name" required placeholder="Enter your last name">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dob">Date of Birth *</label>
+                        <input type="date" id="dob" name="dob" required max="{{cutoff_date}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" name="bio" rows="3"
+                        placeholder="Tell us about yourself, your interests, and career goals..."></textarea>
+                </div>
+
+                <!-- Education Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                </div>
+
+                <div class="form-group">
+                    <label for="uni-name">University Name *</label>
+                    <input type="text" id="uni-name" name="uni_name" required placeholder="Enter your university name">
+                </div>
+
+                <div class="form-group">
+                    <label for="clg-name">College/School Name</label>
+                    <input type="text" id="clg-name" name="clg_name" placeholder="Enter your college or school name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="degree">Degree *</label>
+                        <input type="text" id="degree" name="degree" required
+                            placeholder="e.g., Bachelor of Science, Master of Arts">
+                    </div>
+                    <div class="form-group">
+                        <label for="major">Major/Field of Study *</label>
+                        <input type="text" id="major" name="major" required
+                            placeholder="e.g., Computer Science, Business">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="grad_year">Graduation Year *</label>
+                        <select id="grad_year" name="grad_year" required>
                             <option value="" disabled selected>Select graduation year</option>
                             {% for year in range(1980, 2031) %}
                             <option value="{{ year }}">{{ year }}</option>
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="gpa">GPA (Optional)</label>
+                        <input type="number" id="gpa" name="gpa" step="0.01" min="0" max="4" placeholder="3.85">
+                    </div>
+                </div>
+
+                <!-- Location Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
                 </div>
 
                 <div class="form-group">
-                    <label for="city">City</label>
-                    <select id="city" name="city" class="city" required>
-                        <option value="" disabled selected>Select your city</option>
+                    <label for="city">Current City *</label>
+                    <select id="city" name="city" required>
+                        <option value="" disabled selected>Select your current city</option>
                         {% for city in cities %}
                         <option value="{{city}}">{{city}}</option>
                         {% endfor %}
                     </select>
                 </div>
 
+                <!-- Skills & Interests Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-lightbulb"></i> Skills & Interests</h3>
+                </div>
+
+                <div class="form-group">
+                    <label for="skills">Skills</label>
+                    <textarea id="skills" name="skills" rows="2"
+                        placeholder="Enter your skills separated by commas (e.g., JavaScript, Python, Project Management)"></textarea>
+                    <small>List your technical and professional skills</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="interests">Interests</label>
+                    <textarea id="interests" name="interests" rows="2"
+                        placeholder="Enter your interests separated by commas (e.g., Technology, Entrepreneurship, Travel)"></textarea>
+                    <small>Share your hobbies and areas of interest</small>
+                </div>
+
+                <!-- Social Links Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-share-alt"></i> Social Links (Optional)</h3>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="linkedin">LinkedIn</label>
+                        <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/username">
+                    </div>
+                    <div class="form-group">
+                        <label for="github">GitHub</label>
+                        <input type="url" id="github" name="github" placeholder="https://github.com/username">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="twitter">Twitter</label>
+                        <input type="text" id="twitter" name="twitter" placeholder="@username">
+                    </div>
+                    <div class="form-group">
+                        <label for="website">Personal Website</label>
+                        <input type="url" id="website" name="website" placeholder="https://yourwebsite.com">
+                    </div>
+                </div>
+
+                <!-- Privacy Settings Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-shield-alt"></i> Privacy Settings</h3>
+                </div>
+
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="profile_visibility" value="public" checked>
+                        <span class="checkmark"></span>
+                        Make my profile visible to other users
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="email_notifications" value="enabled" checked>
+                        <span class="checkmark"></span>
+                        Receive email notifications about job opportunities and events
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="job_alerts" value="enabled">
+                        <span class="checkmark"></span>
+                        Get notified about relevant job opportunities
+                    </label>
+                </div>
+
                 <button type="submit" class="submit-button">
+                    <i class="fas fa-check-circle"></i>
                     Complete Profile
                 </button>
             </form>
@@ -114,7 +248,8 @@
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
                         <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                            target="_blank"><i class="fab fa-instagram"></i></a>
                     </div>
                 </div>
                 <div class="footer-links">
