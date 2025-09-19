@@ -102,5 +102,132 @@ if (profilePictureInput && profilePreview) {
     });
 }
 
+// Form Validation
+const form = document.querySelector('.profile-form');
+const requiredFields = document.querySelectorAll('input[required], select[required]');
+
+// Add validation on form submit
+if (form) {
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validate required fields
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                showFieldError(field, 'This field is required');
+                isValid = false;
+            } else {
+                clearFieldError(field);
+            }
+        });
+        
+        // Validate email format for social links
+        const urlFields = ['linkedin', 'github', 'website'];
+        urlFields.forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            if (field && field.value && !isValidUrl(field.value)) {
+                showFieldError(field, 'Please enter a valid URL');
+                isValid = false;
+            }
+        });
+        
+        // Validate phone number format
+        const phoneField = document.getElementById('phone');
+        if (phoneField && phoneField.value && !isValidPhone(phoneField.value)) {
+            showFieldError(phoneField, 'Please enter a valid phone number');
+            isValid = false;
+        }
+        
+        // Validate GPA range
+        const gpaField = document.getElementById('gpa');
+        if (gpaField && gpaField.value) {
+            const gpa = parseFloat(gpaField.value);
+            if (gpa < 0 || gpa > 4) {
+                showFieldError(gpaField, 'GPA must be between 0.0 and 4.0');
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = document.querySelector('.field-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+}
+
+// Real-time validation
+requiredFields.forEach(field => {
+    field.addEventListener('blur', function() {
+        if (!this.value.trim()) {
+            showFieldError(this, 'This field is required');
+        } else {
+            clearFieldError(this);
+        }
+    });
+    
+    field.addEventListener('input', function() {
+        if (this.classList.contains('error')) {
+            clearFieldError(this);
+        }
+    });
+});
+
+// Helper functions
+function showFieldError(field, message) {
+    clearFieldError(field);
+    field.classList.add('error');
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.textContent = message;
+    
+    field.parentNode.appendChild(errorDiv);
+}
+
+function clearFieldError(field) {
+    field.classList.remove('error');
+    const existingError = field.parentNode.querySelector('.field-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}
+
+function isValidUrl(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
+function isValidPhone(phone) {
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+}
+
+// Add error styles
+const style = document.createElement('style');
+style.textContent = `
+    .form-group input.error,
+    .form-group select.error,
+    .form-group textarea.error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+    
+    .field-error {
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+`;
+document.head.appendChild(style);
+
 // Chatbase Integration
 (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="rUFhD5wxmCkjLaxaWfwKk";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
