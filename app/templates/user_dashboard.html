@@ -13,46 +13,46 @@
 </head>
 
 <body>
-    <!-- HEADER -->
+    <!-- header -->
     <header>
         <div class="container">
             <nav>
-                <a href="{{ url_for('home') }}" class="logo">ALGO</a>
+                <a href="{{ url_for('home') }}" class="logo">algo</a>
                 <ul class="nav-links">
-                    <li><a href="{{ url_for('home') }}">Home</a></li>
-                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                    <li><a href="#" data-section="jobs">Job Board</a></li>
-                    <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <li><a href="{{ url_for('channels') }}">Channels</a></li>
+                    <li><a href="{{ url_for('home') }}">home</a></li>
+                    <li><a href="#" data-section="browse">browse alumni</a></li>
+                    <li><a href="#" data-section="jobs">job board</a></li>
+                    <li><a href="#" data-section="events">events</a></li>
+                    <li><a href="{{ url_for('contact') }}">contact us</a></li>
+                    <li><a href="{{ url_for('channels') }}">channels</a></li>
                 </ul>
-                <div class="user-profile" id="userProfile">
-                    <img src="{{ session.get('profile_picture', '/static/images/default-avatar.png') }}" alt="Profile">
+                <div class="user-profile" id="userprofile">
+                    <img src="{{pfp_path}}" alt="profile">
                     <div class="user-info">
-                        <div class="user-name">{{ session.get('first_name', 'User') }} {{ session.get('last_name', '') }}</div>
-                        <div class="user-role">{{ session.get('role', 'Member') }}</div>
+                        <div class="user-name">{{username}}</div>
+                        <div class="user-role">{{role}}</div>
                     </div>
-                    <i class="fas fa-chevron-down dropdown-arrow" id="dropdownArrow"></i>
-                    <div class="user-dropdown" id="userDropdown">
+                    <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
+                    <div class="user-dropdown" id="userdropdown">
                         <div class="dropdown-item">
                             <i class="fas fa-user"></i>
-                            <span>View Profile</span>
+                            <span>view profile</span>
                         </div>
                         <div class="dropdown-item">
                             <i class="fas fa-edit"></i>
-                            <span>Edit Profile</span>
+                            <span>edit profile</span>
                         </div>
                         <div class="dropdown-item">
                             <i class="fas fa-cog"></i>
-                            <span>Settings</span>
+                            <span>settings</span>
                         </div>
                         <div class="dropdown-item">
                             <i class="fas fa-bell"></i>
-                            <span>Notifications</span>
+                            <span>notifications</span>
                         </div>
                         <div class="dropdown-item">
                             <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
+                            <span>logout</span>
                         </div>
                     </div>
                 </div>
@@ -65,13 +65,13 @@
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
+    <!-- main content -->
     <main>
-        <!-- HERO SECTION -->
+        <!-- hero section -->
         <section class="hero-section">
             <div class="container">
                 <div class="hero-content">
-                    <h1>Welcome back, {{ session.get('first_name', 'User') }}!</h1>
+                    <h1>welcome back, {{username}}</h1>
                     <p>Your alumni network dashboard - connect, grow, and succeed together.</p>
                 </div>
             </div>
@@ -209,9 +209,9 @@
         <section class="profile-section">
             <div class="container">
                 <div class="profile-card">
-                    <img src="{{ session.get('profile_picture', '/static/images/default-avatar.png') }}" alt="Profile Picture" class="profile-avatar">
-                    <h3 class="profile-name">{{ session.get('first_name', 'User') }} {{ session.get('last_name', '') }}</h3>
-                    <p class="profile-role">{{ session.get('role', 'Alumni Member') }}</p>
+                    <img src="{{pfp_path}}" alt="Profile Picture" class="profile-avatar">
+                    <h3 class="profile-name">{{username}}</h3>
+                    <p class="profile-role">{{role}}</p>
                     <p class="profile-bio">Building connections and creating opportunities in the alumni network.</p>
                     <div class="profile-stats">
                         <div class="profile-stat">

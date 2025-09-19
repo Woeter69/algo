@@ -329,14 +329,14 @@ def user_dashboard():
 
     mydb = get_db_connection()
     cur = mydb.cursor()
-    cur.execute("SELECT username FROM users WHERE user_id = %s", (user_id,))
+    cur.execute("SELECT username, role, pfp_path FROM users WHERE user_id = %s", (user_id,))
     row = cur.fetchone()
     cur.close()
     mydb.close()
 
-    username = row[0] if row else None
+    username, role, pfp_path = row
 
-    return render_template("user_dashboard.html", username=username)
+    return render_template("user_dashboard.html", username=username,role=role,pfp_path=pfp_path)
 
 
 @app.route("/channels", methods=["GET","POST"])
