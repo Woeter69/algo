@@ -1,0 +1,134 @@
+{
+  "qa_pairs": [
+    {
+      "question": "What is this website about?",
+      "answer": "This is an alumni networking platform for graduates of Cluster Innovation Centre, University of Delhi. It helps CIC alumni connect with each other, find career opportunities, and maintain professional relationships."
+    },
+    {
+      "question": "How do I register on the platform?",
+      "answer": "To register, go to the /register page, fill in your firstname, lastname, email, username, and password. After submitting, you'll receive a verification email. Click the verification link to activate your account, then complete your profile with graduation details."
+    },
+    {
+      "question": "What information do I need to provide during registration?",
+      "answer": "During registration, you'll provide: basic info (name, email, password), then complete your profile with date of birth, graduation year, university details (University of Delhi - Cluster Innovation Centre), and current city. Finally, you'll select your interests for networking."
+    },
+    {
+      "question": "What interests can I select?",
+      "answer": "You can choose from 18 interest categories including: Career Guidance, Internships/Job Opportunities, Research Projects, Startups & Entrepreneurship, Technology/Software Development, Data Science/AI/ML, Engineering/Design, Business/Management, Networking, Sports & Fitness, Cultural Activities, Events & Workshops, Competitions/Hackathons, Mentorship, Volunteering, Travel, Music/Arts, and Clubs & Societies."
+    },
+    {
+      "question": "How does the networking feature work?",
+      "answer": "The platform allows you to connect with other alumni based on shared interests. You can send connection requests to other users, and they can accept, deny, or leave them pending. This helps build professional networks within the CIC alumni community."
+    },
+    {
+      "question": "What technology stack is used?",
+      "answer": "The platform is built with Flask (Python) backend, PostgreSQL database, HTML/CSS/JavaScript frontend, and uses Flask-Bcrypt for security. It's deployed on Vercel with Gunicorn server."
+    },
+    {
+      "question": "Is my data secure?",
+      "answer": "Yes, the platform implements several security measures: passwords are hashed using bcrypt, email verification is required, sessions are managed securely, and all form inputs are validated. The platform also enforces age verification (minimum 16 years)."
+    },
+    {
+      "question": "What pages are available on the website?",
+      "answer": "The website includes: Home page (/), Login (/login), Registration (/register), Profile Completion (/complete_profile), Interest Selection (/interests), Dashboard (/dashboard), Contact Form (/contact), and various confirmation/verification pages."
+    },
+    {
+      "question": "How do I contact the administrators?",
+      "answer": "You can use the contact form at /contact to send messages to the administrators. Provide your full name, email, phone (optional), subject, and message. All contact submissions are stored in the database for follow-up."
+    },
+    {
+      "question": "What happens after I register?",
+      "answer": "After registration: 1) You receive a verification email, 2) Click the verification link to activate your account, 3) Complete your profile with graduation and personal details, 4) Select your interests, 5) Access your dashboard to start networking with other alumni."
+    },
+    {
+      "question": "Can I update my profile information?",
+      "answer": "The platform stores comprehensive profile information including education details, work experience, and interests. While the current interface focuses on initial setup, the database structure supports profile updates and career progression tracking."
+    },
+    {
+      "question": "What kind of work experience can I add?",
+      "answer": "You can add multiple work experiences including company name, job title, joining year, and leaving year (if applicable). This helps other alumni understand your career progression and find relevant connections."
+    },
+    {
+      "question": "Are there any age restrictions?",
+      "answer": "Yes, users must be at least 16 years old to register on the platform. The system validates your date of birth during profile completion to ensure compliance with this requirement."
+    },
+    {
+      "question": "What cities can I select from?",
+      "answer": "The platform includes a comprehensive list of Indian cities for you to select your current location. This helps in location-based networking and finding alumni in your area."
+    },
+    {
+      "question": "How long is the email verification valid?",
+      "answer": "Email verification tokens are valid for 15 minutes after registration. If your token expires, you'll need to register again to receive a new verification email."
+    },
+    {
+      "question": "What degree types are supported?",
+      "answer": "The platform supports four degree types: Bachelors, Masters, PHD, and Doctorate. Most CIC alumni will select 'Bachelors' for the Information Technology and Mathematical Innovations program."
+    },
+    {
+      "question": "Is this only for CIC graduates?",
+      "answer": "Yes, this platform is specifically designed for alumni of Cluster Innovation Centre, University of Delhi, particularly those from the Information Technology and Mathematical Innovations program."
+    },
+    {
+      "question": "How do I access my dashboard?",
+      "answer": "After completing registration, email verification, profile completion, and interest selection, you'll be redirected to your dashboard at /dashboard. This is your main hub for alumni networking activities."
+    },
+    {
+      "question": "What happens if I forget my password?",
+      "answer": "The current system uses secure password hashing with bcrypt. While password reset functionality isn't explicitly shown in the current routes, the platform follows standard security practices for password management."
+    },
+    {
+      "question": "Can I see other alumni profiles?",
+      "answer": "The platform is designed for alumni networking, with features for connecting with other users based on shared interests. The dashboard likely provides access to browse and connect with other CIC alumni."
+    }
+  ],
+  "technical_qa": [
+    {
+      "question": "What database tables exist?",
+      "answer": "The database includes: users (main profiles), verification_tokens (email verification), interests (predefined categories), user_interests (user-interest mapping), connections (networking), education_details (academic info), work_experience (career info), and contacts (contact form submissions)."
+    },
+    {
+      "question": "How is user authentication handled?",
+      "answer": "Authentication uses Flask-Bcrypt for password hashing. Users log in with email/password, passwords are verified against hashed versions, and successful login creates a session with user_id stored."
+    },
+    {
+      "question": "What are the main Python files?",
+      "answer": "Key Python files include: app.py (main Flask application), connection.py (database connectivity), utils.py (utility functions), validators.py (validation logic), and questions.py (likely for additional features)."
+    },
+    {
+      "question": "How is the project deployed?",
+      "answer": "The project uses Gunicorn WSGI server (configured in Procfile as 'web: gunicorn app.src.app:app') and is deployed on Vercel platform with PostgreSQL database."
+    },
+    {
+      "question": "What environment variables are needed?",
+      "answer": "The application requires: DB_HOST, DB_NAME, DB_USER, DB_PASSWORD for database connection, APP_URL for email verification links, PORT for server configuration, and DEBUG for development mode."
+    }
+  ],
+  "error_handling": [
+    {
+      "question": "What happens if registration fails?",
+      "answer": "If registration fails, error messages are flashed to the user, session data is cleared, and the user is redirected back to the registration page to try again."
+    },
+    {
+      "question": "What if email verification fails?",
+      "answer": "The system handles invalid tokens (token_invalid.html) and expired tokens (token_expired.html) with appropriate error pages guiding users on next steps."
+    },
+    {
+      "question": "How are form validation errors handled?",
+      "answer": "The platform includes comprehensive error handling with user-friendly messages, form validation, and graceful fallbacks for various error scenarios."
+    }
+  ],
+  "development_info": [
+    {
+      "question": "How can I contribute to this project?",
+      "answer": "This is a Smart India Hackathon 2025 project. The repository is at github.com/Woeter69/sih-project-2025. Contributors can open issues or submit pull requests for improvements."
+    },
+    {
+      "question": "What's in the suggestions.txt file?",
+      "answer": "The suggestions.txt file contains development notes, currently mentioning 'Suggest random home page' indicating ongoing development of the home page design."
+    },
+    {
+      "question": "Is this project open source?",
+      "answer": "Yes, this project is part of Smart India Hackathon 2025 and appears to be open source, welcoming contributions and improvements from the community."
+    }
+  ]
+}
