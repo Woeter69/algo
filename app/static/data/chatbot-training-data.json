@@ -1,0 +1,246 @@
+{
+  "website_info": {
+    "name": "SIH Project 2025 - Alumni Platform",
+    "description": "An alumni networking platform for Cluster Innovation Centre, University of Delhi graduates",
+    "purpose": "Connect CIC alumni, facilitate networking, career guidance, and maintain alumni relationships",
+    "institution": "Cluster Innovation Centre, University of Delhi",
+    "program": "Information Technology and Mathematical Innovations"
+  },
+  "technical_stack": {
+    "backend": {
+      "framework": "Flask (Python)",
+      "database": "PostgreSQL",
+      "authentication": "Flask-Bcrypt for password hashing",
+      "deployment": "Gunicorn + Vercel",
+      "key_libraries": [
+        "Flask",
+        "Flask-Bcrypt", 
+        "psycopg2-binary",
+        "python-dotenv",
+        "bs4",
+        "django",
+        "gunicorn",
+        "vercel"
+      ]
+    },
+    "frontend": {
+      "templates": "HTML with Jinja2 templating",
+      "styling": "CSS",
+      "interactivity": "JavaScript",
+      "structure": "Responsive web design"
+    }
+  },
+  "project_structure": {
+    "root_files": [
+      "README.md - Project documentation",
+      "requirements.txt - Python dependencies", 
+      "Procfile - Deployment configuration",
+      ".gitignore - Git ignore rules",
+      "suggestions.txt - Development notes"
+    ],
+    "app_directory": {
+      "src/": "Main application code",
+      "templates/": "HTML template files",
+      "static/": "CSS, JavaScript, images, and data files",
+      "db/": "Database schema and related files"
+    }
+  },
+  "database_schema": {
+    "users": {
+      "description": "Main user profiles for alumni",
+      "fields": [
+        "user_id (Primary Key)",
+        "firstname, lastname",
+        "email (Unique)",
+        "password (Hashed)",
+        "dob, graduation_year",
+        "university_name, department, college",
+        "current_city",
+        "registration_date",
+        "pfp_path (Profile picture)"
+      ]
+    },
+    "verification_tokens": {
+      "description": "Email verification system",
+      "fields": ["id", "email", "token", "expiry"]
+    },
+    "interests": {
+      "description": "Available interest categories",
+      "predefined_interests": [
+        "Career Guidance",
+        "Internships / Job Opportunities", 
+        "Research Projects",
+        "Startups & Entrepreneurship",
+        "Technology / Software Development",
+        "Data Science / AI / Machine Learning",
+        "Engineering / Design",
+        "Business / Management",
+        "Networking",
+        "Clubs & Societies",
+        "Sports & Fitness",
+        "Cultural Activities",
+        "Events & Workshops",
+        "Competitions / Hackathons",
+        "Mentorship",
+        "Volunteering / Social Work",
+        "Travel",
+        "Music / Arts / Creative Work"
+      ]
+    },
+    "user_interests": {
+      "description": "Links users to their selected interests",
+      "fields": ["user_id", "interest_id"]
+    },
+    "connections": {
+      "description": "Alumni networking connections",
+      "fields": ["connection_id", "user_id", "con_user_id", "request", "status"],
+      "status_options": ["pending", "accepted", "denied"]
+    },
+    "education_details": {
+      "description": "Detailed education information",
+      "fields": ["detail_id", "user_id", "degree_type", "university_name", "college_name", "major", "graduation_year"],
+      "degree_types": ["Bachelors", "Masters", "PHD", "Doctorate"]
+    },
+    "work_experience": {
+      "description": "Professional experience tracking",
+      "fields": ["exp_id", "user_id", "company_name", "job_title", "join_year", "leave_year"]
+    },
+    "contacts": {
+      "description": "Contact form submissions",
+      "fields": ["id", "full_name", "email", "phone", "subject", "message", "submitted_at"]
+    }
+  },
+  "application_routes": {
+    "/": {
+      "name": "Home",
+      "method": "GET",
+      "description": "Landing page of the alumni platform",
+      "template": "home.html"
+    },
+    "/login": {
+      "name": "Login",
+      "methods": ["GET", "POST"],
+      "description": "User authentication page",
+      "template": "login.html",
+      "functionality": "Validates credentials, redirects to dashboard or profile completion"
+    },
+    "/register": {
+      "name": "Registration", 
+      "methods": ["GET", "POST"],
+      "description": "New user registration with email verification",
+      "template": "register.html",
+      "functionality": "Creates account, sends verification email"
+    },
+    "/verify/<token>": {
+      "name": "Email Verification",
+      "method": "GET", 
+      "description": "Verifies user email using token",
+      "functionality": "Activates user account after email verification"
+    },
+    "/complete_profile": {
+      "name": "Profile Completion",
+      "methods": ["GET", "POST"],
+      "description": "Additional profile information collection",
+      "template": "complete_profile.html",
+      "functionality": "Collects university, graduation year, city information"
+    },
+    "/interests": {
+      "name": "Interest Selection",
+      "methods": ["GET", "POST"], 
+      "description": "Users select their interests for networking",
+      "template": "interests.html",
+      "functionality": "Allows users to choose from predefined interest categories"
+    },
+    "/dashboard": {
+      "name": "User Dashboard",
+      "methods": ["GET", "POST"],
+      "description": "Main user interface after login",
+      "template": "dashboard.html",
+      "functionality": "Central hub for alumni activities"
+    },
+    "/contact": {
+      "name": "Contact Form",
+      "methods": ["GET", "POST"],
+      "description": "Contact form for inquiries",
+      "template": "contact.html",
+      "functionality": "Stores contact messages in database"
+    },
+    "/check_email": {
+      "name": "Email Check",
+      "method": "GET",
+      "description": "Instructs users to check email for verification",
+      "template": "check_email.html"
+    },
+    "/confirmation": {
+      "name": "Registration Confirmation",
+      "methods": ["GET", "POST"],
+      "description": "Confirms successful registration",
+      "template": "confirmation.html"
+    },
+    "/thanks": {
+      "name": "Thank You Page",
+      "methods": ["GET", "POST"],
+      "description": "Thank you page after form submissions",
+      "template": "thanks.html"
+    }
+  },
+  "templates": {
+    "home.html": "Landing page with platform introduction",
+    "login.html": "User login form with error handling",
+    "register.html": "Registration form with validation",
+    "complete_profile.html": "Profile completion form with city dropdown",
+    "interests.html": "Interest selection with checkboxes",
+    "dashboard.html": "Main user dashboard interface",
+    "contact.html": "Contact form for inquiries",
+    "check_email.html": "Email verification instructions",
+    "confirmation.html": "Registration success confirmation",
+    "thanks.html": "Thank you message page",
+    "token_expired.html": "Expired verification token message",
+    "token_invalid.html": "Invalid verification token message"
+  },
+  "static_files": {
+    "styles/": "CSS files for styling and responsive design",
+    "js/": "JavaScript files for interactivity",
+    "images/": "Platform images and assets",
+    "data/": {
+      "cities-name-list.json": "List of Indian cities for profile completion",
+      "fake-alumni-data.json": "Sample alumni data for testing"
+    }
+  },
+  "key_features": {
+    "user_management": {
+      "registration": "Email-based registration with verification",
+      "authentication": "Secure login with bcrypt password hashing",
+      "profile_completion": "Multi-step profile setup process",
+      "age_validation": "Minimum age requirement of 16 years"
+    },
+    "networking": {
+      "interest_matching": "Connect alumni based on shared interests",
+      "connection_requests": "Send and manage connection requests",
+      "status_tracking": "Track connection status (pending/accepted/denied)"
+    },
+    "data_management": {
+      "education_tracking": "Store detailed education information",
+      "work_experience": "Track professional career progression",
+      "city_selection": "Comprehensive Indian cities database"
+    },
+    "communication": {
+      "email_verification": "Automated email verification system",
+      "contact_form": "Direct communication channel",
+      "error_handling": "User-friendly error messages"
+    }
+  },
+  "security_features": {
+    "password_hashing": "Bcrypt for secure password storage",
+    "email_verification": "Token-based email verification",
+    "session_management": "Flask session handling",
+    "input_validation": "Form validation and sanitization",
+    "age_verification": "Date of birth validation"
+  },
+  "deployment": {
+    "platform": "Vercel",
+    "server": "Gunicorn WSGI server",
+    "database": "PostgreSQL with psycopg2 connector",
+    "environment": "Environment variables for configuration"
+  }
+}
