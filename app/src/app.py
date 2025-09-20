@@ -1,7 +1,5 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import eventlet
-eventlet.monkey_patch()
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask import Flask,render_template,request, session, redirect, url_for,flash
 from . import connection 
@@ -14,13 +12,34 @@ from .connection import get_db_connection
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Use gevent async mode for GeventWebSocketWorker and tune ping timings
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode="gevent",
+    ping_timeout=30,      # seconds to wait for client pong before closing
+    ping_interval=25,     # how often to send pings
+    logger=True,          # Enable debug logging temporarily
+    engineio_logger=True, # Enable engine.io debug logging
+    # message_queue="redis://localhost:6379/0",  # uncomment when scaling to multiple workers
+)
 
 bcrypt = Bcrypt(app)
+
+# Add IST functions to Jinja2 context
+@app.context_processor
+def inject_time_functions():
+    return {
+        'to_ist': utils.to_ist,
+        'format_ist_time': utils.format_ist_time
+    }
 
 @app.route('/')
 def home():
     try:
+        # If user is already logged in, redirect to dashboard
+        if 'user_id' in session:
+            return redirect(url_for('user_dashboard'))
         return render_template("home.html")
     except Exception as e:
         app.logger.error(f"Error in home route: {str(e)}")
@@ -29,6 +48,10 @@ def home():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    # If user is already logged in, redirect to dashboard
+    if 'user_id' in session:
+        return redirect(url_for('user_dashboard'))
+    
     cur = None
     mydb = None
 
@@ -80,8 +103,12 @@ def login():
         if mydb is not None:
             mydb.close()
 
-@app.route('/register',methods=["GET","POST"])
+@app.route("/register",methods=["GET","POST"])
 def register():
+    # If user is already logged in, redirect to dashboard
+    if 'user_id' in session:
+        return redirect(url_for('user_dashboard'))
+    
     try:
         if request.method == "POST":
             firstname = request.form["firstname"]
@@ -344,15 +371,129 @@ def user_dashboard():
 def channels():
     return render_template("channels.html")
 
-@app.route("/chat/<int:other_user_id>")
-def chat(other_user_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+@app.route("/chat")
+@validators.login_required
+def chat_list():
+    user_id = session['user_id']
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    
+    try:
+        # Get all unique users the current user has chatted with
+        cur.execute("""
+            SELECT DISTINCT 
+                CASE 
+                    WHEN m.sender_id = %s THEN m.receiver_id 
+                    ELSE m.sender_id 
+                END as other_user_id
+            FROM messages m
+            WHERE m.sender_id = %s OR m.receiver_id = %s
+        """, (user_id, user_id, user_id))
+        
+        user_ids = cur.fetchall()
+        chat_history = []
+        
+        # For each user, get their details and last message
+        for (other_user_id,) in user_ids:
+            # Get user details
+            cur.execute("SELECT username, pfp_path FROM users WHERE user_id = %s", (other_user_id,))
+            user_data = cur.fetchone()
+            
+            if user_data:
+                username, pfp_path = user_data
+                
+                # Get last message between current user and this user
+                cur.execute("""
+                    SELECT content, created_at 
+                    FROM messages 
+                    WHERE (sender_id = %s AND receiver_id = %s) 
+                       OR (sender_id = %s AND receiver_id = %s)
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                """, (user_id, other_user_id, other_user_id, user_id))
+                
+                message_data = cur.fetchone()
+                last_message = message_data[0] if message_data else None
+                last_message_time = message_data[1] if message_data else None
+                
+                chat_history.append((other_user_id, username, pfp_path, last_message, last_message_time))
+        
+        # Sort by last message time (most recent first)
+        chat_history.sort(key=lambda x: x[4] if x[4] else datetime.datetime.min, reverse=True)
+        
+    except Exception as e:
+        app.logger.error(f"Error in chat_list: {str(e)}")
+        chat_history = []
+    finally:
+        cur.close()
+        mydb.close()
+    
+    return render_template("chat_list.html", chat_history=chat_history)
+
+@app.route("/api/online_status")
+@validators.login_required
+def get_online_status():
+    """Return list of currently online user IDs"""
+    return {'online_users': list(online_users.keys())}
+
+@app.route("/api/upload_image", methods=["POST"])
+@validators.login_required
+def upload_image():
+    """Upload image and return URL"""
+    try:
+        if 'image' not in request.files:
+            return {'error': 'No image file provided'}, 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            return {'error': 'No file selected'}, 400
+        
+        if file and file.content_type.startswith('image/'):
+            # For now, we'll use a simple approach - save to static folder
+            # In production, you'd want to use cloud storage like AWS S3
+            import uuid
+            import os
+            
+            # Generate unique filename
+            file_extension = file.filename.rsplit('.', 1)[1].lower()
+            unique_filename = f"{uuid.uuid4()}.{file_extension}"
+            
+            # Create uploads directory if it doesn't exist
+            upload_dir = os.path.join(app.static_folder, 'uploads')
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            # Save file
+            file_path = os.path.join(upload_dir, unique_filename)
+            file.save(file_path)
+            
+            # Return URL
+            image_url = f"/static/uploads/{unique_filename}"
+            return {'image_url': image_url}
+        
+        return {'error': 'Invalid file type'}, 400
+        
+    except Exception as e:
+        app.logger.error(f"Error uploading image: {str(e)}")
+        return {'error': 'Upload failed'}, 500
+
+@app.route("/chat/<username>")
+@validators.login_required
+def chat(username):
 
     user_id = session['user_id']
     mydb = get_db_connection()
     cur = mydb.cursor()
     
+    # First, get the other user's ID from their username
+    cur.execute("SELECT user_id, username, pfp_path FROM users WHERE username=%s", (username,))
+    other_user_row = cur.fetchone()
+    if not other_user_row:
+        flash("User not found")
+        return redirect(url_for('user_dashboard'))
+    
+    other_user_id, other_user_name, other_user_pfp = other_user_row
+    
+    # Get conversation messages
     cur.execute("""
         SELECT m.sender_id, m.receiver_id, m.content, m.created_at, u.username
         FROM messages m
@@ -362,35 +503,165 @@ def chat(other_user_id):
     """, (user_id, other_user_id, other_user_id, user_id))
 
     conversation = cur.fetchall()
+    
+    # Get conversation history for sidebar - use same simplified approach as chat_list
+    try:
+        # Get all unique users the current user has chatted with
+        cur.execute("""
+            SELECT DISTINCT 
+                CASE 
+                    WHEN m.sender_id = %s THEN m.receiver_id 
+                    ELSE m.sender_id 
+                END as other_user_id
+            FROM messages m
+            WHERE m.sender_id = %s OR m.receiver_id = %s
+        """, (user_id, user_id, user_id))
+        
+        user_ids = cur.fetchall()
+        chat_history = []
+        
+        # For each user, get their details and last message
+        for (chat_user_id,) in user_ids:
+            # Get user details
+            cur.execute("SELECT username, pfp_path FROM users WHERE user_id = %s", (chat_user_id,))
+            user_data = cur.fetchone()
+            
+            if user_data:
+                chat_username, pfp_path = user_data
+                
+                # Get last message between current user and this user
+                cur.execute("""
+                    SELECT content, created_at 
+                    FROM messages 
+                    WHERE (sender_id = %s AND receiver_id = %s) 
+                       OR (sender_id = %s AND receiver_id = %s)
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                """, (user_id, chat_user_id, chat_user_id, user_id))
+                
+                message_data = cur.fetchone()
+                last_message = message_data[0] if message_data else None
+                last_message_time = message_data[1] if message_data else None
+                
+                chat_history.append((chat_user_id, chat_username, pfp_path, last_message, last_message_time))
+        
+        # Sort by last message time (most recent first)
+        chat_history.sort(key=lambda x: x[4] if x[4] else datetime.datetime.min, reverse=True)
+        
+    except Exception as e:
+        app.logger.error(f"Error getting chat history in chat route: {str(e)}")
+        chat_history = []
     cur.close()
     mydb.close()
 
-    return render_template("chat.html", conversation=conversation, other_user_id=other_user_id)
+    return render_template("chat.html", 
+                         conversation=conversation, 
+                         other_user_id=other_user_id, 
+                         other_user_name=other_user_name, 
+                         other_user_pfp=other_user_pfp,
+                         chat_history=chat_history)
+
+# Dictionary to track online users
+online_users = {}
+
+@socketio.on('connect')
+def handle_connect():
+    print(f"User connected: {request.sid}")
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f"User disconnected: {request.sid}")
+    # Remove user from online users when they disconnect
+    user_id_to_remove = None
+    for user_id, sid in online_users.items():
+        if sid == request.sid:
+            user_id_to_remove = user_id
+            break
+    
+    if user_id_to_remove:
+        del online_users[user_id_to_remove]
+        # Broadcast to all users that this user went offline
+        emit('user_status_changed', {
+            'user_id': user_id_to_remove,
+            'is_online': False
+        }, broadcast=True)
+
+@socketio.on('user_online')
+def handle_user_online(data):
+    user_id = data.get('user_id')
+    if user_id:
+        online_users[user_id] = request.sid
+        # Broadcast to all users that this user is online
+        emit('user_status_changed', {
+            'user_id': user_id,
+            'is_online': True
+        }, broadcast=True)
+        print(f"User {user_id} is now online")
 
 @socketio.on('join')
 def handle_join(data):
-    room = get_room_id(data['user1'], data['user2'])
+    room = utils.get_room_id(data['user1'], data['user2'])
     join_room(room)
+    
+    # Mark user as online when they join a chat
+    user_id = data.get('user1')  # Assuming user1 is the current user
+    if user_id:
+        online_users[user_id] = request.sid
 
 @socketio.on('send_message')
 def handle_send_message(data):
-    room = get_room_id(data['sender_id'], data['receiver_id'])
-    # Save to DB
+    room = utils.get_room_id(data['sender_id'], data['receiver_id'])
+    # Save to DB and enrich payload
     mydb = get_db_connection()
     cur = mydb.cursor()
-    cur.execute(
-        "INSERT INTO messages (sender_id, receiver_id, content) VALUES (%s,%s,%s)",
-        (data['sender_id'], data['receiver_id'], data['message'])
-    )
-    mydb.commit()
-    cur.close()
-    mydb.close()
+    try:
+        cur.execute(
+            "INSERT INTO messages (sender_id, receiver_id, content) VALUES (%s,%s,%s)",
+            (data['sender_id'], data['receiver_id'], data['message'])
+        )
+        mydb.commit()
+        message_id = cur.lastrowid
 
-    emit('receive_message', data, room=room)
+        # Fetch sender username and pfp for UI display
+        cur.execute("SELECT username, pfp_path FROM users WHERE user_id=%s", (data['sender_id'],))
+        row = cur.fetchone()
+        sender_username = row[0] if row else None
+        sender_pfp = row[1] if row and row[1] else None
 
-def get_room_id(user1, user2):
-    """Consistent room id for two users"""
-    return f"room_{min(user1,user2)}_{max(user1,user2)}"
+        enriched = {
+            'sender_id': data['sender_id'],
+            'receiver_id': data['receiver_id'],
+            'message': data['message'],
+            'client_message_id': data.get('client_message_id'),
+            'sender_username': sender_username,
+            'sender_pfp': sender_pfp,
+            'message_id': message_id,
+        }
+    finally:
+        cur.close()
+        mydb.close()
+
+    emit('receive_message', enriched, room=room)
+    # Return ack to the sender's emit callback
+    return {'status': 'ok', 'message_id': message_id}
+
+@socketio.on('typing')
+def handle_typing(data):
+    """Notify the other participant that the user is typing."""
+    try:
+        room = utils.get_room_id(data['user_id'], data['receiver_id'])
+        emit('typing', {'user_id': data['user_id']}, room=room, include_self=False)
+    except Exception:
+        pass
+
+@socketio.on('stop_typing')
+def handle_stop_typing(data):
+    """Notify the other participant that the user stopped typing."""
+    try:
+        room = utils.get_room_id(data['user_id'], data['receiver_id'])
+        emit('stop_typing', {'user_id': data['user_id']}, room=room, include_self=False)
+    except Exception:
+        pass
 
 @app.route("/profile")
 @validators.login_required
@@ -489,5 +760,6 @@ def profile(username):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("DEBUG", "True") == "True"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    # IMPORTANT: use SocketIO's runner so websockets & acks work
+    socketio.run(app, host="0.0.0.0", port=port, debug=debug)
  # Fixed Flash issues

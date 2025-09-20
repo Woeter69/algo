@@ -1,37 +1,735 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.min.js"></script>
-<script>
-  const socket = io();
+<!DOCTYPE html>
+<html lang="en">
 
-  const user1 = {{ session['user_id'] }};
-  const user2 = {{ other_user_id }};
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - ALGO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/chat_pranjul.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.min.js"></script>
+</head>
 
-  // Join a unique room
-  socket.emit('join', { user1: user1, user2: user2 });
+<body>
+    <div class="chat-container">
+    <div class="messages-container">
+        <div class="messages-sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-comments"></i> Messages</h2>
+                <button class="new-chat-btn" id="newChatBtn" title="Start New Chat">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
 
-  // Send message
-  function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const message = messageInput.value;
-    if (!message) return;
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search conversations..." id="searchInput">
+                </div>
+            </div>
 
-    socket.emit('send_message', { sender_id: user1, receiver_id: user2, message: message });
-    messageInput.value = '';
-  }
+            <div class="conversations-list" id="conversationsList">
+                {% if chat_history %}
+                    {% for chat in chat_history %}
+                    <div class="conversation-item {{ 'active' if chat[0] == other_user_id else '' }}" 
+                         data-user-id="{{ chat[0] }}" 
+                         onclick="window.location.href='/chat/{{ chat[1] }}'">
+                        <div class="conversation-avatar">
+                            <img src="{{ chat[2] or 'https://via.placeholder.com/50' }}" alt="{{ chat[1] }}">
+                            <div class="online-status"></div>
+                        </div>
+                        <div class="conversation-info">
+                            <div class="conversation-header">
+                                <h4>{{ chat[1] }}</h4>
+                                <span class="conversation-time">
+                                    {{ chat[4].strftime('%I:%M %p') if chat[4] else 'now' }}
+                                </span>
+                            </div>
+                            <p class="last-message">
+                                {{ (chat[3][:50] + '...') if chat[3] and chat[3]|length > 50 else (chat[3] or 'No messages yet') }}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="conversation-item active" data-user-id="{{ other_user_id if other_user_id else '1' }}">
+                    <div class="conversation-avatar">
+                        <img src="{{ other_user_pfp or 'https://via.placeholder.com/50' }}" alt="">
+                        <div class="online-status online"></div>
+                    </div>
+                    <div class="conversation-info">
+                        <div class="conversation-header">
+                            <h4>{{ other_user_name if other_user_name else 'Chat User' }}</h4>
+                            <span class="conversation-time">now</span>
+                        </div>
+                        <p class="last-message">Start a conversation...</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
 
-  // Receive messages in real-time
-  socket.on('receive_message', data => {
-    const chatBox = document.getElementById('chatBox');
-    const div = document.createElement('div');
-    div.textContent = (data.sender_id === user1 ? "You: " : "Them: ") + data.message;
-    chatBox.appendChild(div);
-  });
-</script>
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-user-info">
+                    <div class="chat-avatar">
+                        <img src="{{ other_user_pfp or 'https://via.placeholder.com/40' }}" alt="" id="chatUserAvatar">
+                        <div class="online-status online" id="chatUserStatus"></div>
+                    </div>
+                    <div class="chat-user-details">
+                        <h3 id="chatUserName">{{ other_user_name if other_user_name else 'Select a conversation' }}</h3>
+                        <span class="user-status" id="chatUserOnlineStatus">Active now</span>
+                        <span class="timezone-indicator" id="timezoneIndicator"></span>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="chat-action-btn" title="Voice call">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="chat-action-btn" title="Video call">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button class="chat-action-btn" title="More options">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
+            </div>
 
-<div id="chatBox" style="border:1px solid #ccc; padding:10px; height:300px; overflow-y:auto;">
-  {% for msg in conversation %}
-    <div>{{ msg[4] }}: {{ msg[2] }}</div>
-  {% endfor %}
-</div>
+            <div class="messages-area" id="messagesArea">
+                <div class="date-separator">
+                    <span>Today</span>
+                </div>
 
-<input type="text" id="messageInput" placeholder="Type a message">
-<button onclick="sendMessage()">Send</button>
+                {% if conversation %}
+                    {% for msg in conversation %}
+                    <div class="message {{ 'sent' if (msg[0]|string) == (session['user_id']|string) else 'received' }}">
+                        {% if (msg[0]|string) != (session['user_id']|string) %}
+                        <div class="message-avatar">
+                            <img src="{{ other_user_pfp or 'https://via.placeholder.com/32' }}" alt="{{ msg[4] }}">
+                        </div>
+                        {% endif %}
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                <p>{{ msg[2] }}</p>
+                            </div>
+                            <div class="message-time">{{ format_ist_time(msg[3]) }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                    <div class="message-avatar">
+                        <img src="https://via.placeholder.com/32" alt="">
+                    </div>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="message-input-container">
+                <div class="message-input-area">
+                    <button class="attachment-btn" id="attachmentBtn" title="Attach file">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    <div class="input-wrapper">
+                        <textarea placeholder="Type a message..." id="messageInput" rows="1"></textarea>
+                        <button class="emoji-btn" id="emojiBtn" title="Add emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                    </div>
+                    <button class="send-btn" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                
+                <!-- Emoji Picker -->
+                <div class="emoji-picker" id="emojiPicker" style="display: none;">
+                    <div class="emoji-categories">
+                        <button class="emoji-category active" data-category="smileys">😀</button>
+                        <button class="emoji-category" data-category="people">👋</button>
+                        <button class="emoji-category" data-category="nature">🌸</button>
+                        <button class="emoji-category" data-category="food">🍕</button>
+                        <button class="emoji-category" data-category="activities">⚽</button>
+                        <button class="emoji-category" data-category="travel">✈️</button>
+                        <button class="emoji-category" data-category="objects">💡</button>
+                        <button class="emoji-category" data-category="symbols">❤️</button>
+                    </div>
+                    <div class="emoji-grid" id="emojiGrid">
+                        <!-- Emojis will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-content">
+                <i class="fas fa-comments"></i>
+                <h3>Select a conversation</h3>
+                <p>Choose from your existing conversations or start a new one</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="newMessageModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>New Message</h3>
+                <button class="modal-close" id="closeNewMessageModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="search-users">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search people..." id="userSearchInput">
+                    </div>
+                </div>
+                <div class="users-list" id="usersList">
+                    <div class="user-item" data-user-id="6">
+                        <div class="user-avatar">
+                            <img src="https://via.placeholder.com/40" alt="">
+                        </div>
+                        <div class="user-info">
+                            <h4>John Smith</h4>
+                            <p>Software Engineer at Google</p>
+                        </div>
+                        <button class="message-user-btn">Message</button>
+                    </div>
+                    <div class="user-item" data-user-id="7">
+                        <div class="user-avatar">
+                            <img src="https://via.placeholder.com/40" alt="">
+                        </div>
+                        <div class="user-info">
+                            <h4>Lisa Wang</h4>
+                            <p>Product Manager at Microsoft</p>
+                        </div>
+                        <button class="message-user-btn">Message</button>
+                    </div>
+                    <div class="user-item" data-user-id="8">
+                        <div class="user-avatar">
+                            <img src="https://via.placeholder.com/40" alt="">
+                        </div>
+                        <div class="user-info">
+                            <h4>David Brown</h4>
+                            <p>Data Scientist at Amazon</p>
+                        </div>
+                        <button class="message-user-btn">Message</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- New Chat Modal -->
+    <div class="modal-overlay" id="newChatModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Start New Chat</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter the username of the person you want to chat with:</p>
+                <input type="text" id="usernameInput" placeholder="Enter username..." class="username-input">
+                <div class="modal-error" id="modalError" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelBtn">Cancel</button>
+                <button class="btn-start-chat" id="startChatBtn">Start Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .chat-history-sidebar {
+            width: 280px;
+            background: #f8f9fa;
+            border-left: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .new-chat-btn {
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .new-chat-btn:hover {
+            background: #1976d2;
+            transform: scale(1.1);
+        }
+
+        .chat-history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem 0;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .history-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .history-item.active {
+            background-color: #e3f2fd;
+            border-left: 3px solid #2196f3;
+        }
+
+        .history-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .history-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .history-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .history-last-message {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-time {
+            color: #999;
+            font-size: 0.75rem;
+        }
+
+        .no-chats {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #666;
+        }
+
+        /* Adjust main container for 2-column layout */
+        .chat-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .messages-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .messages-sidebar {
+            flex-shrink: 0;
+            width: 320px;
+        }
+
+        .chat-area {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-body p {
+            margin: 0 0 1rem 0;
+            color: #666;
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .username-input:focus {
+            outline: none;
+            border-color: #2196f3;
+        }
+
+        .modal-error {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel, .btn-start-chat {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-start-chat {
+            background: #2196f3;
+            color: white;
+        }
+
+        .btn-start-chat:hover {
+            background: #1976d2;
+        }
+
+        .btn-start-chat:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Online Status Styles */
+        .online-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            border: 2px solid white;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .online-status.online {
+            background: #4caf50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3);
+        }
+
+        .conversation-avatar {
+            position: relative;
+        }
+
+        .chat-avatar {
+            position: relative;
+        }
+
+        /* Emoji Picker Styles */
+        .emoji-picker {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            width: 320px;
+            height: 300px;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .emoji-categories {
+            display: flex;
+            border-bottom: 1px solid #e9ecef;
+            padding: 0.5rem;
+            gap: 0.25rem;
+        }
+
+        .emoji-category {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .emoji-category:hover {
+            background: #f0f0f0;
+        }
+
+        .emoji-category.active {
+            background: #e3f2fd;
+        }
+
+        .emoji-grid {
+            flex: 1;
+            padding: 0.5rem;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0.25rem;
+        }
+
+        .emoji-item {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-item:hover {
+            background: #f0f0f0;
+        }
+
+        /* Image Preview Styles */
+        .image-preview {
+            position: relative;
+            margin: 0.5rem 0;
+            max-width: 200px;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .image-preview .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .message.image {
+            max-width: 300px;
+        }
+
+        .message.image img {
+            max-width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Image Modal Styles */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            cursor: pointer;
+        }
+
+        .image-modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .image-modal-content img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-modal-close:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Timezone Indicator */
+        .timezone-indicator {
+            display: block;
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 2px;
+        }
+    </style>
+
+    <script>
+        window.chatData = {
+            currentUserId: {{ (session['user_id'] if session['user_id'] else None) | tojson }},
+            otherUserId: {{ (other_user_id if other_user_id else None) | tojson }},
+            otherUserName: {{ (other_user_name if other_user_name else '') | tojson }},
+            otherUserPfp: {{ (other_user_pfp if other_user_pfp else None) | tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    </div> <!-- Close chat-container -->
+</body>
+
+</html>

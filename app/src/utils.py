@@ -1,5 +1,6 @@
 import re,os,base64
 import json,requests
+import pytz
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,3 +31,36 @@ def upload_to_imgbb(file, api_key):
         return response.json()['data']['url']
     else:
         return None
+
+# ===== TIME UTILITY FUNCTIONS =====
+
+# IST timezone
+IST = pytz.timezone('Asia/Kolkata')
+
+def to_ist(utc_datetime):
+    """Convert UTC datetime to IST"""
+    if utc_datetime is None:
+        return None
+    if utc_datetime.tzinfo is None:
+        # Assume UTC if no timezone info
+        utc_datetime = pytz.utc.localize(utc_datetime)
+    return utc_datetime.astimezone(IST)
+
+def format_ist_time(utc_datetime, format_str='%I:%M %p'):
+    """Format datetime in IST"""
+    if utc_datetime is None:
+        return 'now'
+    ist_time = to_ist(utc_datetime)
+    return ist_time.strftime(format_str)
+
+def format_utc_timestamp(utc_datetime):
+    """Return UTC timestamp for client-side timezone conversion"""
+    if utc_datetime is None:
+        return None
+    if utc_datetime.tzinfo is None:
+        utc_datetime = pytz.utc.localize(utc_datetime)
+    return int(utc_datetime.timestamp() * 1000)  # Return milliseconds for JavaScript
+
+def get_room_id(user1, user2):
+    """Consistent room id for two users"""
+    return f"room_{min(user1,user2)}_{max(user1,user2)}"

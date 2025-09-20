@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chats - Your Conversations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/chat_pranjul.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="chat-list-container">
+        <div class="chat-list-header">
+            <div class="header-content">
+                <h1><i class="fas fa-comments"></i> Your Conversations</h1>
+                <button class="new-chat-btn" id="newChatBtn" title="Start New Chat">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <p>Click on any conversation to continue chatting</p>
+        </div>
+
+        <div class="conversations-grid">
+            {% if chat_history %}
+                {% for chat in chat_history %}
+                <div class="conversation-card" onclick="window.location.href='/chat/{{ chat[1] }}'">
+                    <div class="conversation-avatar">
+                        <img src="{{ chat[2] or 'https://via.placeholder.com/60' }}" alt="{{ chat[1] }}">
+                        <div class="online-status"></div>
+                    </div>
+                    <div class="conversation-details">
+                        <div class="conversation-name">{{ chat[1] }}</div>
+                        <div class="last-message">
+                            {{ (chat[3][:50] + '...') if chat[3] and chat[3]|length > 50 else (chat[3] or 'No messages yet') }}
+                        </div>
+                        <div class="conversation-time">
+                            {% if chat[4] %}
+                                {{ format_ist_time(chat[4], '%b %d, %I:%M %p') }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="conversation-arrow">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-conversations">
+                    <div class="no-conversations-icon">
+                        <i class="fas fa-comment-slash"></i>
+                    </div>
+                    <h3>No conversations yet</h3>
+                    <p>Start a conversation by finding someone to chat with!</p>
+                    <a href="{{ url_for('user_dashboard') }}" class="start-chat-btn">
+                        <i class="fas fa-plus"></i> Start New Chat
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- New Chat Modal -->
+    <div class="modal-overlay" id="newChatModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Start New Chat</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter the username of the person you want to chat with:</p>
+                <input type="text" id="usernameInput" placeholder="Enter username..." class="username-input">
+                <div class="modal-error" id="modalError" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelBtn">Cancel</button>
+                <button class="btn-start-chat" id="startChatBtn">Start Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .chat-list-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .chat-list-header {
+            background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-list-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .chat-list-header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .new-chat-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .new-chat-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .conversations-grid {
+            padding: 1.5rem;
+        }
+
+        .conversation-card {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .conversation-card:hover {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
+        }
+
+        .conversation-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .conversation-avatar {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .conversation-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .online-status {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: #4caf50;
+            border: 3px solid white;
+            border-radius: 50%;
+        }
+
+        .conversation-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conversation-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .last-message {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .conversation-time {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .conversation-arrow {
+            color: #ccc;
+            font-size: 1.2rem;
+            margin-left: 1rem;
+        }
+
+        .conversation-card:hover .conversation-arrow {
+            color: #2196f3;
+        }
+
+        .no-conversations {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+
+        .no-conversations-icon {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 1.5rem;
+        }
+
+        .no-conversations h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .no-conversations p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .start-chat-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(109, 40, 217, 0.3);
+        }
+
+        .start-chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(109, 40, 217, 0.4);
+        }
+
+        .start-chat-btn i {
+            margin-right: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .chat-list-header {
+                padding: 1.5rem;
+            }
+
+            .chat-list-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .conversations-grid {
+                padding: 1rem;
+            }
+
+            .conversation-card {
+                padding: 1rem;
+            }
+
+            .conversation-avatar {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-body p {
+            margin: 0 0 1rem 0;
+            color: #666;
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        .username-input:focus {
+            outline: none;
+            border-color: #6D28D9;
+        }
+
+        .modal-error {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel, .btn-start-chat {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-start-chat {
+            background: #6D28D9;
+            color: white;
+        }
+
+        .btn-start-chat:hover {
+            background: #5B21B6;
+        }
+
+        .btn-start-chat:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+
+    <script>
+        // New Chat Modal functionality
+        const newChatBtn = document.getElementById('newChatBtn');
+        const newChatModal = document.getElementById('newChatModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const startChatBtn = document.getElementById('startChatBtn');
+        const usernameInput = document.getElementById('usernameInput');
+        const modalError = document.getElementById('modalError');
+
+        if (newChatBtn && newChatModal) {
+            // Open modal
+            newChatBtn.addEventListener('click', function() {
+                newChatModal.style.display = 'flex';
+                usernameInput.focus();
+                modalError.style.display = 'none';
+                usernameInput.value = '';
+            });
+
+            // Close modal functions
+            function closeNewChatModal() {
+                newChatModal.style.display = 'none';
+                usernameInput.value = '';
+                modalError.style.display = 'none';
+            }
+
+            closeModal?.addEventListener('click', closeNewChatModal);
+            cancelBtn?.addEventListener('click', closeNewChatModal);
+
+            // Close modal on overlay click
+            newChatModal.addEventListener('click', function(e) {
+                if (e.target === newChatModal) {
+                    closeNewChatModal();
+                }
+            });
+
+            // Start chat functionality
+            startChatBtn?.addEventListener('click', async function() {
+                const username = usernameInput.value.trim();
+                if (!username) {
+                    showModalError('Please enter a username');
+                    return;
+                }
+
+                // Disable button and show loading
+                startChatBtn.disabled = true;
+                startChatBtn.textContent = 'Checking...';
+
+                try {
+                    // Check if user exists by trying to navigate to their chat
+                    const response = await fetch(`/chat/${username}`, { method: 'HEAD' });
+                    if (response.ok) {
+                        // User exists, navigate to chat
+                        window.location.href = `/chat/${username}`;
+                    } else if (response.status === 404) {
+                        showModalError('User not found. Please check the username and try again.');
+                    } else {
+                        showModalError('Unable to start chat. Please try again later.');
+                    }
+                } catch (error) {
+                    console.error('Error checking user:', error);
+                    showModalError('Network error. Please check your connection and try again.');
+                } finally {
+                    // Re-enable button
+                    startChatBtn.disabled = false;
+                    startChatBtn.textContent = 'Start Chat';
+                }
+            });
+
+            // Enter key to start chat
+            usernameInput?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    startChatBtn.click();
+                }
+            });
+
+            function showModalError(message) {
+                modalError.textContent = message;
+                modalError.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
