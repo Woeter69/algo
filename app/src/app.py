@@ -344,10 +344,10 @@ def user_dashboard():
 def channels():
     return render_template("channels.html")
 
-
 @app.route("/chat/<int:other_user_id>")
-@validators.login_required
 def chat(other_user_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
 
     user_id = session['user_id']
     mydb = get_db_connection()
