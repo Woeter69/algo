@@ -3,21 +3,24 @@
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 const links = document.querySelectorAll('.nav-links li');
+
 hamburger.addEventListener('click', () => {
     // Toggle Nav
     navLinks.classList.toggle('open');
+    
     // Animate Links
     links.forEach((link, index) => {
         if (link.style.animation) {
             link.style.animation = '';
-        }
-        else {
+        } else {
             link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
         }
     });
+    
     // Hamburger Animation
     hamburger.classList.toggle('toggle');
 });
+
 // Close mobile menu when clicking on a nav link
 links.forEach(link => {
     link.addEventListener('click', () => {
@@ -28,18 +31,22 @@ links.forEach(link => {
         });
     });
 });
+
 // Scroll Header Effect
 window.addEventListener('scroll', () => {
     const header = document.querySelector('header');
     header.classList.toggle('scrolled', window.scrollY > 50);
 });
+
 // Section Navigation
 const allSections = document.querySelectorAll('section');
 const navItems = document.querySelectorAll('[data-section]');
+
 // Hide all coming soon sections initially
 document.querySelectorAll('.coming-soon').forEach(section => {
     section.style.display = 'none';
 });
+
 // Handle navigation clicks
 navItems.forEach(item => {
     item.addEventListener('click', (e) => {
@@ -48,7 +55,9 @@ navItems.forEach(item => {
         if (sectionName === 'login' || sectionName === 'register') {
             return; // Let the link work normally
         }
+        
         e.preventDefault();
+        
         if (sectionName === 'home') {
             // Show home section, hide others
             document.getElementById('home-section').style.display = 'block';
@@ -57,13 +66,13 @@ navItems.forEach(item => {
             document.querySelectorAll('.coming-soon').forEach(section => {
                 section.style.display = 'none';
             });
+            
             // Scroll to top
             window.scrollTo({
                 top: 0,
                 behavior: 'smooth'
             });
-        }
-        else {
+        } else {
             // Hide main content, show the selected coming soon section
             document.getElementById('home-section').style.display = 'none';
             document.querySelector('.features').style.display = 'none';
@@ -71,9 +80,11 @@ navItems.forEach(item => {
             document.querySelectorAll('.coming-soon').forEach(section => {
                 section.style.display = 'none';
             });
+            
             const targetSection = document.getElementById(`${sectionName}-section`);
             if (targetSection) {
                 targetSection.style.display = 'flex';
+                
                 // Scroll to the section
                 window.scrollTo({
                     top: targetSection.offsetTop - 80,
@@ -81,6 +92,7 @@ navItems.forEach(item => {
                 });
             }
         }
+        
         // Update active nav link
         navItems.forEach(navItem => {
             navItem.classList.remove('active');
@@ -88,20 +100,9 @@ navItems.forEach(item => {
         item.classList.add('active');
     });
 });
+
 // Initialize page - make sure home is shown
 document.getElementById('home-section').style.display = 'block';
 document.querySelector('.features').style.display = 'block';
 document.querySelector('.cta').style.display = 'block';
-(function () { if (!window.chatbase || window.chatbase("getState") !== "initialized") {
-    window.chatbase = (...arguments) => { if (!window.chatbase.q) {
-        window.chatbase.q = [];
-    } window.chatbase.q.push(arguments); };
-    window.chatbase = new Proxy(window.chatbase, { get(target, prop) { if (prop === "q") {
-            return target.q;
-        } return (...args) => target(prop, ...args); } });
-} const onLoad = function () { const script = document.createElement("script"); script.src = "https://www.chatbase.co/embed.min.js"; script.id = "rUFhD5wxmCkjLaxaWfwKk"; script.setAttribute("domain", "www.chatbase.co"); document.body.appendChild(script); }; if (document.readyState === "complete") {
-    onLoad();
-}
-else {
-    window.addEventListener("load", onLoad);
-} })();
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="rUFhD5wxmCkjLaxaWfwKk";script.setAttribute("domain", "www.chatbase.co");document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();

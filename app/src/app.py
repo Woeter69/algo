@@ -9,7 +9,7 @@ from . import utils, validators
 from .connection import get_db_connection
 
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
 
 socketio = SocketIO(
     app,
@@ -366,6 +366,12 @@ def user_dashboard():
 def channels():
     return render_template("channels.html")
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out successfully.")
+    return redirect(url_for('home'))
+
 @app.route("/chat")
 @validators.login_required
 def chat_list():
@@ -551,10 +557,11 @@ def chat(username):
 
     return render_template("chat.html", 
                          conversation=conversation, 
-                         other_user_id=other_user_id, 
-                         other_user_name=other_user_name, 
-                         other_user_pfp=other_user_pfp,
-                         chat_history=chat_history)
+                         other_user_id=other_user_id or None, 
+                         other_user_name=other_user_name or '', 
+                         other_user_pfp=other_user_pfp or '',
+                         chat_history=chat_history or [],
+                         current_user_id=user_id or None)
 
 
 online_users = {}

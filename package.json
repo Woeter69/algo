@@ -1,0 +1,33 @@
+{
+  "name": "sih-project-chat",
+  "version": "1.0.0",
+  "description": "Chat application with TypeScript",
+  "scripts": {
+    "build": "npm run build:css && npm run build:ts",
+    "build:ts": "tsc",
+    "build:ts:dev": "tsc -p tsconfig.dev.json",
+    "build:ts:prod": "tsc -p tsconfig.prod.json",
+    "build:css": "npx tailwindcss -i ./app/static/styles/input.css -o ./app/static/styles/output.css",
+    "build:css:watch": "npx tailwindcss -i ./app/static/styles/input.css -o ./app/static/styles/output.css --watch",
+    "watch": "npm run build:css:watch & npm run watch:ts",
+    "watch:ts": "tsc -p tsconfig.dev.json --watch",
+    "dev": "npm run build:css:watch & npm run watch:ts",
+    "build:prod": "npm run build:css && npm run build:ts:prod",
+    "clean:js": "rm -rf app/static/js/*.js",
+    "clean:maps": "rm -rf app/static/js/*.map",
+    "clean:css": "rm -f app/static/styles/output.css",
+    "clean:all": "npm run clean:js && npm run clean:maps && npm run clean:css",
+    "rebuild": "npm run clean:all && npm run build",
+    "rebuild:prod": "npm run clean:all && npm run build:prod"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.18",
+    "@types/node": "^20.0.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.7.0"
+  }
+}
