@@ -8,25 +8,20 @@ from flask_bcrypt import Bcrypt
 from . import utils, validators
 from .connection import get_db_connection
 
-# Defining Flask app
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.urandom(24)
 
-# Use gevent async mode for GeventWebSocketWorker and tune ping timings
 socketio = SocketIO(
     app,
     cors_allowed_origins="*",
     async_mode="gevent",
-    ping_timeout=30,      # seconds to wait for client pong before closing
-    ping_interval=25,     # how often to send pings
-    logger=True,          # Enable debug logging temporarily
-    engineio_logger=True, # Enable engine.io debug logging
-    # message_queue="redis://localhost:6379/0",  # uncomment when scaling to multiple workers
+    ping_timeout=30,
+    ping_interval=25,
+    logger=True,
+    engineio_logger=True,
 )
 
 bcrypt = Bcrypt(app)
-
-# Add IST functions to Jinja2 context
 @app.context_processor
 def inject_time_functions():
     return {
@@ -37,7 +32,7 @@ def inject_time_functions():
 @app.route('/')
 def home():
     try:
-        # If user is already logged in, redirect to dashboard
+        
         if 'user_id' in session:
             return redirect(url_for('user_dashboard'))
         return render_template("home.html")
@@ -48,7 +43,7 @@ def home():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    # If user is already logged in, redirect to dashboard
+    
     if 'user_id' in session:
         return redirect(url_for('user_dashboard'))
     
@@ -57,13 +52,13 @@ def login():
 
     try:
         if request.method == "POST":
-            email_or_username = request.form["email"]  # user can enter either
+            email_or_username = request.form["email"]  
             password = request.form["password"]
 
             mydb = get_db_connection()
             cur = mydb.cursor()
 
-            # Check both email and username
+            
             cur.execute(
                 "SELECT user_id, password, login_count, username FROM users WHERE email=%s OR username=%s",
                 (email_or_username, email_or_username)
@@ -76,7 +71,7 @@ def login():
                     session['user_id'] = user_id
                     session['username'] = username
 
-                    # Update last login and increment login_count
+                    
                     cur.execute(
                         "UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s",
                         (datetime.datetime.utcnow(), user_id)
@@ -84,7 +79,7 @@ def login():
                     mydb.commit()
 
                     if login_count == 0:
-                        return redirect(url_for("register"))  # <- change here
+                        return redirect(url_for("register"))  
                     else:
                         return redirect(url_for("user_dashboard"))
 
@@ -105,7 +100,7 @@ def login():
 
 @app.route("/register",methods=["GET","POST"])
 def register():
-    # If user is already logged in, redirect to dashboard
+    
     if 'user_id' in session:
         return redirect(url_for('user_dashboard'))
     
@@ -379,7 +374,7 @@ def chat_list():
     cur = mydb.cursor()
     
     try:
-        # Get all unique users the current user has chatted with
+        
         cur.execute("""
             SELECT DISTINCT 
                 CASE 
@@ -393,16 +388,16 @@ def chat_list():
         user_ids = cur.fetchall()
         chat_history = []
         
-        # For each user, get their details and last message
+        
         for (other_user_id,) in user_ids:
-            # Get user details
+            
             cur.execute("SELECT username, pfp_path FROM users WHERE user_id = %s", (other_user_id,))
             user_data = cur.fetchone()
             
             if user_data:
                 username, pfp_path = user_data
                 
-                # Get last message between current user and this user
+                
                 cur.execute("""
                     SELECT content, created_at 
                     FROM messages 
@@ -418,7 +413,7 @@ def chat_list():
                 
                 chat_history.append((other_user_id, username, pfp_path, last_message, last_message_time))
         
-        # Sort by last message time (most recent first)
+        
         chat_history.sort(key=lambda x: x[4] if x[4] else datetime.datetime.min, reverse=True)
         
     except Exception as e:
@@ -449,24 +444,24 @@ def upload_image():
             return {'error': 'No file selected'}, 400
         
         if file and file.content_type.startswith('image/'):
-            # For now, we'll use a simple approach - save to static folder
-            # In production, you'd want to use cloud storage like AWS S3
+            
+            
             import uuid
             import os
             
-            # Generate unique filename
+            
             file_extension = file.filename.rsplit('.', 1)[1].lower()
             unique_filename = f"{uuid.uuid4()}.{file_extension}"
             
-            # Create uploads directory if it doesn't exist
+            
             upload_dir = os.path.join(app.static_folder, 'uploads')
             os.makedirs(upload_dir, exist_ok=True)
             
-            # Save file
+            
             file_path = os.path.join(upload_dir, unique_filename)
             file.save(file_path)
             
-            # Return URL
+            
             image_url = f"/static/uploads/{unique_filename}"
             return {'image_url': image_url}
         
@@ -484,7 +479,7 @@ def chat(username):
     mydb = get_db_connection()
     cur = mydb.cursor()
     
-    # First, get the other user's ID from their username
+    
     cur.execute("SELECT user_id, username, pfp_path FROM users WHERE username=%s", (username,))
     other_user_row = cur.fetchone()
     if not other_user_row:
@@ -493,7 +488,7 @@ def chat(username):
     
     other_user_id, other_user_name, other_user_pfp = other_user_row
     
-    # Get conversation messages
+    
     cur.execute("""
         SELECT m.sender_id, m.receiver_id, m.content, m.created_at, u.username
         FROM messages m
@@ -504,9 +499,9 @@ def chat(username):
 
     conversation = cur.fetchall()
     
-    # Get conversation history for sidebar - use same simplified approach as chat_list
+    
     try:
-        # Get all unique users the current user has chatted with
+        
         cur.execute("""
             SELECT DISTINCT 
                 CASE 
@@ -520,16 +515,16 @@ def chat(username):
         user_ids = cur.fetchall()
         chat_history = []
         
-        # For each user, get their details and last message
+        
         for (chat_user_id,) in user_ids:
-            # Get user details
+            
             cur.execute("SELECT username, pfp_path FROM users WHERE user_id = %s", (chat_user_id,))
             user_data = cur.fetchone()
             
             if user_data:
                 chat_username, pfp_path = user_data
                 
-                # Get last message between current user and this user
+                
                 cur.execute("""
                     SELECT content, created_at 
                     FROM messages 
@@ -545,7 +540,7 @@ def chat(username):
                 
                 chat_history.append((chat_user_id, chat_username, pfp_path, last_message, last_message_time))
         
-        # Sort by last message time (most recent first)
+        
         chat_history.sort(key=lambda x: x[4] if x[4] else datetime.datetime.min, reverse=True)
         
     except Exception as e:
@@ -561,7 +556,7 @@ def chat(username):
                          other_user_pfp=other_user_pfp,
                          chat_history=chat_history)
 
-# Dictionary to track online users
+
 online_users = {}
 
 @socketio.on('connect')
@@ -571,7 +566,7 @@ def handle_connect():
 @socketio.on('disconnect')
 def handle_disconnect():
     print(f"User disconnected: {request.sid}")
-    # Remove user from online users when they disconnect
+    
     user_id_to_remove = None
     for user_id, sid in online_users.items():
         if sid == request.sid:
@@ -580,7 +575,7 @@ def handle_disconnect():
     
     if user_id_to_remove:
         del online_users[user_id_to_remove]
-        # Broadcast to all users that this user went offline
+        
         emit('user_status_changed', {
             'user_id': user_id_to_remove,
             'is_online': False
@@ -591,7 +586,7 @@ def handle_user_online(data):
     user_id = data.get('user_id')
     if user_id:
         online_users[user_id] = request.sid
-        # Broadcast to all users that this user is online
+        
         emit('user_status_changed', {
             'user_id': user_id,
             'is_online': True
@@ -603,15 +598,15 @@ def handle_join(data):
     room = utils.get_room_id(data['user1'], data['user2'])
     join_room(room)
     
-    # Mark user as online when they join a chat
-    user_id = data.get('user1')  # Assuming user1 is the current user
+    
+    user_id = data.get('user1')  
     if user_id:
         online_users[user_id] = request.sid
 
 @socketio.on('send_message')
 def handle_send_message(data):
     room = utils.get_room_id(data['sender_id'], data['receiver_id'])
-    # Save to DB and enrich payload
+    
     mydb = get_db_connection()
     cur = mydb.cursor()
     try:
@@ -622,7 +617,7 @@ def handle_send_message(data):
         mydb.commit()
         message_id = cur.lastrowid
 
-        # Fetch sender username and pfp for UI display
+        
         cur.execute("SELECT username, pfp_path FROM users WHERE user_id=%s", (data['sender_id'],))
         row = cur.fetchone()
         sender_username = row[0] if row else None
@@ -642,7 +637,7 @@ def handle_send_message(data):
         mydb.close()
 
     emit('receive_message', enriched, room=room)
-    # Return ack to the sender's emit callback
+    
     return {'status': 'ok', 'message_id': message_id}
 
 @socketio.on('typing')
@@ -668,7 +663,7 @@ def handle_stop_typing(data):
 def profile_redirect():
     return redirect(url_for("profile", username=session["username"]))
 
-# actual profile page
+
 @app.route("/profile/<username>")
 @validators.login_required
 def profile(username):
@@ -678,7 +673,7 @@ def profile(username):
         mydb = get_db_connection()
         cur = mydb.cursor()
         user_id = session.get('user_id')
-        # Get user basic information
+        
         cur.execute("""
             SELECT user_id, firstname, lastname, email, username, dob, graduation_year, 
                    university_name, department, college, current_city, pfp_path, 
@@ -692,7 +687,7 @@ def profile(username):
             flash("User not found")
             return redirect(url_for('home'))
         
-        # Get user interests
+        
         cur.execute("""
             SELECT i.name 
             FROM interests i
@@ -702,7 +697,7 @@ def profile(username):
         
         user_interests = [row[0] for row in cur.fetchall()]
         
-        # Get education details
+        
         cur.execute("""
             SELECT degree_type, university_name, college_name, major, graduation_year
             FROM education_details 
@@ -711,7 +706,7 @@ def profile(username):
         
         education_data = cur.fetchone()
         
-        # Get work experience
+        
         cur.execute("""
             SELECT company_name, job_title, join_year, leave_year
             FROM work_experience 
@@ -721,7 +716,7 @@ def profile(username):
         
         work_experience = cur.fetchall()
         
-        # Get connections count
+        
         cur.execute("""
             SELECT COUNT(*) 
             FROM connections 
@@ -730,9 +725,9 @@ def profile(username):
         
         connections_count = cur.fetchone()[0]
         
-        # Get community name if user has community_id
+        
         community_name = None
-        if user_data[15]:  # community_id
+        if user_data[15]:  
             cur.execute("SELECT name FROM communities WHERE community_id = %s", (user_data[15],))
             community_result = cur.fetchone()
             if community_result:
@@ -760,6 +755,6 @@ def profile(username):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("DEBUG", "True") == "True"
-    # IMPORTANT: use SocketIO's runner so websockets & acks work
+    
     socketio.run(app, host="0.0.0.0", port=port, debug=debug)
- # Fixed Flash issues
+ 

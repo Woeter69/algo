@@ -25,9 +25,6 @@ def send_verification_email(to_email,link):
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 def allowed_file(filename):
-    """
-    Returns True if the uploaded file has an allowed image extension.
-    """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
@@ -42,7 +39,6 @@ def login_required(f):
     return decorated_function
 
 def validate_username(username):
-    """Validate username format"""
     if not username or len(username) < 3:
         return False, "Username must be at least 3 characters long"
     if len(username) > 20:
@@ -52,7 +48,6 @@ def validate_username(username):
     return True, "Valid username"
 
 def validate_email(email):
-    """Validate email format"""
     import re
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     if not re.match(pattern, email):
@@ -60,7 +55,6 @@ def validate_email(email):
     return True, "Valid email"
 
 def validate_password(password):
-    """Validate password strength"""
     if not password or len(password) < 8:
         return False, "Password must be at least 8 characters long"
     if len(password) > 128:
@@ -76,11 +70,10 @@ def validate_password(password):
     return True, "Valid password"
 
 def validate_file_size(file, max_size_mb=5):
-    """Validate file size"""
     if file:
-        file.seek(0, 2)  # Seek to end
+        file.seek(0, 2)
         size = file.tell()
-        file.seek(0)  # Reset to beginning
+        file.seek(0)
         
         max_size_bytes = max_size_mb * 1024 * 1024
         if size > max_size_bytes:

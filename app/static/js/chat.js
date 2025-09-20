@@ -1,19 +1,19 @@
-// Integrated Chat JavaScript - Combines Pranjul's UI with Backend Socket.IO functionality
+
 document.addEventListener('DOMContentLoaded', function() {
-  // Socket.IO client initialization with connection diagnostics
+  
   const socket = io({
     path: '/socket.io',
-    transports: ['websocket', 'polling'], // allow fallback to polling if WS fails
+    transports: ['websocket', 'polling'], 
     reconnection: true,
     reconnectionAttempts: 8,
     reconnectionDelay: 500,
     timeout: 20000,
   });
 
-  // Track online users
+  
   let onlineUsers = new Set();
 
-  // Connection diagnostics
+  
   socket.on('connect_error', (err) => {
     console.warn('Socket connect_error:', err?.message || err);
   });
@@ -24,17 +24,17 @@ document.addEventListener('DOMContentLoaded', function() {
     console.warn('Socket disconnected:', reason);
   });
 
-  // Handle connection established
+  
   socket.on('connect', () => {
-    // Tell server this user is online
+    
     if (currentUserId) {
       socket.emit('user_online', { user_id: currentUserId });
     }
-    // Load initial online status
+    
     loadOnlineStatus();
   });
 
-  // Handle user status changes
+  
   socket.on('user_status_changed', (data) => {
     const { user_id, is_online } = data;
     if (is_online) {
@@ -45,18 +45,18 @@ document.addEventListener('DOMContentLoaded', function() {
     updateUserOnlineStatus(user_id, is_online);
   });
 
-  // Get user data from backend
+  
   const currentUserId = Number(window.chatData && window.chatData.currentUserId);
   const otherUserId = Number(window.chatData && window.chatData.otherUserId);
   const otherUserName = window.chatData && window.chatData.otherUserName;
   const otherUserPfp = window.chatData && window.chatData.otherUserPfp;
 
-  // Join room if we have both users
+  
   if (currentUserId && otherUserId) {
     socket.emit('join', { user1: currentUserId, user2: otherUserId });
   }
 
-  // ===== DOM ELEMENTS =====
+  
   const conversationItems = document.querySelectorAll('.conversation-item');
   const messagesArea = document.getElementById('messagesArea');
   const messageInput = document.getElementById('messageInput');
@@ -72,17 +72,17 @@ document.addEventListener('DOMContentLoaded', function() {
   const chatUserStatus = document.getElementById('chatUserStatus');
   const chatUserOnlineStatus = document.getElementById('chatUserOnlineStatus');
 
-  // ===== CURRENT CONVERSATION STATE =====
+  
   let currentConversationUserId = Number(otherUserId || (document.querySelector('.conversation-item.active')?.getAttribute('data-user-id')) || NaN);
 
-  // Track last sent message to avoid duplicate echo rendering on sender
+  
   let lastSentMessage = null;
-  // Track client message IDs to suppress echoed duplicates
+  
   const seenClientMessageIds = new Set();
-  // Track delivered client ids (confirmed via echo) to avoid false timeouts
+  
   const deliveredClientIds = new Set();
 
-  // Wait for an echo with a matching client_message_id
+  
   function waitForEcho(clientMessageId, timeoutMs = 15000) {
     return new Promise((resolve, reject) => {
       let done = false;
@@ -104,26 +104,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== SOCKET.IO EVENT HANDLERS =====
-  // Receive messages in real-time
+  
+  
   socket.on('receive_message', data => {
     const senderId = Number(data.sender_id);
     const receiverId = Number(data.receiver_id);
     if (data.client_message_id) {
       deliveredClientIds.add(data.client_message_id);
     }
-    // Only show message if it's for the current conversation
+    
     if (senderId === currentConversationUserId || receiverId === currentConversationUserId) {
       const isSent = senderId === currentUserId;
 
-      // If echo of our own message identified by client_message_id, skip
+      
       if (data.client_message_id && seenClientMessageIds.has(data.client_message_id)) {
         return;
       }
 
-      // Dedupe: if this is our own message echoing back and identical to last sent, skip
+      
       if (isSent && lastSentMessage && lastSentMessage === data.message) {
-        lastSentMessage = null; // reset after skip
+        lastSentMessage = null; 
         return;
       }
 
@@ -134,19 +134,19 @@ document.addEventListener('DOMContentLoaded', function() {
       messagesArea.appendChild(messageElement);
       scrollToBottom();
 
-      // Update conversation list with new message
+      
       const otherId = isSent ? receiverId : senderId;
-      // Ensure conversation item exists (use available data)
+      
       if (!getConversationItem(otherId)) {
         const name = isSent ? (chatUserName?.textContent || `User ${otherId}`) : (data.sender_username || `User ${otherId}`);
-        const avatar = isSent ? (chatUserAvatar?.getAttribute('src') || otherUserPfp) : (data.sender_pfp || 'https://via.placeholder.com/50');
+        const avatar = isSent ? (chatUserAvatar?.getAttribute('src') || otherUserPfp) : (data.sender_pfp || 'https:
         ensureConversationItem(otherId, name, avatar);
       }
       updateConversationLastMessage(otherId, data.message);
     }
   });
 
-  // Optional: typing indicators if backend supports
+  
   socket.on('user_typing', data => {
     if (String(data.user_id) === String(currentConversationUserId)) {
       showTypingIndicator();
@@ -159,8 +159,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ===== MESSAGE SENDING FUNCTIONALITY =====
-  let isSending = false; // Prevent multiple sends
+  
+  let isSending = false; 
   
   async function sendMessage() {
     const message = messageInput.value.trim();
@@ -169,36 +169,36 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    // Set sending flag to prevent duplicates
+    
     isSending = true;
 
-    // Clear input immediately to prevent re-sending
+    
     messageInput.value = '';
     messageInput.style.height = 'auto';
 
-    // Generate client-side id for dedupe on echo
+    
     const clientMessageId = `${currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     seenClientMessageIds.add(clientMessageId);
 
-    // Send via Socket.IO to backend
+    
     if (!socket.connected) {
       showNotification('Not connected to server. Please refresh the page.', 'error');
       isSending = false;
       return;
     }
 
-    // Handle image upload if present
+    
     if (selectedImage) {
       try {
         const imageUrl = await uploadImage(selectedImage);
         const imageMessage = `<img src="${imageUrl}" alt="Image" class="chat-image">`;
         
-        // Update UI with image
+        
         const messageElement = createImageMessageElement(imageUrl, true);
         messagesArea.appendChild(messageElement);
         scrollToBottom();
         
-        // Send image message via Socket.IO
+        
         socket.emit('send_message', {
           sender_id: currentUserId,
           receiver_id: currentConversationUserId,
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
           client_message_id: clientMessageId
         });
         
-        // Clear image preview
+        
         window.removeImagePreview();
         
       } catch (error) {
@@ -215,12 +215,12 @@ document.addEventListener('DOMContentLoaded', function() {
         showNotification('Image upload failed. Please try again.', 'error');
       }
     } else {
-      // Update UI immediately with text message
+      
       const messageElement = createMessageElement(message, true);
       messagesArea.appendChild(messageElement);
       scrollToBottom();
     
-      // Send via Socket.IO (fast, no waiting for ack)
+      
       socket.emit('send_message', {
         sender_id: currentUserId,
         receiver_id: currentConversationUserId,
@@ -229,55 +229,55 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
     
-    // Reset sending flag immediately for faster UX
+    
     isSending = false;
 
-    // Remember last sent to avoid duplicate on echo
+    
     lastSentMessage = message;
 
-    // Update conversation list
-    // Ensure there is a conversation item for this user on send
+    
+    
     if (!getConversationItem(currentConversationUserId)) {
       const name = chatUserName?.textContent || `User ${currentConversationUserId}`;
-      const avatar = chatUserAvatar?.getAttribute('src') || otherUserPfp || 'https://via.placeholder.com/50';
+      const avatar = chatUserAvatar?.getAttribute('src') || otherUserPfp || 'https:
       ensureConversationItem(currentConversationUserId, name, avatar);
     }
     updateConversationLastMessage(currentConversationUserId, message);
     updateRightSidebarLastMessage(currentConversationUserId, message);
   }
 
-  // Conversation switching
+  
   conversationItems.forEach(item => {
     item.addEventListener('click', function() {
-      // Remove active class from all items
+      
       conversationItems.forEach(i => i.classList.remove('active'));
 
-      // Add active class to clicked item
+      
       this.classList.add('active');
 
-      // Get user data
+      
       const userId = Number(this.getAttribute('data-user-id'));
       currentConversationUserId = userId;
 
-      // Update chat header
+      
       const userName = this.querySelector('h4')?.textContent || 'Conversation';
       if (chatUserName) chatUserName.textContent = userName;
 
-      // Join new room if switching conversations
+      
       if (currentUserId && userId) {
         socket.emit('join', { user1: currentUserId, user2: userId });
       }
 
-      // Remove unread badge
+      
       const unreadBadge = this.querySelector('.unread-badge');
       if (unreadBadge) unreadBadge.remove();
 
-      // Scroll to bottom of messages
+      
       scrollToBottom();
     });
   });
 
-  // Message input auto-resize and typing indicators
+  
   if (messageInput) {
     let typingTimer;
 
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
       this.style.height = 'auto';
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 
-      // Emit typing events if backend supports (faster response)
+      
       if (this.value.trim() && currentConversationUserId) {
         socket.emit('typing', {
           user_id: currentUserId,
@@ -298,11 +298,11 @@ document.addEventListener('DOMContentLoaded', function() {
             user_id: currentUserId,
             receiver_id: currentConversationUserId
           });
-        }, 800); // Reduced from 2000ms to 800ms for faster response
+        }, 800); 
       }
     });
 
-    // Send message on Enter (allow Shift+Enter for newline)
+    
     messageInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -318,22 +318,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Send button click
+  
   if (sendBtn) sendBtn.addEventListener('click', sendMessage);
 
-  // ===== UTILITY FUNCTIONS =====
+  
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
-  // Detect user's timezone and locale
+  
   const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const userLocale = navigator.language || 'en-US';
 
   function formatLocalTime(date = new Date()) {
-    // Format time in user's local timezone
+    
     return date.toLocaleTimeString(userLocale, {
       hour: '2-digit',
       minute: '2-digit',
@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function formatLocalDateTime(date = new Date()) {
-    // Format full date-time in user's local timezone
+    
     return date.toLocaleString(userLocale, {
       year: 'numeric',
       month: 'short',
@@ -356,7 +356,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function formatRelativeTime(date) {
-    // Format relative time (e.g., "2 minutes ago", "Yesterday", etc.)
+    
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / (1000 * 60));
@@ -369,12 +369,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays}d ago`;
     
-    // For older messages, show actual date
+    
     return formatLocalDateTime(date);
   }
 
   function getTimeZoneAbbreviation() {
-    // Get timezone abbreviation (e.g., IST, PST, GMT)
+    
     const formatter = new Intl.DateTimeFormat('en', {
       timeZoneName: 'short',
       timeZone: userTimeZone
@@ -385,27 +385,27 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function convertUTCToLocal(utcTimestamp) {
-    // Convert UTC timestamp (in milliseconds) to local Date object
+    
     if (!utcTimestamp) return new Date();
     return new Date(utcTimestamp);
   }
 
-  // Initialize timezone display on page load
+  
   function initializeTimezoneDisplay() {
     const tzAbbr = getTimeZoneAbbreviation();
     
-    // Update timezone indicator in header
+    
     const timezoneIndicator = document.getElementById('timezoneIndicator');
     if (timezoneIndicator) {
       timezoneIndicator.textContent = `Times shown in ${tzAbbr}`;
     }
     
-    // Update all existing timestamps to local time
+    
     updateExistingTimestamps();
   }
 
   function updateExistingTimestamps() {
-    // Update message timestamps
+    
     document.querySelectorAll('.message-time').forEach(timeElement => {
       const utcTimestamp = timeElement.getAttribute('data-utc-timestamp');
       if (utcTimestamp) {
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // Update conversation timestamps
+    
     document.querySelectorAll('.conversation-time, .history-time').forEach(timeElement => {
       const utcTimestamp = timeElement.getAttribute('data-utc-timestamp');
       if (utcTimestamp) {
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== MESSAGE CREATION FUNCTION =====
+  
   function createMessageElement(text, isSent = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
     } else {
-      const avatarSrc = otherUserPfp || 'https://via.placeholder.com/32';
+      const avatarSrc = otherUserPfp || 'https:
       messageDiv.innerHTML = `
         <div class="message-avatar">
           <img src="${escapeHtml(avatarSrc)}" alt="">
@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
     } else {
-      const avatarSrc = otherUserPfp || 'https://via.placeholder.com/32';
+      const avatarSrc = otherUserPfp || 'https:
       messageDiv.innerHTML = `
         <div class="message-avatar">
           <img src="${escapeHtml(avatarSrc)}" alt="">
@@ -508,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return data.image_url;
   }
 
-  // Image modal for full-screen view
+  
   window.openImageModal = function(imageUrl) {
     const modal = document.createElement('div');
     modal.className = 'image-modal';
@@ -528,11 +528,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(modal);
   };
 
-  // ===== TYPING INDICATOR FUNCTIONS =====
+  
   function showTypingIndicator() {
     if (typingIndicator) {
       typingIndicator.style.display = 'flex';
-      // Position typing indicator after the last message
+      
       const lastMessage = messagesArea.querySelector('.message:last-child');
       if (lastMessage) {
         lastMessage.insertAdjacentElement('afterend', typingIndicator);
@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // ===== UTILITY FUNCTIONS =====
+  
   let rAFPending = false;
   function scrollToBottom() {
     if (!messagesArea) return;
@@ -572,16 +572,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function updateRightSidebarLastMessage(userId, message) {
-    // Update right sidebar chat history
+    
     const historyItems = document.querySelectorAll('.history-item');
     historyItems.forEach(item => {
       const itemUserId = item.getAttribute('onclick')?.match(/\/chat\/(\w+)/)?.[1];
       if (itemUserId) {
-        // Find user by username - we need to check if this matches current conversation
+        
         const historyLastMessage = item.querySelector('.history-last-message');
         const historyTime = item.querySelector('.history-time');
         if (historyLastMessage && historyTime) {
-          // Update if this is the current conversation
+          
           const currentTime = formatLocalTime();
           historyLastMessage.textContent = message.length > 30 ? message.substring(0, 30) + '...' : message;
           historyTime.textContent = currentTime;
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
     wrapper.setAttribute('data-user-id', String(userId));
     wrapper.innerHTML = `
       <div class="conversation-avatar">
-        <img src="${escapeHtml(avatarUrl || 'https://via.placeholder.com/50')}" alt="">
+        <img src="${escapeHtml(avatarUrl || 'https:
         <div class="online-status"></div>
       </div>
       <div class="conversation-info">
@@ -617,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     `;
     list.prepend(wrapper);
-    // Attach click behavior as with others
+    
     wrapper.addEventListener('click', function() {
       conversationItems.forEach(i => i.classList.remove('active'));
       wrapper.classList.add('active');
@@ -634,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return wrapper;
   }
 
-  // ===== MESSAGE USER BUTTONS =====
+  
   const messageUserBtns = document.querySelectorAll('.message-user-btn');
   messageUserBtns.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -642,24 +642,24 @@ document.addEventListener('DOMContentLoaded', function() {
       const userName = userItem.querySelector('h4')?.textContent || 'New chat';
       const userId = userItem.getAttribute('data-user-id');
 
-      // Close modal
+      
       closeModal();
 
-      // Start conversation with this user
+      
       currentConversationUserId = userId;
       if (chatUserName) chatUserName.textContent = userName;
 
-      // Join room
+      
       if (currentUserId && userId) {
         socket.emit('join', { user1: currentUserId, user2: userId });
       }
 
-      // Simple toast
+      
       showNotification(`Started conversation with ${userName}`, 'success');
     });
   });
 
-  // ===== CHAT ACTION BUTTONS =====
+  
   const chatActionBtns = document.querySelectorAll('.chat-action-btn');
   chatActionBtns.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -672,13 +672,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ===== ATTACHMENT AND EMOJI BUTTONS =====
+  
   const attachmentBtn = document.querySelector('.attachment-btn');
   const emojiBtn = document.querySelector('.emoji-btn');
   if (attachmentBtn) attachmentBtn.addEventListener('click', () => showNotification('File attachment feature coming soon!', 'info'));
   if (emojiBtn) emojiBtn.addEventListener('click', () => showNotification('Emoji picker coming soon!', 'info'));
 
-  // ===== NOTIFICATION FUNCTION =====
+  
   function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -702,7 +702,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => { notification.style.transform = 'translateX(100%)'; setTimeout(() => notification.remove(), 300); }, duration);
   }
 
-  // ===== IMAGE ERROR HANDLING =====
+  
   function handleImageError(img) {
     img.style.display = 'none';
     const parent = img.parentElement;
@@ -718,7 +718,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== EMIT WITH ACK FUNCTION =====
+  
   function emitWithAck(eventName, payload, timeoutMs = 5000) {
     return new Promise((resolve, reject) => {
       let done = false;
@@ -741,9 +741,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== INITIALIZATION =====
   
-  // Initialize right sidebar history items (if they exist)
+  
+  
   const historyItems = document.querySelectorAll('.history-item');
   historyItems.forEach(item => {
     item.addEventListener('click', function(e) {
@@ -755,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Initialize emoji picker and file attachment
+  
   const emojiBtn = document.getElementById('emojiBtn');
   const emojiPicker = document.getElementById('emojiPicker');
   const emojiGrid = document.getElementById('emojiGrid');
@@ -763,7 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const fileInput = document.getElementById('fileInput');
   let selectedImage = null;
 
-  // Emoji data
+  
   const emojiData = {
     smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥'],
     people: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻'],
@@ -775,7 +775,7 @@ document.addEventListener('DOMContentLoaded', function() {
     symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏']
   };
 
-  // Initialize new chat modal functionality
+  
   const newChatBtn = document.getElementById('newChatBtn');
   const newChatModal = document.getElementById('newChatModal');
   const closeModal = document.getElementById('closeModal');
@@ -785,7 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const modalError = document.getElementById('modalError');
 
   if (newChatBtn && newChatModal) {
-    // Open modal
+    
     newChatBtn.addEventListener('click', function() {
       newChatModal.style.display = 'flex';
       usernameInput.focus();
@@ -793,7 +793,7 @@ document.addEventListener('DOMContentLoaded', function() {
       usernameInput.value = '';
     });
 
-    // Close modal functions
+    
     function closeNewChatModal() {
       newChatModal.style.display = 'none';
       usernameInput.value = '';
@@ -803,14 +803,14 @@ document.addEventListener('DOMContentLoaded', function() {
     closeModal?.addEventListener('click', closeNewChatModal);
     cancelBtn?.addEventListener('click', closeNewChatModal);
 
-    // Close modal on overlay click
+    
     newChatModal.addEventListener('click', function(e) {
       if (e.target === newChatModal) {
         closeNewChatModal();
       }
     });
 
-    // Start chat functionality
+    
     startChatBtn?.addEventListener('click', async function() {
       const username = usernameInput.value.trim();
       if (!username) {
@@ -818,15 +818,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
-      // Disable button and show loading
+      
       startChatBtn.disabled = true;
       startChatBtn.textContent = 'Checking...';
 
       try {
-        // Check if user exists by trying to navigate to their chat
+        
         const response = await fetch(`/chat/${username}`, { method: 'HEAD' });
         if (response.ok) {
-          // User exists, navigate to chat
+          
           window.location.href = `/chat/${username}`;
         } else if (response.status === 404) {
           showModalError('User not found. Please check the username and try again.');
@@ -837,13 +837,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Error checking user:', error);
         showModalError('Network error. Please check your connection and try again.');
       } finally {
-        // Re-enable button
+        
         startChatBtn.disabled = false;
         startChatBtn.textContent = 'Start Chat';
       }
     });
 
-    // Enter key to start chat
+    
     usernameInput?.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         startChatBtn.click();
@@ -856,13 +856,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // ===== EMOJI PICKER FUNCTIONALITY =====
+  
   if (emojiBtn && emojiPicker) {
-    // Initialize emoji picker
+    
     function initializeEmojiPicker() {
       loadEmojiCategory('smileys');
       
-      // Category switching
+      
       const emojiCategories = document.querySelectorAll('.emoji-category');
       emojiCategories.forEach(category => {
         category.addEventListener('click', function() {
@@ -898,7 +898,7 @@ document.addEventListener('DOMContentLoaded', function() {
       emojiPicker.style.display = 'none';
     }
 
-    // Toggle emoji picker
+    
     emojiBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       if (emojiPicker.style.display === 'none' || !emojiPicker.style.display) {
@@ -911,7 +911,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // Close emoji picker when clicking outside
+    
     document.addEventListener('click', function(e) {
       if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
         emojiPicker.style.display = 'none';
@@ -919,7 +919,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ===== FILE ATTACHMENT FUNCTIONALITY =====
+  
   if (attachmentBtn && fileInput) {
     attachmentBtn.addEventListener('click', function() {
       fileInput.click();
@@ -936,13 +936,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function showImagePreview(file) {
       const reader = new FileReader();
       reader.onload = function(e) {
-        // Remove existing preview
+        
         const existingPreview = document.querySelector('.image-preview');
         if (existingPreview) {
           existingPreview.remove();
         }
 
-        // Create preview
+        
         const preview = document.createElement('div');
         preview.className = 'image-preview';
         preview.innerHTML = `
@@ -950,14 +950,14 @@ document.addEventListener('DOMContentLoaded', function() {
           <button class="remove-image" onclick="removeImagePreview()">×</button>
         `;
 
-        // Insert before message input
+        
         const inputContainer = document.querySelector('.message-input-area');
         inputContainer.parentNode.insertBefore(preview, inputContainer);
       };
       reader.readAsDataURL(file);
     }
 
-    // Make removeImagePreview globally accessible
+    
     window.removeImagePreview = function() {
       const preview = document.querySelector('.image-preview');
       if (preview) {
@@ -968,7 +968,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 
-  // ===== ONLINE STATUS FUNCTIONS =====
+  
   async function loadOnlineStatus() {
     try {
       const response = await fetch('/api/online_status');
@@ -985,7 +985,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function updateUserOnlineStatus(userId, isOnline) {
     const userIdNum = Number(userId);
     
-    // Update conversation list items
+    
     const conversationItems = document.querySelectorAll('.conversation-item');
     conversationItems.forEach(item => {
       const itemUserId = Number(item.getAttribute('data-user-id'));
@@ -1001,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // Update chat header if this is the current conversation user
+    
     if (userIdNum === otherUserId) {
       const chatUserStatus = document.getElementById('chatUserStatus');
       const chatUserOnlineStatus = document.getElementById('chatUserOnlineStatus');
@@ -1021,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function updateAllOnlineStatuses() {
-    // Update all conversation items based on current online users
+    
     const conversationItems = document.querySelectorAll('.conversation-item');
     conversationItems.forEach(item => {
       const itemUserId = Number(item.getAttribute('data-user-id'));
@@ -1036,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // Update current chat user status
+    
     if (otherUserId) {
       const isOnline = onlineUsers.has(otherUserId);
       updateUserOnlineStatus(otherUserId, isOnline);
