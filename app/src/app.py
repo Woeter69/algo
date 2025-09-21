@@ -87,7 +87,7 @@ def login():
                     mydb.commit()
 
                     if login_count == 0:
-                        return redirect(url_for("register"))  
+                        return redirect(url_for("complete_profile"))  
                     else:
                         return redirect(url_for("user_dashboard"))
 
@@ -119,6 +119,29 @@ def register():
             email = request.form["email"]
             username = request.form["username"]
             password = request.form["password"]
+            
+            mydb = connection.get_db_connection()
+            cur = mydb.cursor()
+            
+            # Check if email already exists
+            cur.execute("SELECT user_id, username FROM users WHERE email=%s", (email,))
+            existing_user = cur.fetchone()
+            
+            if existing_user:
+                cur.close()
+                mydb.close()
+                flash("This email is already registered. Please login instead.")
+                return redirect(url_for("login"))
+            
+            # Check if username already exists
+            cur.execute("SELECT user_id FROM users WHERE username=%s", (username,))
+            existing_username = cur.fetchone()
+            
+            if existing_username:
+                cur.close()
+                mydb.close()
+                return render_template("register.html", error="Username already taken. Please choose a different username.")
+            
             hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
             session['register_data'] = {
@@ -132,9 +155,6 @@ def register():
             token = secrets.token_urlsafe(32)
             expiry = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
 
-            mydb = connection.get_db_connection()
-            cur = mydb.cursor()
-
             cur.execute("INSERT INTO verification_tokens (email,token,expiry) VALUES (%s,%s,%s)",(email,token,expiry))
             mydb.commit()
             cur.close()
@@ -146,11 +166,10 @@ def register():
 
             return redirect(url_for("check_email"))
     except Exception as e:
-
             app.logger.error(f"Error during register: {str(e)}")
             flash("An unexpected error occurred while registering. Please try again.")
             
-            session.pop('register_data')
+            session.pop('register_data', None)
             return render_template("register.html"), 500
 
     return render_template("register.html")
@@ -380,7 +399,7 @@ def logout():
     flash("You have been logged out successfully.")
     return redirect(url_for('home'))
 
-@app.route("/chat")
+@app.route("/chats")
 @validators.login_required
 def chat_list():
     user_id = session['user_id']
@@ -771,7 +790,7 @@ def profile(username):
             mydb.close()
 
 @app.route('/verification_request', methods=['GET', 'POST'])
-@validators.login_required
+@login_required
 def verification_request():
     """Handle verification requests from users"""
     try:
@@ -941,6 +960,10 @@ def check_college_access(college_id):
         app.logger.error(f"Error in check_college_access: {str(e)}")
         return {'success': False, 'message': 'Error checking access'}
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> main
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("DEBUG", "True") == "True"
