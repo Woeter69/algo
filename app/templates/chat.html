@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,19 +15,19 @@
         // Pass server data to JavaScript
         window.chatData = {
             currentUserId: {{ current_user_id | tojson | safe }},
-            otherUserId: {{ other_user_id | tojson | safe }},
-            otherUserName: {{ other_user_name | tojson | safe }},
-            otherUserPfp: {{ other_user_pfp | tojson | safe }}
+        otherUserId: { { other_user_id | tojson | safe } },
+        otherUserName: { { other_user_name | tojson | safe } },
+        otherUserPfp: { { other_user_pfp | tojson | safe } }
         };
         console.log('Template data loaded:', window.chatData);
-        
+
         // Test basic functionality
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('DOM loaded - testing elements...');
             console.log('Send button:', document.getElementById('sendBtn'));
             console.log('Message input:', document.getElementById('messageInput'));
             console.log('Messages area:', document.getElementById('messagesArea'));
-            
+
             // Test if Socket.IO is available
             if (typeof io !== 'undefined') {
                 console.log('Socket.IO is available');
@@ -39,28 +40,27 @@
 
 <body>
     <div class="chat-container">
-    <div class="messages-container">
-        <div class="messages-sidebar">
-            <div class="sidebar-header">
-                <h2><i class="fas fa-comments"></i> Messages</h2>
-                <button class="new-chat-btn" id="newChatBtn" title="Start New Chat">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-
-            <div class="search-container">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search conversations..." id="searchInput">
+        <div class="messages-container">
+            <div class="messages-sidebar">
+                <div class="sidebar-header">
+                    <h2><i class="fas fa-comments"></i> Messages</h2>
+                    <button class="new-chat-btn" id="newChatBtn" title="Start New Chat">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
-            </div>
 
-            <div class="conversations-list" id="conversationsList">
-                {% if chat_history %}
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search conversations..." id="searchInput">
+                    </div>
+                </div>
+
+                <div class="conversations-list" id="conversationsList">
+                    {% if chat_history %}
                     {% for chat in chat_history %}
-                    <div class="conversation-item {{ 'active' if chat[0] == other_user_id else '' }}" 
-                         data-user-id="{{ chat[0] }}" 
-                         onclick="window.location.href='/chat/{{ chat[1] }}'">
+                    <div class="conversation-item {{ 'active' if chat[0] == other_user_id else '' }}"
+                        data-user-id="{{ chat[0] }}" onclick="window.location.href='/chat/{{ chat[1] }}'">
                         <div class="conversation-avatar">
                             <img src="{{ chat[2] or 'https://via.placeholder.com/50' }}" alt="{{ chat[1] }}">
                             <div class="online-status"></div>
@@ -73,61 +73,64 @@
                                 </span>
                             </div>
                             <p class="last-message">
-                                {{ (chat[3][:50] + '...') if chat[3] and chat[3]|length > 50 else (chat[3] or 'No messages yet') }}
+                                {{ (chat[3][:50] + '...') if chat[3] and chat[3]|length > 50 else (chat[3] or 'No
+                                messages yet') }}
                             </p>
                         </div>
                     </div>
                     {% endfor %}
-                {% else %}
-                <div class="conversation-item active" data-user-id="{{ other_user_id if other_user_id else '1' }}">
-                    <div class="conversation-avatar">
-                        <img src="{{ other_user_pfp or 'https://via.placeholder.com/50' }}" alt="">
-                        <div class="online-status online"></div>
-                    </div>
-                    <div class="conversation-info">
-                        <div class="conversation-header">
-                            <h4>{{ other_user_name if other_user_name else 'Chat User' }}</h4>
-                            <span class="conversation-time">now</span>
+                    {% else %}
+                    <div class="conversation-item active" data-user-id="{{ other_user_id if other_user_id else '1' }}">
+                        <div class="conversation-avatar">
+                            <img src="{{ other_user_pfp or 'https://via.placeholder.com/50' }}" alt="">
+                            <div class="online-status online"></div>
                         </div>
-                        <p class="last-message">Start a conversation...</p>
+                        <div class="conversation-info">
+                            <div class="conversation-header">
+                                <h4>{{ other_user_name if other_user_name else 'Chat User' }}</h4>
+                                <span class="conversation-time">now</span>
+                            </div>
+                            <p class="last-message">Start a conversation...</p>
+                        </div>
                     </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="chat-area">
-            <div class="chat-header">
-                <div class="chat-user-info">
-                    <div class="chat-avatar">
-                        <img src="{{ other_user_pfp or 'https://via.placeholder.com/40' }}" alt="" id="chatUserAvatar">
-                        <div class="online-status online" id="chatUserStatus"></div>
-                    </div>
-                    <div class="chat-user-details">
-                        <h3 id="chatUserName">{{ other_user_name if other_user_name else 'Select a conversation' }}</h3>
-                        <span class="user-status" id="chatUserOnlineStatus">Active now</span>
-                        <span class="timezone-indicator" id="timezoneIndicator"></span>
-                    </div>
-                </div>
-                <div class="chat-actions">
-                    <button class="chat-action-btn" title="Voice call">
-                        <i class="fas fa-phone"></i>
-                    </button>
-                    <button class="chat-action-btn" title="Video call">
-                        <i class="fas fa-video"></i>
-                    </button>
-                    <button class="chat-action-btn" title="More options">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
+                    {% endif %}
                 </div>
             </div>
 
-            <div class="messages-area" id="messagesArea">
-                <div class="date-separator">
-                    <span>Today</span>
+            <div class="chat-area">
+                <div class="chat-header">
+                    <div class="chat-user-info">
+                        <div class="chat-avatar">
+                            <img src="{{ other_user_pfp or 'https://via.placeholder.com/40' }}" alt=""
+                                id="chatUserAvatar">
+                            <div class="online-status online" id="chatUserStatus"></div>
+                        </div>
+                        <div class="chat-user-details">
+                            <h3 id="chatUserName">{{ other_user_name if other_user_name else 'Select a conversation' }}
+                            </h3>
+                            <span class="user-status" id="chatUserOnlineStatus">Active now</span>
+                            <span class="timezone-indicator" id="timezoneIndicator"></span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="chat-action-btn" title="Voice call">
+                            <i class="fas fa-phone"></i>
+                        </button>
+                        <button class="chat-action-btn" title="Video call">
+                            <i class="fas fa-video"></i>
+                        </button>
+                        <button class="chat-action-btn" title="More options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
                 </div>
 
-                {% if conversation %}
+                <div class="messages-area" id="messagesArea">
+                    <div class="date-separator">
+                        <span>Today</span>
+                    </div>
+
+                    {% if conversation %}
                     {% for msg in conversation %}
                     <div class="message {{ 'sent' if (msg[0]|string) == (session['user_id']|string) else 'received' }}">
                         {% if (msg[0]|string) != (session['user_id']|string) %}
@@ -143,119 +146,119 @@
                         </div>
                     </div>
                     {% endfor %}
-                {% endif %}
+                    {% endif %}
 
-                <div class="typing-indicator" id="typingIndicator" style="display: none;">
-                    <div class="message-avatar">
-                        <img src="https://via.placeholder.com/32" alt="">
-                    </div>
-                    <div class="typing-dots">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
+                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                        <div class="message-avatar">
+                            <img src="https://via.placeholder.com/32" alt="">
+                        </div>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="message-input-container">
-                <div class="message-input-area">
-                    <button class="attachment-btn" id="attachmentBtn" title="Attach file">
-                        <i class="fas fa-paperclip"></i>
-                    </button>
-                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                    <div class="input-wrapper">
-                        <textarea placeholder="Type a message..." id="messageInput" rows="1"></textarea>
-                        <button class="emoji-btn" id="emojiBtn" title="Add emoji">
-                            <i class="fas fa-smile"></i>
+                <div class="message-input-container">
+                    <div class="message-input-area">
+                        <button class="attachment-btn" id="attachmentBtn" title="Attach file">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                        <div class="input-wrapper">
+                            <textarea placeholder="Type a message..." id="messageInput" rows="1"></textarea>
+                            <button class="emoji-btn" id="emojiBtn" title="Add emoji">
+                                <i class="fas fa-smile"></i>
+                            </button>
+                        </div>
+                        <button class="send-btn" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-                    <button class="send-btn" id="sendBtn">
-                        <i class="fas fa-paper-plane"></i>
+
+
+                    <div class="emoji-picker" id="emojiPicker" style="display: none;">
+                        <div class="emoji-categories">
+                            <button class="emoji-category active" data-category="smileys">😀</button>
+                            <button class="emoji-category" data-category="people">👋</button>
+                            <button class="emoji-category" data-category="nature">🌸</button>
+                            <button class="emoji-category" data-category="food">🍕</button>
+                            <button class="emoji-category" data-category="activities">⚽</button>
+                            <button class="emoji-category" data-category="travel">✈️</button>
+                            <button class="emoji-category" data-category="objects">💡</button>
+                            <button class="emoji-category" data-category="symbols">❤️</button>
+                        </div>
+                        <div class="emoji-grid" id="emojiGrid">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-content">
+                    <i class="fas fa-comments"></i>
+                    <h3>Select a conversation</h3>
+                    <p>Choose from your existing conversations or start a new one</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="newMessageModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>New Message</h3>
+                    <button class="modal-close" id="closeNewMessageModal">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
-                
-                
-                <div class="emoji-picker" id="emojiPicker" style="display: none;">
-                    <div class="emoji-categories">
-                        <button class="emoji-category active" data-category="smileys">😀</button>
-                        <button class="emoji-category" data-category="people">👋</button>
-                        <button class="emoji-category" data-category="nature">🌸</button>
-                        <button class="emoji-category" data-category="food">🍕</button>
-                        <button class="emoji-category" data-category="activities">⚽</button>
-                        <button class="emoji-category" data-category="travel">✈️</button>
-                        <button class="emoji-category" data-category="objects">💡</button>
-                        <button class="emoji-category" data-category="symbols">❤️</button>
+                <div class="modal-content">
+                    <div class="search-users">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search people..." id="userSearchInput">
+                        </div>
                     </div>
-                    <div class="emoji-grid" id="emojiGrid">
-                        
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="empty-state" id="emptyState" style="display: none;">
-            <div class="empty-state-content">
-                <i class="fas fa-comments"></i>
-                <h3>Select a conversation</h3>
-                <p>Choose from your existing conversations or start a new one</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="newMessageModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>New Message</h3>
-                <button class="modal-close" id="closeNewMessageModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-content">
-                <div class="search-users">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search people..." id="userSearchInput">
-                    </div>
-                </div>
-                <div class="users-list" id="usersList">
-                    <div class="user-item" data-user-id="6">
-                        <div class="user-avatar">
-                            <img src="https://via.placeholder.com/40" alt="">
+                    <div class="users-list" id="usersList">
+                        <div class="user-item" data-user-id="6">
+                            <div class="user-avatar">
+                                <img src="https://via.placeholder.com/40" alt="">
+                            </div>
+                            <div class="user-info">
+                                <h4>John Smith</h4>
+                                <p>Software Engineer at Google</p>
+                            </div>
+                            <button class="message-user-btn">Message</button>
                         </div>
-                        <div class="user-info">
-                            <h4>John Smith</h4>
-                            <p>Software Engineer at Google</p>
+                        <div class="user-item" data-user-id="7">
+                            <div class="user-avatar">
+                                <img src="https://via.placeholder.com/40" alt="">
+                            </div>
+                            <div class="user-info">
+                                <h4>Lisa Wang</h4>
+                                <p>Product Manager at Microsoft</p>
+                            </div>
+                            <button class="message-user-btn">Message</button>
                         </div>
-                        <button class="message-user-btn">Message</button>
-                    </div>
-                    <div class="user-item" data-user-id="7">
-                        <div class="user-avatar">
-                            <img src="https://via.placeholder.com/40" alt="">
+                        <div class="user-item" data-user-id="8">
+                            <div class="user-avatar">
+                                <img src="https://via.placeholder.com/40" alt="">
+                            </div>
+                            <div class="user-info">
+                                <h4>David Brown</h4>
+                                <p>Data Scientist at Amazon</p>
+                            </div>
+                            <button class="message-user-btn">Message</button>
                         </div>
-                        <div class="user-info">
-                            <h4>Lisa Wang</h4>
-                            <p>Product Manager at Microsoft</p>
-                        </div>
-                        <button class="message-user-btn">Message</button>
-                    </div>
-                    <div class="user-item" data-user-id="8">
-                        <div class="user-avatar">
-                            <img src="https://via.placeholder.com/40" alt="">
-                        </div>
-                        <div class="user-info">
-                            <h4>David Brown</h4>
-                            <p>Data Scientist at Amazon</p>
-                        </div>
-                        <button class="message-user-btn">Message</button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
     </div>
 
-    
+
     <div class="modal-overlay" id="newChatModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">

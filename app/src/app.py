@@ -7,6 +7,13 @@ import secrets, datetime
 from flask_bcrypt import Bcrypt
 from . import utils, validators
 from .connection import get_db_connection
+from . import user_roles
+from .user_roles import (
+    login_required, verified_user_required, admin_required,
+    get_user_role_info, get_colleges, submit_verification_request,
+    get_pending_verification_requests, approve_verification_request,
+    reject_verification_request, is_admin
+)
 
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
@@ -765,3 +772,225 @@ if __name__ == "__main__":
     
     socketio.run(app, host="0.0.0.0", port=port, debug=debug)
  
+
+# ===== USER ROLE SYSTEM ROUTES =====
+
+@app.route('/verification_request', methods=['GET', 'POST'])
+@login_required
+def verification_request():
+    """Handle verification requests from users"""
+    try:
+        user_id = session['user_id']
+        
+        # Check if user already has a pending request
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        cur.execute("""
+            SELECT vr.request_id, vr.status, vr.created_at, vr.review_notes, c.college_name, vr.requested_role
+            FROM verification_requests vr
+            JOIN colleges c ON vr.college_id = c.college_id
+            WHERE vr.user_id = %s AND vr.status IN ('pending', 'approved')
+            ORDER BY vr.created_at DESC LIMIT 1
+        """, (user_id,))
+        
+        current_request = cur.fetchone()
+        current_request_data = None
+        
+        if current_request:
+            current_request_data = {
+                'request_id': current_request[0],
+                'status': current_request[1],
+                'created_at': current_request[2],
+                'review_notes': current_request[3],
+                'college_name': current_request[4],
+                'requested_role': current_request[5]
+            }
+        
+        if request.method == 'POST':
+            college_id = request.form.get('college_id')
+            requested_role = request.form.get('requested_role')
+            student_id = request.form.get('student_id')
+            graduation_year = request.form.get('graduation_year')
+            department = request.form.get('department')
+            request_message = request.form.get('request_message')
+            
+            success, message = submit_verification_request(
+                user_id, college_id, requested_role, student_id,
+                graduation_year, department, request_message
+            )
+            
+            if success:
+                flash(message, 'success')
+                return redirect(url_for('verification_request'))
+            else:
+                flash(message, 'error')
+        
+        colleges = get_colleges()
+        
+        return render_template('verification_request.html', 
+                             colleges=colleges, 
+                             current_request=current_request_data)
+        
+    except Exception as e:
+        app.logger.error(f"Error in verification_request: {str(e)}")
+        flash("An error occurred. Please try again.", 'error')
+        return redirect(url_for('user_dashboard'))
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
+@admin_required
+def admin_dashboard():
+    """Admin dashboard for managing verification requests"""
+    try:
+        user_id = session['user_id']
+        
+        if request.method == 'POST':
+            request_id = request.form.get('request_id')
+            action = request.form.get('action')
+            review_notes = request.form.get('review_notes')
+            
+            if action == 'approve':
+                success, message = approve_verification_request(request_id, user_id, review_notes)
+            elif action == 'reject':
+                success, message = reject_verification_request(request_id, user_id, review_notes)
+            else:
+                success, message = False, "Invalid action"
+            
+            if success:
+                flash(message, 'success')
+            else:
+                flash(message, 'error')
+            
+            return redirect(url_for('admin_dashboard'))
+        
+        # Get pending requests for this admin
+        pending_requests = get_pending_verification_requests(user_id)
+        
+        # Get stats
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Count pending requests
+        cur.execute("""
+            SELECT COUNT(*) FROM verification_requests vr
+            JOIN admin_permissions ap ON vr.college_id = ap.college_id
+            WHERE ap.admin_user_id = %s AND ap.is_active = TRUE AND vr.status = 'pending'
+        """, (user_id,))
+        pending_count = cur.fetchone()[0]
+        
+        # Count total verified users
+        cur.execute("""
+            SELECT COUNT(*) FROM users u
+            JOIN admin_permissions ap ON u.college_id = ap.college_id
+            WHERE ap.admin_user_id = %s AND ap.is_active = TRUE 
+            AND u.user_role IN ('student', 'alumni')
+        """, (user_id,))
+        total_verified = cur.fetchone()[0]
+        
+        return render_template('admin_dashboard.html',
+                             pending_requests=pending_requests,
+                             pending_count=pending_count,
+                             total_verified=total_verified)
+        
+    except Exception as e:
+        app.logger.error(f"Error in admin_dashboard: {str(e)}")
+        flash("An error occurred loading the admin dashboard.", 'error')
+        return redirect(url_for('user_dashboard'))
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route('/user_role_info')
+@login_required
+def user_role_info():
+    """API endpoint to get user role information"""
+    try:
+        user_id = session['user_id']
+        role_info = get_user_role_info(user_id)
+        
+        if role_info:
+            return {
+                'success': True,
+                'role': role_info['role'],
+                'college_name': role_info['college_name'],
+                'verification_status': role_info['verification_status'],
+                'is_verified': role_info['role'] in ['student', 'alumni', 'admin']
+            }
+        else:
+            return {'success': False, 'message': 'User not found'}
+            
+    except Exception as e:
+        app.logger.error(f"Error in user_role_info: {str(e)}")
+        return {'success': False, 'message': 'Error retrieving user information'}
+
+@app.route('/check_college_access/<int:college_id>')
+@verified_user_required
+def check_college_access(college_id):
+    """Check if user has access to college features"""
+    try:
+        user_id = session['user_id']
+        has_access = user_roles.can_access_college_features(user_id, college_id)
+        
+        return {'success': True, 'has_access': has_access}
+        
+    except Exception as e:
+        app.logger.error(f"Error in check_college_access: {str(e)}")
+        return {'success': False, 'message': 'Error checking access'}
+
+# Update existing user_dashboard route to include role information
+@app.route('/user_dashboard')
+@login_required
+def user_dashboard():
+    """Enhanced user dashboard with role information"""
+    try:
+        user_id = session['user_id']
+        role_info = get_user_role_info(user_id)
+        
+        # Get user's basic info
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        cur.execute("""
+            SELECT firstname, lastname, email, username 
+            FROM users WHERE user_id = %s
+        """, (user_id,))
+        
+        user_data = cur.fetchone()
+        
+        if user_data:
+            user_info = {
+                'firstname': user_data[0],
+                'lastname': user_data[1],
+                'email': user_data[2],
+                'username': user_data[3]
+            }
+        else:
+            user_info = {}
+        
+        # Check if user needs to complete profile
+        needs_verification = not role_info or role_info['role'] == 'unverified'
+        
+        return render_template('user_dashboard.html',
+                             user_info=user_info,
+                             role_info=role_info,
+                             needs_verification=needs_verification)
+        
+    except Exception as e:
+        app.logger.error(f"Error in user_dashboard: {str(e)}")
+        flash("An error occurred loading your dashboard.", 'error')
+        return render_template('user_dashboard.html', user_info={}, role_info=None)
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
