@@ -7,13 +7,6 @@ import secrets, datetime
 from flask_bcrypt import Bcrypt
 from . import utils, validators
 from .connection import get_db_connection
-from . import user_roles
-from .user_roles import (
-    login_required, verified_user_required, admin_required,
-    get_user_role_info, get_colleges, submit_verification_request,
-    get_pending_verification_requests, approve_verification_request,
-    reject_verification_request, is_admin
-)
 
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
@@ -398,7 +391,7 @@ def logout():
     flash("You have been logged out successfully.")
     return redirect(url_for('home'))
 
-@app.route("/chat")
+@app.route("/chats")
 @validators.login_required
 def chat_list():
     user_id = session['user_id']
@@ -785,15 +778,6 @@ def profile(username):
         if mydb:
             mydb.close()
 
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    debug = os.getenv("DEBUG", "True") == "True"
-    
-    socketio.run(app, host="0.0.0.0", port=port, debug=debug)
- 
-
-# ===== USER ROLE SYSTEM ROUTES =====
-
 @app.route('/verification_request', methods=['GET', 'POST'])
 @login_required
 def verification_request():
@@ -965,62 +949,10 @@ def check_college_access(college_id):
         app.logger.error(f"Error in check_college_access: {str(e)}")
         return {'success': False, 'message': 'Error checking access'}
 
-# Update existing user_dashboard route to include role information
-@app.route('/user_dashboard')
-@login_required
-def user_dashboard():
-    """Enhanced user dashboard with role information"""
-    try:
-        user_id = session['user_id']
-        role_info = get_user_role_info(user_id)
-        
-        # Get user's basic info
-        mydb = get_db_connection()
-        cur = mydb.cursor()
-        
-        cur.execute("""
-            SELECT firstname, lastname, email, username 
-            FROM users WHERE user_id = %s
-        """, (user_id,))
-        
-        user_data = cur.fetchone()
-        
-        if user_data:
-            user_info = {
-                'firstname': user_data[0],
-                'lastname': user_data[1],
-                'email': user_data[2],
-                'username': user_data[3]
-            }
-        else:
-            user_info = {}
-        
-        # Check if user needs to complete profile
-        needs_verification = not role_info or role_info['role'] == 'unverified'
-        
-        return render_template('user_dashboard.html',
-                             user_info=user_info,
-                             role_info=role_info,
-                             needs_verification=needs_verification)
-        
-    except Exception as e:
-        app.logger.error(f"Error in user_dashboard: {str(e)}")
-        flash("An error occurred loading your dashboard.", 'error')
-        return render_template('user_dashboard.html', user_info={}, role_info=None)
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 5000))
+    debug = os.getenv("DEBUG", "True") == "True"
     
-    finally:
-        if 'cur' in locals() and cur:
-            cur.close()
-        if 'mydb' in locals() and mydb:
-            mydb.close()
-@app.
-route('/chat')
-@verified_user_required
-def chat():
-    """Chat page for verified users"""
-    try:
-        return render_template('chat.html')
-    except Exception as e:
-        app.logger.error(f"Error in chat route: {str(e)}")
-        flash("An error occurred loading the chat page.", 'error')
-        return redirect(url_for('user_dashboard'))
+    socketio.run(app, host="0.0.0.0", port=port, debug=debug)
+ 
