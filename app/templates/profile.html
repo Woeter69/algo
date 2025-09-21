@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - ALGO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../static/styles/profile.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
 </head>
+
 <body>
     <!-- HEADER -->
     <header>
@@ -38,81 +43,259 @@
             <!-- Profile Header -->
             <div class="profile-header">
                 <div class="profile-cover">
-                    <div class="profile-avatar">
-                        <img src="https://via.placeholder.com/150" alt="Profile Picture" id="profilePicture">
+                    <div class="profile-avatar has-placeholder" id="profileAvatarContainer">
+                        {% if user_data[11] %}
+                            <img alt="Profile Picture" id="profilePicture" src="{{ user_data[11] }}" style="display: block;">
+                            <div class="avatar-placeholder" id="avatarPlaceholder" style="display: none;">
+                                <i class="fas fa-user"></i>
+                                <span>Upload a profile picture</span>
+                            </div>
+                        {% else %}
+                            <img alt="Profile Picture" id="profilePicture" style="display: none;">
+                            <div class="avatar-placeholder" id="avatarPlaceholder" style="display: flex;">
+                                <i class="fas fa-user"></i>
+                                <span>Upload a profile picture</span>
+                            </div>
+                        {% endif %}
                         <div class="avatar-overlay">
                             <i class="fas fa-camera"></i>
                         </div>
                     </div>
                 </div>
-                <div class="profile-info">
-                    <h1 class="profile-name">
-                        <span id="displayFirstName">John</span> 
-                        <span id="displayLastName">Doe</span>
-                    </h1>
-                    <p class="profile-username">@<span id="displayUsername">johndoe</span></p>
-                    <p class="profile-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span id="displayCurrentCity">New York, NY</span>
-                    </p>
-                    <p class="profile-university">
-                        <i class="fas fa-graduation-cap"></i>
-                        <span id="displayUniversityName">Harvard University</span>
-                    </p>
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name">
+                    <span id="displayFirstName">{{ user_data[1] if user_data[1] else 'First' }}</span>
+                    <span id="displayLastName">{{ user_data[2] if user_data[2] else 'Last' }}</span>
+                </h1>
+                <p class="profile-username">@<span id="displayUsername">{{ user_data[4] if user_data[4] else 'username' }}</span></p>
+                <p class="profile-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="displayCurrentCity">{{ user_data[10] if user_data[10] else 'Location not specified' }}</span>
+                </p>
+                <p class="profile-university">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span id="displayUniversityName">{{ user_data[7] if user_data[7] else 'University not specified' }}</span>
+                </p>
+                {% if user_data[13] %}
+                <p class="profile-role">
+                    <i class="fas fa-user-tag"></i>
+                    <span id="displayRole">{{ user_data[13].title() }}</span>
+                </p>
+                {% endif %}
+            </div>
+            <div class="profile-actions">
+                <button class="btn btn-edit" id="editProfileBtn">
+                    <i class="fas fa-edit"></i>
+                    Edit Profile
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="profile-content">
+            <!-- About Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user"></i> About</h2>
                 </div>
-                <div class="profile-actions">
-                    <button class="btn btn-edit" id="editProfileBtn">
-                        <i class="fas fa-edit"></i>
-                        Edit Profile
-                    </button>
+                <div class="card-content">
+                    <div class="bio-section">
+                        <p id="displayBio">Passionate software developer with expertise in web technologies and a
+                            love for creating innovative solutions. Always eager to learn and collaborate on
+                            exciting projects.</p>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <label>Email</label>
+                            <span id="displayEmail">{{ user_data[3] if user_data[3] else 'Email not provided' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Date of Birth</label>
+                            <span id="displayDOB">{{ user_data[5].strftime('%B %d, %Y') if user_data[5] else 'Not specified' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>University</label>
+                            <span id="displayUniversityNameCard">{{ user_data[7] if user_data[7] else 'Not specified' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Graduation Year</label>
+                            <span id="displayGraduationYear">{{ user_data[6] if user_data[6] else 'Not specified' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Department</label>
+                            <span id="displayDepartment">{{ user_data[8] if user_data[8] else 'Not specified' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>College</label>
+                            <span id="displayCollege">{{ user_data[9] if user_data[9] else 'Not specified' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Current City</label>
+                            <span id="displayCurrentCityCard">{{ user_data[10] if user_data[10] else 'Not specified' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Username</label>
+                            <span id="displayUsernameCard">@{{ user_data[4] if user_data[4] else 'username' }}</span>
+                        </div>
+                        {% if user_data[14] %}
+                        <div class="info-item">
+                            <label>Enrollment Number</label>
+                            <span id="displayEnrollmentNumber">{{ user_data[14] }}</span>
+                        </div>
+                        {% endif %}
+                        {% if community_name %}
+                        <div class="info-item">
+                            <label>Community</label>
+                            <span id="displayCommunity">{{ community_name }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-item">
+                            <label>Member Since</label>
+                            <span id="displayRegistrationDate">{{ user_data[12].strftime('%B %Y') if user_data[12] else 'Not available' }}</span>
+                        </div>
+                        {% if user_data[16] %}
+                        <div class="info-item">
+                            <label>Last Login</label>
+                            <span id="displayLastLogin">{{ user_data[16].strftime('%B %d, %Y at %I:%M %p') if user_data[16] else 'Never' }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
-            <!-- Profile Content -->
-            <div class="profile-content">
-                <!-- About Section -->
-                <div class="profile-card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-user"></i> About</h2>
-                    </div>
-                    <div class="card-content">
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <label>Email</label>
-                                <span id="displayEmail">john.doe@example.com</span>
-                            </div>
-                            <div class="info-item">
-                                <label>University</label>
-                                <span id="displayUniversityNameCard">Harvard University</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Current City</label>
-                                <span id="displayCurrentCityCard">New York, NY</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Username</label>
-                                <span id="displayUsernameCard">@johndoe</span>
-                            </div>
-                        </div>
+            <!-- Skills Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-code"></i> Skills</h2>
+                </div>
+                <div class="card-content">
+                    <div class="skills-container" id="skillsContainer">
+                        <span class="skill-tag">JavaScript</span>
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">React</span>
+                        <span class="skill-tag">Node.js</span>
+                        <span class="skill-tag">SQL</span>
+                        <span class="skill-tag">Git</span>
                     </div>
                 </div>
+            </div>
 
-                <!-- Interests Section -->
-                <div class="profile-card">
-                    <div class="card-header">
-                        <h2><i class="fas fa-heart"></i> Interests</h2>
-                    </div>
-                    <div class="card-content">
-                        <div class="interests-container" id="interestsContainer">
-                            <span class="interest-tag">Technology</span>
-                            <span class="interest-tag">Artificial Intelligence</span>
-                            <span class="interest-tag">Web Development</span>
-                            <span class="interest-tag">Machine Learning</span>
-                            <span class="interest-tag">Entrepreneurship</span>
+            <!-- Social Links Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-share-alt"></i> Social Links</h2>
+                </div>
+                <div class="card-content">
+                    <div class="social-links-grid" id="socialLinksGrid">
+                        <div class="social-link-item">
+                            <i class="fab fa-linkedin"></i>
+                            <span id="displayLinkedIn">linkedin.com/in/johndoe</span>
+                        </div>
+                        <div class="social-link-item">
+                            <i class="fab fa-github"></i>
+                            <span id="displayGitHub">github.com/johndoe</span>
+                        </div>
+                        <div class="social-link-item">
+                            <i class="fab fa-twitter"></i>
+                            <span id="displayTwitter">@johndoe</span>
+                        </div>
+                        <div class="social-link-item">
+                            <i class="fas fa-globe"></i>
+                            <span id="displayWebsite">johndoe.dev</span>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Interests Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-heart"></i> Interests</h2>
+                </div>
+                <div class="card-content">
+                    <div class="interests-container" id="interestsContainer">
+                        {% if user_interests %}
+                            {% for interest in user_interests %}
+                                <span class="interest-tag">{{ interest }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-data">No interests specified yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education Section -->
+            {% if education_data %}
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-graduation-cap"></i> Education</h2>
+                </div>
+                <div class="card-content">
+                    <div class="education-info">
+                        <div class="education-item">
+                            <h3>{{ education_data[0] if education_data[0] else 'Degree' }}</h3>
+                            <p class="education-details">
+                                <strong>{{ education_data[1] if education_data[1] else 'University' }}</strong>
+                                {% if education_data[2] %} - {{ education_data[2] }}{% endif %}
+                            </p>
+                            <p class="education-major">{{ education_data[3] if education_data[3] else 'Major not specified' }}</p>
+                            {% if education_data[4] %}
+                                <p class="education-year">Graduated: {{ education_data[4] }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Work Experience Section -->
+            {% if work_experience %}
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-briefcase"></i> Work Experience</h2>
+                </div>
+                <div class="card-content">
+                    <div class="experience-list">
+                        {% for exp in work_experience %}
+                            <div class="experience-item">
+                                <h3>{{ exp[1] if exp[1] else 'Job Title' }}</h3>
+                                <p class="company-name">{{ exp[0] if exp[0] else 'Company' }}</p>
+                                <p class="experience-duration">
+                                    {{ exp[2] if exp[2] else 'Year' }}
+                                    {% if exp[3] and exp[3] != exp[2] %}
+                                        - {{ exp[3] }}
+                                    {% elif not exp[3] %}
+                                        - Present
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Connections Section -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-users"></i> Network</h2>
+                </div>
+                <div class="card-content">
+                    <div class="network-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">{{ connections_count }}</span>
+                            <span class="stat-label">Connections</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">{{ user_data[17] if user_data[17] else 0 }}</span>
+                            <span class="stat-label">Login Count</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         </div>
     </section>
 
@@ -127,42 +310,190 @@
             </div>
             <div class="modal-content">
                 <form id="profileForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="firstName">First Name</label>
-                            <input type="text" id="firstName" name="firstName" value="John" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="lastName">Last Name</label>
-                            <input type="text" id="lastName" name="lastName" value="Doe" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="username">Username</label>
-                            <input type="text" id="username" name="username" value="johndoe" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" value="john.doe@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="currentCity">Current City</label>
-                            <input type="text" id="currentCity" name="currentCity" value="New York, NY" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="universityName">University</label>
-                            <input type="text" id="universityName" name="universityName" value="Harvard University" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label for="interests">Interests (comma-separated)</label>
-                        <textarea id="interests" name="interests" rows="3" placeholder="Technology, AI, Web Development, etc.">Technology, Artificial Intelligence, Web Development, Machine Learning, Entrepreneurship</textarea>
+                    <!-- Form Tabs -->
+                    <div class="form-tabs">
+                        <button type="button" class="tab-btn active" data-tab="personal">Personal Info</button>
+                        <button type="button" class="tab-btn" data-tab="education">Education</button>
+                        <button type="button" class="tab-btn" data-tab="social">Social & Skills</button>
+                        <button type="button" class="tab-btn" data-tab="security">Security</button>
                     </div>
 
-                    <div class="form-group full-width">
-                        <label for="profilePictureUpload">Profile Picture</label>
-                        <input type="file" id="profilePictureUpload" name="profilePicture" accept="image/*">
-                        <small>Upload a new profile picture (JPG, PNG, GIF)</small>
+                    <!-- Personal Info Tab -->
+                    <div class="tab-content active" id="personal-tab">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="firstName">First Name</label>
+                                <input type="text" id="firstName" name="firstName" value="John" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" value="Doe" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" value="johndoe" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" value="john.doe@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" id="phone" name="phone" value="+1 (555) 123-4567">
+                            </div>
+                            <div class="form-group">
+                                <label for="currentCity">Current City</label>
+                                <input type="text" id="currentCity" name="currentCity" value="New York, NY" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="bio">Bio</label>
+                            <textarea id="bio" name="bio" rows="4"
+                                placeholder="Tell us about yourself...">Passionate software developer with expertise in web technologies and a love for creating innovative solutions. Always eager to learn and collaborate on exciting projects.</textarea>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="profilePictureUpload">Profile Picture</label>
+                            <input type="file" id="profilePictureUpload" name="profilePicture" accept="image/*">
+                            <small>Upload a new profile picture (JPG, PNG, GIF - Max 5MB)</small>
+                        </div>
+                    </div>
+
+                    <!-- Education Tab -->
+                    <div class="tab-content" id="education-tab">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="universityName">University</label>
+                                <input type="text" id="universityName" name="universityName" value="Harvard University"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="graduationYear">Graduation Year</label>
+                                <input type="number" id="graduationYear" name="graduationYear" value="2023" min="1950"
+                                    max="2030">
+                            </div>
+                            <div class="form-group">
+                                <label for="degree">Degree</label>
+                                <input type="text" id="degree" name="degree" value="Bachelor of Science"
+                                    placeholder="e.g., Bachelor of Science">
+                            </div>
+                            <div class="form-group">
+                                <label for="major">Major/Field of Study</label>
+                                <input type="text" id="major" name="major" value="Computer Science"
+                                    placeholder="e.g., Computer Science">
+                            </div>
+                            <div class="form-group">
+                                <label for="gpa">GPA (Optional)</label>
+                                <input type="number" id="gpa" name="gpa" step="0.01" min="0" max="4" placeholder="3.85">
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="interests">Interests (comma-separated)</label>
+                            <textarea id="interests" name="interests" rows="3"
+                                placeholder="Technology, AI, Web Development, etc.">Technology, Artificial Intelligence, Web Development, Machine Learning, Entrepreneurship</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Social & Skills Tab -->
+                    <div class="tab-content" id="social-tab">
+                        <div class="form-section">
+                            <h3>Social Links</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="linkedIn">LinkedIn</label>
+                                    <input type="url" id="linkedIn" name="linkedIn"
+                                        value="https://linkedin.com/in/johndoe"
+                                        placeholder="https://linkedin.com/in/username">
+                                </div>
+                                <div class="form-group">
+                                    <label for="github">GitHub</label>
+                                    <input type="url" id="github" name="github" value="https://github.com/johndoe"
+                                        placeholder="https://github.com/username">
+                                </div>
+                                <div class="form-group">
+                                    <label for="twitter">Twitter</label>
+                                    <input type="text" id="twitter" name="twitter" value="@johndoe"
+                                        placeholder="@username">
+                                </div>
+                                <div class="form-group">
+                                    <label for="website">Personal Website</label>
+                                    <input type="url" id="website" name="website" value="https://johndoe.dev"
+                                        placeholder="https://yourwebsite.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Skills</h3>
+                            <div class="form-group full-width">
+                                <label for="skills">Skills (comma-separated)</label>
+                                <textarea id="skills" name="skills" rows="3"
+                                    placeholder="JavaScript, Python, React, Node.js, etc.">JavaScript, Python, React, Node.js, SQL, Git</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tab -->
+                    <div class="tab-content" id="security-tab">
+                        <div class="form-section">
+                            <h3>Change Password</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="currentPassword">Current Password</label>
+                                    <input type="password" id="currentPassword" name="currentPassword"
+                                        placeholder="Enter current password">
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword">New Password</label>
+                                    <input type="password" id="newPassword" name="newPassword"
+                                        placeholder="Enter new password">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="confirmPassword">Confirm New Password</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword"
+                                        placeholder="Confirm new password">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Account Settings</h3>
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <label class="switch">
+                                        <input type="checkbox" id="emailNotifications" name="emailNotifications"
+                                            checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="setting-info">
+                                        <strong>Email Notifications</strong>
+                                        <p>Receive updates about job opportunities and events</p>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="switch">
+                                        <input type="checkbox" id="profileVisibility" name="profileVisibility" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="setting-info">
+                                        <strong>Public Profile</strong>
+                                        <p>Make your profile visible to other users</p>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <label class="switch">
+                                        <input type="checkbox" id="jobAlerts" name="jobAlerts">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="setting-info">
+                                        <strong>Job Alerts</strong>
+                                        <p>Get notified about relevant job opportunities</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="modal-actions">
@@ -185,7 +516,8 @@
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
                         <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                            target="_blank"><i class="fab fa-instagram"></i></a>
                     </div>
                 </div>
                 <div class="footer-links">
@@ -222,4 +554,5 @@
 
     <script src="../static/js/profile.js"></script>
 </body>
+
 </html>

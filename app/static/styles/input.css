@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Convert your existing CSS to Tailwind components */
+@layer components {
+  
+  /* Chat List Components - Based on your chat_list.css */
+  .chat-list-container {
+    @apply max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden;
+  }
+  
+  .chat-list-header {
+    @apply text-white p-8 text-center;
+    background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+  }
+  
+  .header-content {
+    @apply flex justify-center items-center gap-4 mb-2;
+  }
+  
+  .chat-list-header h1 {
+    @apply text-3xl font-semibold m-0;
+  }
+  
+  .chat-list-header p {
+    @apply opacity-90 text-lg m-0;
+  }
+  
+  .new-chat-btn {
+    @apply w-12 h-12 flex items-center justify-center cursor-pointer transition-all duration-300 text-lg rounded-full border-2;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+  
+  .new-chat-btn:hover {
+    @apply scale-110;
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  .conversations-grid {
+    @apply p-6;
+  }
+  
+  .conversation-card {
+    @apply flex items-center p-5 mb-4 bg-gray-50 rounded-2xl cursor-pointer transition-all duration-300 border-2 border-transparent;
+  }
+  
+  .conversation-card:hover {
+    @apply bg-blue-50 border-blue-300 -translate-y-1;
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
+  }
+  
+  .conversation-card:last-child {
+    @apply mb-0;
+  }
+  
+  .conversation-avatar {
+    @apply relative w-15 h-15 rounded-full overflow-hidden mr-4 flex-shrink-0;
+  }
+  
+  .conversation-avatar img {
+    @apply w-full h-full object-cover;
+    aspect-ratio: 1 / 1;
+  }
+  
+  .online-status {
+    @apply absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full;
+  }
+  
+  .conversation-details {
+    @apply flex-1 min-w-0;
+  }
+  
+  .conversation-name {
+    @apply font-semibold text-lg text-gray-800 mb-2;
+  }
+  
+  .last-message {
+    @apply text-gray-600 text-sm mb-2 leading-relaxed;
+  }
+  
+  .conversation-time {
+    @apply text-gray-400 text-xs;
+  }
+  
+  .conversation-arrow {
+    @apply text-gray-400 text-lg ml-4 transition-colors duration-300;
+  }
+  
+  .conversation-card:hover .conversation-arrow {
+    @apply text-blue-500;
+  }
+  
+  /* Auth Components - Based on your login/register CSS */
+  .auth-container {
+    @apply flex items-center justify-center min-h-screen px-4 py-12;
+  }
+  
+  .auth-box {
+    @apply w-full max-w-md bg-white rounded-xl shadow-lg p-8;
+  }
+  
+  .auth-header {
+    @apply text-center mb-8;
+  }
+  
+  .auth-header h2 {
+    @apply text-3xl font-bold text-gray-900 mb-2;
+  }
+  
+  .auth-header p {
+    @apply text-gray-600;
+  }
+  
+  .auth-form {
+    @apply space-y-6;
+  }
+  
+  .form-group {
+    @apply space-y-2;
+  }
+  
+  .form-group label {
+    @apply block text-sm font-medium text-gray-700;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200;
+  }
+  
+  .auth-button {
+    @apply w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors duration-200;
+  }
+  
+  .auth-footer {
+    @apply text-center mt-6;
+  }
+  
+  .auth-footer p {
+    @apply text-gray-600;
+  }
+  
+  .auth-footer a {
+    @apply text-blue-600 hover:text-blue-500 font-semibold;
+  }
+  
+  /* General Components */
+  .btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-lg border border-gray-100;
+  }
+  
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200;
+  }
+}
+
+/* Custom utilities based on your existing styles */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent;
+  }
+  
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-purple-600 to-blue-600;
+  }
+  
+  .bg-gradient-chat-list {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+  
+  .shadow-conversation {
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
+  }
+  
+  /* Profile Picture Fix - Prevents stretching for any image dimensions */
+  .profile-picture,
+  .profile-pic,
+  .user-avatar,
+  .chat-avatar,
+  .message-avatar,
+  .conversation-avatar,
+  .profile-picture-preview {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .profile-picture img,
+  .profile-pic img,
+  .user-avatar img,
+  .chat-avatar img,
+  .message-avatar img,
+  .conversation-avatar img,
+  .profile-picture-preview img {
+    @apply w-full h-full object-cover;
+    aspect-ratio: 1 / 1;
+    object-position: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+  }
+  
+  /* When image loads successfully, hide the text placeholder */
+  .profile-picture img[src]:not([src=""]):not([src*="placeholder"]),
+  .profile-pic img[src]:not([src=""]):not([src*="placeholder"]),
+  .user-avatar img[src]:not([src=""]):not([src*="placeholder"]),
+  .chat-avatar img[src]:not([src=""]):not([src*="placeholder"]),
+  .message-avatar img[src]:not([src=""]):not([src*="placeholder"]),
+  .conversation-avatar img[src]:not([src=""]):not([src*="placeholder"]),
+  .profile-picture-preview img[src]:not([src=""]):not([src*="placeholder"]) {
+    background: white;
+  }
+  
+  /* Hide text when image is present */
+  .profile-picture:has(img[src]:not([src=""]):not([src*="placeholder"])),
+  .profile-pic:has(img[src]:not([src=""]):not([src*="placeholder"])),
+  .user-avatar:has(img[src]:not([src=""]):not([src*="placeholder"])),
+  .chat-avatar:has(img[src]:not([src=""]):not([src*="placeholder"])),
+  .message-avatar:has(img[src]:not([src=""]):not([src*="placeholder"])),
+  .conversation-avatar:has(img[src]:not([src=""]):not([src*="placeholder"])),
+  .profile-picture-preview:has(img[src]:not([src=""]):not([src*="placeholder"])) {
+    color: transparent;
+    background: transparent;
+  }
+  
+  /* Alternative approach - when no image or broken image */
+  .profile-picture img[src=""],
+  .profile-picture img:not([src]),
+  .profile-picture img[src*="placeholder"],
+  .profile-pic img[src=""],
+  .profile-pic img:not([src]),
+  .profile-pic img[src*="placeholder"],
+  .user-avatar img[src=""],
+  .user-avatar img:not([src]),
+  .user-avatar img[src*="placeholder"],
+  .chat-avatar img[src=""],
+  .chat-avatar img:not([src]),
+  .chat-avatar img[src*="placeholder"],
+  .message-avatar img[src=""],
+  .message-avatar img:not([src]),
+  .message-avatar img[src*="placeholder"],
+  .conversation-avatar img[src=""],
+  .conversation-avatar img:not([src]),
+  .conversation-avatar img[src*="placeholder"] {
+    display: none;
+  }
+}

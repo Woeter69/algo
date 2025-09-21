@@ -1,5 +1,6 @@
 import re,os,base64
 import json,requests
+import pytz
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,14 +14,12 @@ def is_student_email(email):
     return re.match(pattern,email) is not None
 
 def load_cities():
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # gives /app/src
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DATA_PATH = os.path.join(BASE_DIR, "..", "static", "data", "cities-name-list.json")
     with open(DATA_PATH, encoding="utf-8") as f:
         return json.load(f)
 
-
 def upload_to_imgbb(file, api_key):
-    """Uploads a file object to ImgBB and returns the image URL."""
     payload = {
         "key": api_key,
         "image": base64.b64encode(file.read()).decode('utf-8')
@@ -30,3 +29,28 @@ def upload_to_imgbb(file, api_key):
         return response.json()['data']['url']
     else:
         return None
+
+IST = pytz.timezone('Asia/Kolkata')
+
+def to_ist(utc_datetime):
+    if utc_datetime is None:
+        return None
+    if utc_datetime.tzinfo is None:
+        utc_datetime = pytz.utc.localize(utc_datetime)
+    return utc_datetime.astimezone(IST)
+
+def format_ist_time(utc_datetime, format_str='%I:%M %p'):
+    if utc_datetime is None:
+        return 'now'
+    ist_time = to_ist(utc_datetime)
+    return ist_time.strftime(format_str)
+
+def format_utc_timestamp(utc_datetime):
+    if utc_datetime is None:
+        return None
+    if utc_datetime.tzinfo is None:
+        utc_datetime = pytz.utc.localize(utc_datetime)
+    return int(utc_datetime.timestamp() * 1000)
+
+def get_room_id(user1, user2):
+    return f"room_{min(user1,user2)}_{max(user1,user2)}"

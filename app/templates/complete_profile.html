@@ -6,536 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Profile - ALGO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <style>
-        /* ===== BASE STYLES & COLOR PALETTE ===== */
-        :root {
-            --primary: #6D28D9;
-            /* Deep Purple */
-            --primary-dark: #5B21B6;
-            --secondary: #8B5CF6;
-            /* Much more visible purple */
-            --secondary-light: #C4B5FD;
-            /* Clearly visible light purple */
-            --accent: #9F1239;
-            /* Wine Red */
-            --dark: #1F2937;
-            /* Almost Black */
-            --light: #FAFAFA;
-            /* Off-White */
-            --text-light: #94a3b8;
-            /* Lighter text color */
-        }
+    <link rel="stylesheet" href="../static/styles/complete_profile.css">
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        body {
-            color: var(--dark);
-            line-height: 1.6;
-            background-color: #fff;
-            overflow-x: hidden;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.3s ease;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 14px 32px;
-            background: var(--primary);
-            color: white;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(109, 40, 217, 0.2);
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(109, 40, 217, 0.3);
-        }
-
-        .btn-accent {
-            background: var(--accent);
-            box-shadow: 0 4px 6px rgba(159, 18, 57, 0.2);
-        }
-
-        .btn-accent:hover {
-            background: #881337;
-            box-shadow: 0 6px 12px rgba(159, 18, 57, 0.3);
-        }
-
-        /* ===== HEADER/NAVIGATION ===== */
-        header {
-            background-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
-            position: fixed;
-            width: 100%;
-            z-index: 1000;
-            padding: 0.8rem 0;
-            transition: all 0.3s ease;
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        header.scrolled {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            padding: 0.5rem 0;
-        }
-
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: rgba(255, 255, 255, 0);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .logo {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2.5rem;
-            font-weight: 500;
-            align-items: center;
-        }
-
-        .nav-links a {
-            position: relative;
-            padding: 0.5rem 0;
-            font-weight: 500;
-        }
-
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            background-color: var(--accent);
-            left: 0;
-            bottom: 0;
-            transition: width 0.3s ease;
-        }
-
-        .nav-links a:hover::after {
-            width: 100%;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent);
-        }
-
-        .nav-signup {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        .nav-signup:hover {
-            color: var(--primary);
-        }
-
-        .hamburger {
-            display: none;
-            cursor: pointer;
-        }
-
-        .hamburger div {
-            width: 25px;
-            height: 3px;
-            background-color: var(--dark);
-            margin: 5px;
-            transition: all 0.3s ease;
-        }
-
-        /* ===== PROFILE COMPLETION STYLES ===== */
-        .profile-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8rem 0 4rem;
-            background: linear-gradient(135deg, var(--secondary-light) 0%, #ffffff 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .profile-container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 200%;
-            background: radial-gradient(ellipse at center, rgba(109, 40, 217, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
-            z-index: 0;
-        }
-
-        .profile-box {
-            background: white;
-            padding: 3rem;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 700px;
-            position: relative;
-            z-index: 2;
-            margin: 2rem;
-        }
-
-        .profile-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
-            border-radius: 8px 8px 0 0;
-        }
-
-        .profile-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .profile-header h2 {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
-            font-weight: 700;
-        }
-
-        .profile-header p {
-            color: var(--text-light);
-            font-size: 1.1rem;
-        }
-
-        .profile-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .form-group label {
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 0.95rem;
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 1rem 1.2rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
-        }
-
-        /* ===== PROFILE PICTURE UPLOAD STYLES ===== */
-        .profile-picture-group {
-            align-items: center;
-            text-align: center;
-        }
-
-        .profile-picture-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .profile-picture-preview {
-            width: 120px;
-            height: 120px;
-            border: 3px dashed #e2e8f0;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background-color: #f8fafc;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .profile-picture-preview:hover {
-            border-color: var(--primary);
-            background-color: rgba(109, 40, 217, 0.05);
-        }
-
-        .profile-picture-preview i {
-            font-size: 3rem;
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
-        }
-
-        .profile-picture-preview .preview-text {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            text-align: center;
-            line-height: 1.2;
-        }
-
-        .profile-picture-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-
-        .profile-picture-preview.has-image i,
-        .profile-picture-preview.has-image .preview-text {
-            display: none;
-        }
-
-        .profile-picture-input {
-            display: none;
-        }
-
-        .upload-info {
-            text-align: center;
-        }
-
-        .upload-info small {
-            color: var(--text-light);
-            font-size: 0.85rem;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
-
-        .submit-button {
-            padding: 1rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 1rem;
-            box-shadow: 0 4px 6px rgba(109, 40, 217, 0.3);
-            width: 100%;
-        }
-
-        .submit-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(109, 40, 217, 0.4);
-        }
-
-        /* ===== FOOTER ===== */
-        footer {
-            background-color: var(--dark);
-            color: white;
-            padding: 5rem 0 2rem 0;
-            text-align: center;
-            margin-top: auto;
-        }
-
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2.5rem;
-            margin-bottom: 3rem;
-            text-align: left;
-        }
-
-        .footer-logo {
-            margin-bottom: 2rem;
-        }
-
-        .footer-logo .logo {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .footer-logo p {
-            color: var(--text-light);
-            max-width: 300px;
-            line-height: 1.7;
-            margin-bottom: 1.5rem;
-        }
-
-        .footer-links h3 {
-            font-size: 1.3rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 0.5rem;
-        }
-
-        .footer-links h3::after {
-            content: '';
-            position: absolute;
-            width: 40px;
-            height: 2px;
-            background-color: var(--accent);
-            bottom: 0;
-            left: 0;
-        }
-
-        .footer-links ul {
-            list-style: none;
-        }
-
-        .footer-links li {
-            margin-bottom: 0.8rem;
-        }
-
-        .footer-links a {
-            color: var(--text-light);
-        }
-
-        .footer-links a:hover {
-            color: white;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .social-links a {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .social-links a:hover {
-            background-color: var(--accent);
-            transform: translateY(-3px);
-        }
-
-        .copyright {
-            opacity: 0.7;
-            font-size: 0.9rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* ===== RESPONSIVE STYLES ===== */
-        @media screen and (max-width: 768px) {
-            .nav-links {
-                position: fixed;
-                top: 70px;
-                right: 0;
-                height: calc(100vh - 70px);
-                width: 100%;
-                background-color: white;
-                flex-direction: column;
-                justify-content: flex-start;
-                padding-top: 3rem;
-                clip-path: circle(0px at 90% -10%);
-                -webkit-clip-path: circle(0px at 90% -10%);
-                transition: all 0.5s ease-out;
-                pointer-events: none;
-                box-shadow: 极 10px 30px rgba(0, 0, 0, 0.1);
-            }
-
-            .nav-links.open {
-                clip-path: circle(1000px at 90% -10%);
-                -webkit-clip-path: circle(1000px at 90% -10%);
-                pointer-events: all;
-            }
-
-            .nav-links li {
-                margin: 1.5rem 0;
-            }
-
-            .nav-links a {
-                font-size: 1.3rem;
-            }
-
-            .hamburger {
-                display: block;
-            }
-
-            .hamburger.toggle .line1 {
-                transform: rotate(-45deg) translate(-5px, 6px);
-            }
-
-            .hamburger.toggle .line2 {
-                opacity: 0;
-            }
-
-            .hamburger.toggle .line3 {
-                transform: rotate(45deg) translate(-5px, -6px);
-            }
-
-            .profile-box {
-                padding: 2rem;
-                margin: 1rem;
-            }
-
-            .form-row {
-                flex-direction: column;
-                gap: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
 </head>
 
 <body>
@@ -570,6 +46,7 @@
                 <p>Help us personalize your ALGO experience</p>
             </div>
             <form method="POST" action="/complete_profile" class="profile-form" enctype="multipart/form-data">
+                <!-- Profile Picture Section -->
                 <div class="form-group profile-picture-group">
                     <label for="profile-picture">Profile Picture</label>
                     <div class="profile-picture-container">
@@ -585,46 +62,176 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="uni-name">University Name</label>
-                    <input type="text" id="uni-name" name="uni-name" class="uni-name"
-                        placeholder="Enter your university name">
-                </div>
-
-                <div class="form-group">
-                    <label for="clg-name">College Name</label>
-                    <input type="text" id="clg-name" name="clg-name" class="clg-name"
-                        placeholder="Enter your college name">
+                <!-- Personal Information Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-user"></i> Personal Information</h3>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="dob">Date of Birth</label>
-                        <input type="date" id="dob" name="dob" class="dob" required max="{{cutoff_date}}">
+                        <label for="first-name">First Name *</label>
+                        <input type="text" id="first-name" name="first_name" required
+                            placeholder="Enter your first name">
                     </div>
-
                     <div class="form-group">
-                        <label for="grad_year">Graduation Year</label>
-                        <select id="grad_year" name="grad_year" class="grad_year" required>
+                        <label for="last-name">Last Name *</label>
+                        <input type="text" id="last-name" name="last_name" required placeholder="Enter your last name">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dob">Date of Birth *</label>
+                        <input type="date" id="dob" name="dob" required max="{{cutoff_date}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" name="bio" rows="3"
+                        placeholder="Tell us about yourself, your interests, and career goals..."></textarea>
+                </div>
+
+                <!-- Education Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                </div>
+
+                <div class="form-group">
+                    <label for="uni-name">University Name *</label>
+                    <input type="text" id="uni-name" name="uni_name" required placeholder="Enter your university name">
+                </div>
+
+                <div class="form-group">
+                    <label for="clg-name">College/School Name</label>
+                    <input type="text" id="clg-name" name="clg_name" placeholder="Enter your college or school name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="degree">Degree *</label>
+                        <input type="text" id="degree" name="degree" required
+                            placeholder="e.g., Bachelor of Science, Master of Arts">
+                    </div>
+                    <div class="form-group">
+                        <label for="major">Major/Field of Study *</label>
+                        <input type="text" id="major" name="major" required
+                            placeholder="e.g., Computer Science, Business">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="grad_year">Graduation Year *</label>
+                        <select id="grad_year" name="grad_year" required>
                             <option value="" disabled selected>Select graduation year</option>
                             {% for year in range(1980, 2031) %}
                             <option value="{{ year }}">{{ year }}</option>
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="gpa">GPA (Optional)</label>
+                        <input type="number" id="gpa" name="gpa" step="0.01" min="0" max="4" placeholder="3.85">
+                    </div>
+                </div>
+
+                <!-- Location Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
                 </div>
 
                 <div class="form-group">
-                    <label for="city">City</label>
-                    <select id="city" name="city" class="city" required>
-                        <option value="" disabled selected>Select your city</option>
+                    <label for="city">Current City *</label>
+                    <select id="city" name="city" required>
+                        <option value="" disabled selected>Select your current city</option>
                         {% for city in cities %}
                         <option value="{{city}}">{{city}}</option>
                         {% endfor %}
                     </select>
                 </div>
 
+                <!-- Skills & Interests Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-lightbulb"></i> Skills & Interests</h3>
+                </div>
+
+                <div class="form-group">
+                    <label for="skills">Skills</label>
+                    <textarea id="skills" name="skills" rows="2"
+                        placeholder="Enter your skills separated by commas (e.g., JavaScript, Python, Project Management)"></textarea>
+                    <small>List your technical and professional skills</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="interests">Interests</label>
+                    <textarea id="interests" name="interests" rows="2"
+                        placeholder="Enter your interests separated by commas (e.g., Technology, Entrepreneurship, Travel)"></textarea>
+                    <small>Share your hobbies and areas of interest</small>
+                </div>
+
+                <!-- Social Links Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-share-alt"></i> Social Links (Optional)</h3>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="linkedin">LinkedIn</label>
+                        <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/username">
+                    </div>
+                    <div class="form-group">
+                        <label for="github">GitHub</label>
+                        <input type="url" id="github" name="github" placeholder="https://github.com/username">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="twitter">Twitter</label>
+                        <input type="text" id="twitter" name="twitter" placeholder="@username">
+                    </div>
+                    <div class="form-group">
+                        <label for="website">Personal Website</label>
+                        <input type="url" id="website" name="website" placeholder="https://yourwebsite.com">
+                    </div>
+                </div>
+
+                <!-- Privacy Settings Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-shield-alt"></i> Privacy Settings</h3>
+                </div>
+
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="profile_visibility" value="public" checked>
+                        <span class="checkmark"></span>
+                        Make my profile visible to other users
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="email_notifications" value="enabled" checked>
+                        <span class="checkmark"></span>
+                        Receive email notifications about job opportunities and events
+                    </label>
+                </div>
+
+                <div class="checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="job_alerts" value="enabled">
+                        <span class="checkmark"></span>
+                        Get notified about relevant job opportunities
+                    </label>
+                </div>
+
                 <button type="submit" class="submit-button">
+                    <i class="fas fa-check-circle"></i>
                     Complete Profile
                 </button>
             </form>
@@ -642,7 +249,8 @@
                         <a href="#"><i class="fab fa-facebook-f"></i></a>
                         <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
                         <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                            target="_blank"><i class="fab fa-instagram"></i></a>
                     </div>
                 </div>
                 <div class="footer-links">
@@ -677,112 +285,7 @@
         </div>
     </footer>
 
-    <script>
-        // Mobile Navigation
-        const hamburger = document.querySelector('.hamburger');
-        const navLinks = document.querySelector('.nav-links');
-        const links = document.querySelectorAll('.nav-links li');
-
-        hamburger.addEventListener('click', () => {
-            // Toggle Nav
-            navLinks.classList.toggle('open');
-
-            // Animate Links
-            links.forEach((link, index) => {
-                if (link.style.animation) {
-                    link.style.animation = '';
-                } else {
-                    link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
-                }
-            });
-
-            // Hamburger Animation
-            hamburger.classList.toggle('toggle');
-        });
-
-        // Close mobile menu when clicking on a nav link
-        links.forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('open');
-                hamburger.classList.remove('toggle');
-                links.forEach(link => {
-                    link.style.animation = '';
-                });
-            });
-        });
-
-        // Scroll Header Effect
-        window.addEventListener('scroll', () => {
-            const header = document.querySelector('header');
-            header.classList.toggle('scrolled', window.scrollY > 50);
-        });
-
-        // Profile Picture Upload Functionality
-        const profilePictureInput = document.getElementById('profile-picture');
-        const profilePreview = document.getElementById('profile-preview');
-
-        // Click on preview to trigger file input
-        profilePreview.addEventListener('click', () => {
-            profilePictureInput.click();
-        });
-
-        // Handle file selection and preview
-        profilePictureInput.addEventListener('change', function (e) {
-            const file = e.target.files[0];
-
-            if (file) {
-                // Validate file type
-                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-                if (!validTypes.includes(file.type)) {
-                    alert('Please select a valid image file (JPG, PNG, or GIF)');
-                    return;
-                }
-
-                // Validate file size (5MB max)
-                const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-                if (file.size > maxSize) {
-                    alert('File size must be less than 5MB');
-                    return;
-                }
-
-                // Create preview
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    profilePreview.innerHTML = `<img src="${e.target.result}" alt="Profile Preview">`;
-                    profilePreview.classList.add('has-image');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Allow drag and drop
-        profilePreview.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            profilePreview.style.borderColor = 'var(--primary)';
-            profilePreview.style.backgroundColor = 'rgba(109, 40, 217, 0.1)';
-        });
-
-        profilePreview.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            profilePreview.style.borderColor = '#e2e8f0';
-            profilePreview.style.backgroundColor = '#f8fafc';
-        });
-
-        profilePreview.addEventListener('drop', (e) => {
-            e.preventDefault();
-            profilePreview.style.borderColor = '#e2e8f0';
-            profilePreview.style.backgroundColor = '#f8fafc';
-
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                profilePictureInput.files = files;
-                profilePictureInput.dispatchEvent(new Event('change'));
-            }
-        });
-    </script>
-    <script>
-        (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="rUFhD5wxmCkjLaxaWfwKk";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
-    </script>
+    <script src="{{ url_for('static', filename='js/complete_profile.js') }}"></script>
 </body>
 
 </html>
