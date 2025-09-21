@@ -8,8 +8,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/chat.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/chat.css') }}?v={{ range(1000, 9999) | random }}">
+    <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
     <script>
         // Pass server data to JavaScript
         window.chatData = {
@@ -101,11 +101,11 @@
                 <div class="chat-user-info">
                     <div class="chat-avatar">
                         <img src="{{ other_user_pfp or 'https://via.placeholder.com/40' }}" alt="" id="chatUserAvatar">
-                        <div class="online-status online" id="chatUserStatus"></div>
+                        <div class="online-status" id="chatUserStatus" data-user-id="{{ other_user_id }}"></div>
                     </div>
                     <div class="chat-user-details">
                         <h3 id="chatUserName">{{ other_user_name if other_user_name else 'Select a conversation' }}</h3>
-                        <span class="user-status" id="chatUserOnlineStatus">Active now</span>
+                        <span class="user-status" id="chatUserOnlineStatus">Checking status...</span>
                         <span class="timezone-indicator" id="timezoneIndicator"></span>
                     </div>
                 </div>
@@ -275,8 +275,7 @@
     </div>
 
 
-    <script type="module" src="{{ url_for('static', filename='js/chat.js') }}"></script>
-    </div>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 </body>
 
 </html>

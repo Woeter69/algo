@@ -77,8 +77,80 @@ if (newChatBtn && newChatModal) {
         }
     });
 
-    function showModalError(message) {
-        modalError.textContent = message;
-        modalError.style.display = 'block';
+    function showModalError(message: string): void {
+        if (modalError) {
+            modalError.textContent = message;
+            modalError.style.display = 'block';
+        }
     }
 }
+
+// Online Status Management
+interface OnlineStatusResponse {
+    online_users: number[];
+}
+
+class OnlineStatusManager {
+    private onlineIndicators: NodeListOf<HTMLElement>;
+    private updateInterval: number | null = null;
+
+    constructor() {
+        this.onlineIndicators = document.querySelectorAll('.online-indicator');
+        this.init();
+    }
+
+    private init(): void {
+        // Initial status check
+        this.updateOnlineStatus();
+        
+        // Update every 30 seconds
+        this.updateInterval = window.setInterval(() => {
+            this.updateOnlineStatus();
+        }, 30000);
+    }
+
+    private async updateOnlineStatus(): Promise<void> {
+        try {
+            const response = await fetch('/api/online_status');
+            if (response.ok) {
+                const data: OnlineStatusResponse = await response.json();
+                this.updateIndicators(data.online_users);
+            }
+        } catch (error) {
+            console.error('Error fetching online status:', error);
+        }
+    }
+
+    private updateIndicators(onlineUsers: number[]): void {
+        this.onlineIndicators.forEach((indicator) => {
+            const userId = parseInt(indicator.dataset.userId || '0');
+            const isOnline = onlineUsers.includes(userId);
+            
+            if (isOnline) {
+                indicator.classList.add('online');
+            } else {
+                indicator.classList.remove('online');
+            }
+        });
+    }
+
+    public destroy(): void {
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+    }
+}
+
+// Initialize online status manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const onlineStatusManager = new OnlineStatusManager();
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+        onlineStatusManager.destroy();
+    });
+});
+
+// Export for potential external use
+export { OnlineStatusManager };
