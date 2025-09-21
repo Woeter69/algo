@@ -960,10 +960,7 @@ def check_college_access(college_id):
         app.logger.error(f"Error in check_college_access: {str(e)}")
         return {'success': False, 'message': 'Error checking access'}
 
-<<<<<<< HEAD
 
-=======
->>>>>>> main
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("DEBUG", "True") == "True"
