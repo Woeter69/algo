@@ -1,17 +1,11 @@
-import { io, Socket } from 'socket.io-client';
-import { 
-  ChatData, 
-  MessageData, 
-  UserStatusData, 
-  ServerToClientEvents, 
-  ClientToServerEvents 
-} from './types';
+// Using global io from CDN instead of imports
+declare const io: any;
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Chat.ts loaded - DOM ready');
     
     // Get user data from the template with type safety
-    const chatData: ChatData = window.chatData || {} as ChatData;
+    const chatData: any = window.chatData || {};
     console.log('Chat data:', chatData);
     
     const currentUserId: number | null = chatData.currentUserId ? Number(chatData.currentUserId) : null;
@@ -28,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize Socket.IO with proper typing
     console.log('Initializing Socket.IO connection...');
-    const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io({
+    const socket: any = io({
         path: '/socket.io',
         transports: ['websocket', 'polling'], 
         reconnection: true,
@@ -41,13 +35,70 @@ document.addEventListener('DOMContentLoaded', function() {
     let isTyping = false;
     let typingTimeout: NodeJS.Timeout | null = null;
 
+    // Online Status Management
+    const chatUserStatus = document.getElementById('chatUserStatus') as HTMLElement;
+    const chatUserOnlineStatus = document.getElementById('chatUserOnlineStatus') as HTMLElement;
+
+    function updateUserOnlineStatus(userId: number, isOnline: boolean): void {
+        // Update chat header status for the current conversation
+        if (userId === otherUserId) {
+            if (chatUserStatus) {
+                if (isOnline) {
+                    chatUserStatus.classList.add('online');
+                } else {
+                    chatUserStatus.classList.remove('online');
+                }
+            }
+            
+            if (chatUserOnlineStatus) {
+                chatUserOnlineStatus.textContent = isOnline ? 'Active now' : 'Offline';
+            }
+        }
+        
+        // Update sidebar status indicators
+        const statusElements = document.querySelectorAll(`[data-user-id="${userId}"] .online-status`);
+        statusElements.forEach(element => {
+            if (isOnline) {
+                element.classList.add('online');
+            } else {
+                element.classList.remove('online');
+            }
+        });
+    }
+
+    // Fetch initial online status
+    async function fetchOnlineStatus(): Promise<void> {
+        try {
+            const response = await fetch('/api/online_status');
+            if (response.ok) {
+                const data: { online_users: number[] } = await response.json();
+                onlineUsers.clear();
+                data.online_users.forEach(userId => onlineUsers.add(userId));
+                
+                // Update the current chat user's status
+                if (otherUserId) {
+                    updateUserOnlineStatus(otherUserId, onlineUsers.has(otherUserId));
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching online status:', error);
+            if (chatUserOnlineStatus) {
+                chatUserOnlineStatus.textContent = 'Status unknown';
+            }
+        }
+    }
+
+    // Update online status every 30 seconds
+    fetchOnlineStatus();
+    setInterval(fetchOnlineStatus, 30000);
+
     // Socket event handlers with proper typing
-    socket.on('connect_error', (err: Error) => {
+    socket.on('connect_error', (err: any) => {
         console.error('Socket connect_error:', err?.message || err);
     });
     
     // Note: reconnect_error is not in the standard Socket.IO events, using connect_error instead
-    socket.on('connect_error', (err: Error) => {
+    socket.on('connect_error', (err: any) => {
         console.error('Socket reconnect_error:', err?.message || err);
     });
     
@@ -68,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadOnlineStatus();
     });
 
-    socket.on('user_status_changed', (data: UserStatusData) => {
+    socket.on('user_status_changed', (data: any) => {
         console.log('User status changed:', data);
         const { user_id, is_online } = data;
         if (is_online) {
@@ -92,8 +143,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const typingIndicator = document.getElementById('typingIndicator') as HTMLElement | null;
     const chatUserName = document.getElementById('chatUserName') as HTMLElement | null;
     const chatUserAvatar = document.getElementById('chatUserAvatar') as HTMLImageElement | null;
-    const chatUserStatus = document.getElementById('chatUserStatus') as HTMLElement | null;
-    const chatUserOnlineStatus = document.getElementById('chatUserOnlineStatus') as HTMLElement | null;
 
     // Emoji elements with type safety
     const emojiBtn = document.getElementById('emojiBtn') as HTMLButtonElement | null;
@@ -111,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const deliveredClientIds = new Set<string>();
 
     // Socket message handlers
-    socket.on('receive_message', (data: MessageData) => {
+    socket.on('receive_message', (data: any) => {
         const senderId = Number(data.sender_id);
         const receiverId = Number(data.receiver_id);
         
@@ -412,16 +461,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Loading online status...');
     }
 
-    function updateUserOnlineStatus(userId: number, isOnline: boolean): void {
-        const statusElements = document.querySelectorAll(`[data-user-id="${userId}"] .online-status`);
-        statusElements.forEach(element => {
-            if (isOnline) {
-                element.classList.add('online');
-            } else {
-                element.classList.remove('online');
-            }
-        });
-    }
 
     // Emoji functionality with proper typing
     if (emojiBtn && emojiPicker && emojiGrid) {

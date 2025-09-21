@@ -4,13 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chats - Your Conversations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/chat_list.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Additional custom styles */
+        .btn-primary {
+            @apply bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors;
+        }
+        .btn-secondary {
+            @apply bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors;
+        }
+        .input-field {
+            @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent;
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .online-indicator {
+            background-color: #6b7280; /* Default offline (gray) */
+            transition: background-color 0.3s ease;
+        }
+        .online-indicator.online {
+            background-color: #10b981; /* Online (green) */
+        }
+        /* Fixed avatar dimensions */
+        .chat-avatar {
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            flex-shrink: 0 !important;
+        }
+        .chat-avatar img {
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            object-fit: cover !important;
+            border-radius: 50% !important;
+        }
+    </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-purple-700 p-4 md:p-8">
     <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
         <!-- Header -->
-        <div class="bg-gradient-primary text-white p-6 md:p-8 text-center">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 md:p-8 text-center">
             <div class="flex justify-center items-center gap-4 mb-2">
                 <h1 class="text-2xl md:text-3xl font-bold">
                     <i class="fas fa-comments mr-3"></i>Your Conversations
@@ -30,11 +79,11 @@
                 <div class="flex items-center p-5 mb-4 bg-gray-50 hover:bg-blue-50 rounded-2xl cursor-pointer transition-all duration-300 border-2 border-transparent hover:border-blue-300 hover:-translate-y-1 hover:shadow-lg group"
                      onclick="window.location.href='/chat/{{ chat[1] }}'">
                     <!-- Avatar -->
-                    <div class="relative w-15 h-15 rounded-full overflow-hidden mr-4 flex-shrink-0">
-                        <img src="{{ chat[2] or 'https://via.placeholder.com/60' }}" 
+                    <div class="relative chat-avatar mr-4">
+                        <img src="{{ chat[2] or 'https://via.placeholder.com/48' }}" 
                              alt="{{ chat[1] }}"
-                             class="w-full h-full object-cover">
-                        <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                             class="chat-avatar">
+                        <div class="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full online-indicator" data-user-id="{{ chat[0] }}"></div>
                     </div>
                     
                     <!-- Conversation Details -->
@@ -64,7 +113,7 @@
                     </div>
                     <h3 class="text-2xl font-semibold mb-4 text-gray-800">No conversations yet</h3>
                     <p class="text-lg mb-8 leading-relaxed">Start a conversation by finding someone to chat with!</p>
-                    <button class="bg-gradient-primary text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-glow"
+                    <button class="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-8 py-4 rounded-full font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                             onclick="document.getElementById('newChatBtn').click()">
                         <i class="fas fa-plus mr-2"></i>Start Your First Chat
                     </button>
@@ -98,6 +147,6 @@
         </div>
     </div>
 
-    <script type="module" src="{{ url_for('static', filename='js/chat_list.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat_list.js') }}"></script>
 </body>
 </html>

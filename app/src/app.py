@@ -7,6 +7,14 @@ import secrets, datetime
 from flask_bcrypt import Bcrypt
 from . import utils, validators
 from .connection import get_db_connection
+from . import user_roles
+from .user_roles import (
+    login_required, verified_user_required, admin_required,
+    get_user_role_info, get_colleges, submit_verification_request,
+    get_pending_verification_requests, approve_verification_request,
+    reject_verification_request, is_admin
+)
+
 
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
@@ -448,13 +456,15 @@ def chat_list():
         cur.close()
         mydb.close()
     
-    return render_template("chat_list.html", chat_history=chat_history)
+    return render_template("chat_list.html", conversations=chat_history)
 
 @app.route("/api/online_status")
 @validators.login_required
 def get_online_status():
     """Return list of currently online user IDs"""
-    return {'online_users': list(online_users.keys())}
+    online_user_list = list(online_users.keys())
+    print(f"API: Returning online users: {online_user_list}")
+    return {'online_users': online_user_list}
 
 @app.route("/api/upload_image", methods=["POST"])
 @validators.login_required
@@ -617,7 +627,8 @@ def handle_user_online(data):
             'user_id': user_id,
             'is_online': True
         }, broadcast=True)
-        print(f"User {user_id} is now online")
+        print(f"User {user_id} is now online. Total online users: {len(online_users)}")
+        print(f"Online users: {list(online_users.keys())}")
 
 @socketio.on('join')
 def handle_join(data):
@@ -949,7 +960,10 @@ def check_college_access(college_id):
         app.logger.error(f"Error in check_college_access: {str(e)}")
         return {'success': False, 'message': 'Error checking access'}
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("DEBUG", "True") == "True"
