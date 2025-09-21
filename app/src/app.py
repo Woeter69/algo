@@ -994,3 +994,14 @@ def user_dashboard():
             cur.close()
         if 'mydb' in locals() and mydb:
             mydb.close()
+@app.
+route('/chat')
+@verified_user_required
+def chat():
+    """Chat page for verified users"""
+    try:
+        return render_template('chat.html')
+    except Exception as e:
+        app.logger.error(f"Error in chat route: {str(e)}")
+        flash("An error occurred loading the chat page.", 'error')
+        return redirect(url_for('user_dashboard'))
