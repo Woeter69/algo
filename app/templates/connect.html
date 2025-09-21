@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect - ALGO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/styles/connect.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#" class="logo" id="home-link">algo</a>
+                <ul class="nav-links">
+                    <li><a href="#" data-section="home">Home</a></li>
+                    <li><a href="#" class="active">Connect</a></li>
+                    <li><a href="#" data-section="jobs">Job Board</a></li>
+                    <li><a href="#" data-section="events">Events</a></li>
+                    <li><a href="#" data-section="contact">Contact Us</a></li>
+                    <li><a href="#" data-section="profile">Profile</a></li>
+                    <li><a href="#" class="nav-signup">Dashboard</a></li>
+                </ul>
+                <div class="hamburger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <h1>Connect with Alumni</h1>
+            <p>Discover and connect with fellow alumni from your institution. Build meaningful professional relationships that can accelerate your career.</p>
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by name, company, or skills...">
+                    <button class="search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <button class="filter-btn" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    Filters
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILTERS SECTION -->
+    <section class="filters-section" id="filtersSection">
+        <div class="container">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label>University</label>
+                    <select id="universityFilter">
+                        <option value="">All Universities</option>
+                        <option value="harvard">Harvard University</option>
+                        <option value="mit">MIT</option>
+                        <option value="stanford">Stanford University</option>
+                        <option value="berkeley">UC Berkeley</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Graduation Year</label>
+                    <select id="yearFilter">
+                        <option value="">All Years</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Industry</label>
+                    <select id="industryFilter">
+                        <option value="">All Industries</option>
+                        <option value="technology">Technology</option>
+                        <option value="finance">Finance</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="consulting">Consulting</option>
+                        <option value="education">Education</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Location</label>
+                    <select id="locationFilter">
+                        <option value="">All Locations</option>
+                        <option value="new-york">New York, NY</option>
+                        <option value="san-francisco">San Francisco, CA</option>
+                        <option value="boston">Boston, MA</option>
+                        <option value="chicago">Chicago, IL</option>
+                        <option value="remote">Remote</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-secondary" id="clearFilters">Clear All</button>
+                <button class="btn" id="applyFilters">Apply Filters</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- RECOMMENDATIONS SECTION -->
+    <section class="recommendations">
+        <div class="container">
+            <div class="section-title">
+                <h2>Recommended for You</h2>
+                <p>Based on your profile, interests, and connections</p>
+            </div>
+            <div class="people-grid" id="recommendedPeople">
+                <!-- Recommended people will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ALL PEOPLE SECTION -->
+    <section class="all-people">
+        <div class="container">
+            <div class="section-title">
+                <h2>All Alumni</h2>
+                <p>Browse through all alumni in the network</p>
+            </div>
+            <div class="people-grid" id="allPeople">
+                <!-- All people will be populated by JavaScript -->
+            </div>
+            <div class="load-more-container">
+                <button class="btn btn-secondary" id="loadMoreBtn">Load More</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONNECTION MODAL -->
+    <div class="modal-overlay" id="connectionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Send Connection Request</h2>
+                <button class="modal-close" id="closeConnectionModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="person-preview" id="personPreview">
+                    <!-- Person details will be populated -->
+                </div>
+                <form id="connectionForm">
+                    <div class="form-group">
+                        <label for="connectionMessage">Personal Message (Optional)</label>
+                        <textarea id="connectionMessage" name="message" rows="4" placeholder="Hi! I'd love to connect with you and learn more about your experience..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelConnection">Cancel</button>
+                        <button type="submit" class="btn">Send Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE PREVIEW MODAL -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2>Profile Preview</h2>
+                <button class="modal-close" id="closeProfileModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="profile-preview" id="profilePreview">
+                    <!-- Profile details will be populated -->
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="closePreview">Close</button>
+                    <button type="button" class="btn" id="connectFromPreview">Connect</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo">algo</span>
+                    <p>Connecting students and alumni for career growth and opportunities.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#" data-section="home">Home</a></li>
+                        <li><a href="#" class="active">Connect</a></li>
+                        <li><a href="#" data-section="jobs">Job Board</a></li>
+                        <li><a href="#" data-section="events">Events</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Career Tips</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#" data-section="contact">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../static/js/connect.js"></script>
+</body>
+</html>
