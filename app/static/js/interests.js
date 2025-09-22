@@ -51,7 +51,7 @@ document.querySelectorAll('.interest-item').forEach(item => {
     window.chatbase = new Proxy(window.chatbase, { get(target, prop) { if (prop === "q") {
             return target.q;
         } return (...args) => target(prop, ...args); } });
-} const onLoad = function () { const script = document.createElement("script"); script.src = "https://www.chatbase.co/embed.min.js"; script.id = "rUFhD5wxmCkjLaxaWfwKk"; script.setAttribute("domain", "www.chatbase.co"); document.body.appendChild(script); }; if (document.readyState === "complete") {
+} const onLoad = function () { const script = document.createElement("script"); script.src = "https://www.chatbase.co/embed.min.js"; script.id = "F-fo5HUnUDi93XxXc0vJY"; script.setAttribute("domain", "www.chatbase.co"); document.body.appendChild(script); }; if (document.readyState === "complete") {
     onLoad();
 }
 else {
