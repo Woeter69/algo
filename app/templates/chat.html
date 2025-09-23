@@ -148,32 +148,30 @@
                         <i class="fas fa-paperclip"></i>
                     </button>
                     <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                    <div class="input-wrapper">
+                    <div class="input-wrapper" style="position: relative;">
                         <textarea placeholder="Type a message..." id="messageInput" rows="1"></textarea>
                         <button class="emoji-btn" id="emojiBtn" title="Add emoji">
                             <i class="fas fa-smile"></i>
                         </button>
+                        <div class="emoji-picker" id="emojiPicker" style="display: none;">
+                            <div class="emoji-categories">
+                                <button class="emoji-category active" data-category="smileys">😀</button>
+                                <button class="emoji-category" data-category="people">👋</button>
+                                <button class="emoji-category" data-category="nature">🌸</button>
+                                <button class="emoji-category" data-category="food">🍕</button>
+                                <button class="emoji-category" data-category="activities">⚽</button>
+                                <button class="emoji-category" data-category="travel">✈️</button>
+                                <button class="emoji-category" data-category="objects">💡</button>
+                                <button class="emoji-category" data-category="symbols">❤️</button>
+                            </div>
+                            <div class="emoji-grid" id="emojiGrid">
+                                
+                            </div>
+                        </div>
                     </div>
                     <button class="send-btn" id="sendBtn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
-                </div>
-                
-                
-                <div class="emoji-picker" id="emojiPicker" style="display: none;">
-                    <div class="emoji-categories">
-                        <button class="emoji-category active" data-category="smileys">😀</button>
-                        <button class="emoji-category" data-category="people">👋</button>
-                        <button class="emoji-category" data-category="nature">🌸</button>
-                        <button class="emoji-category" data-category="food">🍕</button>
-                        <button class="emoji-category" data-category="activities">⚽</button>
-                        <button class="emoji-category" data-category="travel">✈️</button>
-                        <button class="emoji-category" data-category="objects">💡</button>
-                        <button class="emoji-category" data-category="symbols">❤️</button>
-                    </div>
-                    <div class="emoji-grid" id="emojiGrid">
-                        
-                    </div>
                 </div>
             </div>
         </div>

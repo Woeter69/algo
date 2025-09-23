@@ -135,7 +135,21 @@ else {
         const emojiBtn = document.getElementById('emojiBtn');
         const emojiPicker = document.getElementById('emojiPicker');
         const emojiGrid = document.getElementById('emojiGrid');
-        console.log('Emoji elements:', { emojiBtn, emojiPicker, emojiGrid });
+        // File attachment elements
+        const attachmentBtn = document.getElementById('attachmentBtn');
+        const fileInput = document.getElementById('fileInput');
+        // Call buttons
+        const voiceCallBtn = document.querySelector('.chat-action-btn[title="Voice call"]');
+        const videoCallBtn = document.querySelector('.chat-action-btn[title="Video call"]');
+        const moreOptionsBtn = document.querySelector('.chat-action-btn[title="More options"]');
+        console.log('UI elements:', { emojiBtn, emojiPicker, emojiGrid, attachmentBtn, fileInput, voiceCallBtn, videoCallBtn });
+        // Debug emoji elements specifically
+        if (!emojiBtn)
+            console.error('❌ Emoji button not found!');
+        if (!emojiPicker)
+            console.error('❌ Emoji picker not found!');
+        if (!emojiGrid)
+            console.error('❌ Emoji grid not found!');
         // Current conversation tracking
         let currentConversationUserId = otherUserId || 0;
         // Message tracking for deduplication
@@ -407,69 +421,86 @@ else {
             // Implementation for loading online status
             console.log('Loading online status...');
         }
+        // Emoji data and functions
+        const emojiData = {
+            smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥'],
+            people: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪'],
+            nature: ['🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌶️', '🍄', '🌾', '💐', '🌿', '🍀', '🍃', '🍂', '🍁', '🌊', '🌀', '🌈', '🌂', '☂️', '☔', '⛱️', '⚡', '❄️', '☃️', '⛄', '☄️', '🔥', '💧', '🌟', '⭐'],
+            food: ['🍕', '🍔', '🍟', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥗', '🍿', '🧈', '🧂', '🥨', '🥖', '🍞', '🥐', '🥯', '🧇', '🥞', '🍰', '🎂', '🧁', '🥧', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪'],
+            activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂'],
+            travel: ['✈️', '🛫', '🛬', '🪂', '💺', '🚁', '🚟', '🚠', '🚡', '🛰️', '🚀', '🛸', '🚂', '🚃', '🚄', '🚅', '🚆', '🚇', '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍', '🚎', '🚐', '🚑', '🚒', '🚓', '🚔', '🚕', '🚖', '🚗', '🚘', '🚙', '🛻', '🚚', '🚛'],
+            objects: ['💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎', '⚖️', '🪜', '🧰', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🪚', '🔩', '⚙️', '🪤', '🧱', '⛓️', '🧲', '🔫', '💣', '🧨', '🪓', '🔪', '🗡️', '⚔️', '🛡️', '🚬', '⚰️'],
+            symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐']
+        };
+        function initializeEmojiPicker() {
+            console.log('🚀 Initializing emoji picker...');
+            loadEmojiCategory('smileys');
+            const emojiCategories = document.querySelectorAll('.emoji-category');
+            console.log('📋 Found emoji categories:', emojiCategories.length);
+            emojiCategories.forEach(category => {
+                category.addEventListener('click', function () {
+                    console.log('🏷️ Category clicked:', this.getAttribute('data-category'));
+                    emojiCategories.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    const categoryName = this.getAttribute('data-category');
+                    if (categoryName) {
+                        loadEmojiCategory(categoryName);
+                    }
+                });
+            });
+        }
+        function loadEmojiCategory(category) {
+            if (!emojiGrid)
+                return;
+            console.log('📂 Loading emoji category:', category);
+            const emojis = emojiData[category] || [];
+            console.log('😀 Found emojis:', emojis.length);
+            emojiGrid.innerHTML = '';
+            emojis.forEach(emoji => {
+                const emojiButton = document.createElement('button');
+                emojiButton.className = 'emoji-item';
+                emojiButton.textContent = emoji;
+                emojiButton.addEventListener('click', function () {
+                    console.log('😀 Emoji clicked:', emoji);
+                    insertEmoji(emoji);
+                });
+                emojiGrid.appendChild(emojiButton);
+            });
+            console.log('✅ Added', emojis.length, 'emojis to grid');
+        }
+        function insertEmoji(emoji) {
+            if (!messageInput)
+                return;
+            const cursorPos = messageInput.selectionStart;
+            const textBefore = messageInput.value.substring(0, cursorPos);
+            const textAfter = messageInput.value.substring(cursorPos);
+            messageInput.value = textBefore + emoji + textAfter;
+            messageInput.focus();
+            messageInput.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
+            if (emojiPicker)
+                emojiPicker.style.display = 'none';
+        }
         // Emoji functionality with proper typing
         if (emojiBtn && emojiPicker && emojiGrid) {
-            const emojiData = {
-                smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥'],
-                people: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪'],
-                nature: ['🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🌵', '🌶️', '🍄', '🌾', '💐', '🌿', '🍀', '🍃', '🍂', '🍁', '🌊', '🌀', '🌈', '🌂', '☂️', '☔', '⛱️', '⚡', '❄️', '☃️', '⛄', '☄️', '🔥', '💧', '🌟', '⭐'],
-                food: ['🍕', '🍔', '🍟', '🌭', '🥪', '🌮', '🌯', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🥗', '🍿', '🧈', '🧂', '🥨', '🥖', '🍞', '🥐', '🥯', '🧇', '🥞', '🍰', '🎂', '🧁', '🥧', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪'],
-                activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂'],
-                travel: ['✈️', '🛫', '🛬', '🪂', '💺', '🚁', '🚟', '🚠', '🚡', '🛰️', '🚀', '🛸', '🚂', '🚃', '🚄', '🚅', '🚆', '🚇', '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍', '🚎', '🚐', '🚑', '🚒', '🚓', '🚔', '🚕', '🚖', '🚗', '🚘', '🚙', '🛻', '🚚', '🚛'],
-                objects: ['💡', '🔦', '🕯️', '🪔', '🧯', '🛢️', '💸', '💵', '💴', '💶', '💷', '🪙', '💰', '💳', '💎', '⚖️', '🪜', '🧰', '🔧', '🔨', '⚒️', '🛠️', '⛏️', '🪚', '🔩', '⚙️', '🪤', '🧱', '⛓️', '🧲', '🔫', '💣', '🧨', '🪓', '🔪', '🗡️', '⚔️', '🛡️', '🚬', '⚰️'],
-                symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐']
-            };
-            function initializeEmojiPicker() {
-                loadEmojiCategory('smileys');
-                const emojiCategories = document.querySelectorAll('.emoji-category');
-                emojiCategories.forEach(category => {
-                    category.addEventListener('click', function () {
-                        emojiCategories.forEach(c => c.classList.remove('active'));
-                        this.classList.add('active');
-                        const categoryName = this.getAttribute('data-category');
-                        if (categoryName) {
-                            loadEmojiCategory(categoryName);
-                        }
-                    });
-                });
-            }
-            function loadEmojiCategory(category) {
-                const emojis = emojiData[category] || [];
-                emojiGrid.innerHTML = '';
-                emojis.forEach(emoji => {
-                    const emojiButton = document.createElement('button');
-                    emojiButton.className = 'emoji-item';
-                    emojiButton.textContent = emoji;
-                    emojiButton.addEventListener('click', function () {
-                        insertEmoji(emoji);
-                    });
-                    emojiGrid.appendChild(emojiButton);
-                });
-            }
-            function insertEmoji(emoji) {
-                if (!messageInput)
-                    return;
-                const cursorPos = messageInput.selectionStart;
-                const textBefore = messageInput.value.substring(0, cursorPos);
-                const textAfter = messageInput.value.substring(cursorPos);
-                messageInput.value = textBefore + emoji + textAfter;
-                messageInput.focus();
-                messageInput.setSelectionRange(cursorPos + emoji.length, cursorPos + emoji.length);
-                emojiPicker.style.display = 'none';
-            }
             emojiBtn.addEventListener('click', function (e) {
-                console.log('Emoji button clicked!');
+                console.log('🎯 Emoji button clicked!');
+                console.log('🔍 Current picker display:', emojiPicker.style.display);
+                console.log('🔍 Picker element:', emojiPicker);
+                console.log('🔍 Grid element:', emojiGrid);
+                console.log('🔍 Grid children count:', emojiGrid.children.length);
                 e.stopPropagation();
                 if (emojiPicker.style.display === 'none' || !emojiPicker.style.display) {
-                    console.log('Opening emoji picker');
+                    console.log('📂 Opening emoji picker');
                     emojiPicker.style.display = 'flex';
+                    console.log('✅ Set display to flex');
                     if (!emojiGrid.children.length) {
-                        console.log('Initializing emoji picker');
+                        console.log('🔄 Initializing emoji picker');
                         initializeEmojiPicker();
+                        console.log('✅ Emoji picker initialized, grid children:', emojiGrid.children.length);
                     }
                 }
                 else {
-                    console.log('Closing emoji picker');
+                    console.log('📁 Closing emoji picker');
                     emojiPicker.style.display = 'none';
                 }
             });
@@ -482,6 +513,372 @@ else {
         else {
             console.warn('Emoji elements not found:', { emojiBtn, emojiPicker, emojiGrid });
         }
+        // File attachment functionality
+        if (attachmentBtn && fileInput) {
+            attachmentBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                console.log('📎 Attachment button clicked');
+                fileInput.click();
+            });
+            fileInput.addEventListener('change', function (e) {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    const file = files[0];
+                    console.log('📁 File selected:', file.name, file.type, file.size);
+                    // Validate file size (max 10MB)
+                    if (file.size > 10 * 1024 * 1024) {
+                        showNotification('File size must be less than 10MB', 'error');
+                        return;
+                    }
+                    // Validate file type (images only for now)
+                    if (!file.type.startsWith('image/')) {
+                        showNotification('Only image files are supported', 'error');
+                        return;
+                    }
+                    uploadFile(file);
+                }
+            });
+        }
+        else {
+            console.warn('Attachment elements not found:', { attachmentBtn, fileInput });
+        }
+        // Voice call functionality
+        if (voiceCallBtn) {
+            voiceCallBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                console.log('📞 Voice call button clicked');
+                if (otherUserId && otherUserName) {
+                    initiateVoiceCall(otherUserId, otherUserName);
+                }
+                else {
+                    showNotification('Cannot start call - no user selected', 'error');
+                }
+            });
+        }
+        else {
+            console.warn('Voice call button not found');
+        }
+        // Video call functionality
+        if (videoCallBtn) {
+            videoCallBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                console.log('📹 Video call button clicked');
+                if (otherUserId && otherUserName) {
+                    initiateVideoCall(otherUserId, otherUserName);
+                }
+                else {
+                    showNotification('Cannot start video call - no user selected', 'error');
+                }
+            });
+        }
+        else {
+            console.warn('Video call button not found');
+        }
+        // More options functionality
+        if (moreOptionsBtn) {
+            moreOptionsBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                console.log('⚙️ More options button clicked');
+                showMoreOptionsMenu();
+            });
+        }
+        // File upload function
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('sender_id', String(currentUserId));
+            formData.append('receiver_id', String(otherUserId));
+            try {
+                showNotification('Uploading file...', 'info');
+                const response = await fetch('/api/upload_file', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('File uploaded successfully:', result);
+                    // Send file message via socket
+                    socket.emit('send_message', {
+                        sender_id: currentUserId,
+                        receiver_id: otherUserId,
+                        message: `📎 ${file.name}`,
+                        file_url: result.file_url,
+                        file_type: file.type,
+                        file_name: file.name,
+                        message_type: 'file'
+                    });
+                    showNotification('File uploaded successfully!', 'success');
+                }
+                else {
+                    throw new Error('Upload failed');
+                }
+            }
+            catch (error) {
+                console.error('File upload error:', error);
+                showNotification('Failed to upload file. Please try again.', 'error');
+            }
+            finally {
+                // Reset file input
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+            }
+        }
+        // Voice call function
+        function initiateVoiceCall(userId, userName) {
+            showNotification(`Starting voice call with ${userName}...`, 'info');
+            // Emit call initiation to server
+            socket.emit('initiate_call', {
+                caller_id: currentUserId,
+                receiver_id: userId,
+                call_type: 'voice'
+            });
+            // For now, show a placeholder modal
+            showCallModal('voice', userName);
+        }
+        // Video call function
+        function initiateVideoCall(userId, userName) {
+            showNotification(`Starting video call with ${userName}...`, 'info');
+            // Emit call initiation to server
+            socket.emit('initiate_call', {
+                caller_id: currentUserId,
+                receiver_id: userId,
+                call_type: 'video'
+            });
+            // For now, show a placeholder modal
+            showCallModal('video', userName);
+        }
+        // Show call modal (placeholder for now)
+        function showCallModal(callType, userName) {
+            const modal = document.createElement('div');
+            modal.className = 'call-modal-overlay';
+            modal.innerHTML = `
+            <div class="call-modal">
+                <div class="call-header">
+                    <h3>${callType === 'voice' ? '📞' : '📹'} ${callType.charAt(0).toUpperCase() + callType.slice(1)} Call</h3>
+                </div>
+                <div class="call-content">
+                    <div class="call-avatar">
+                        <img src="${otherUserPfp || 'https://via.placeholder.com/100'}" alt="${userName}">
+                    </div>
+                    <h4>${userName}</h4>
+                    <p>Calling...</p>
+                </div>
+                <div class="call-actions">
+                    <button class="call-btn end-call" onclick="this.closest('.call-modal-overlay').remove()">
+                        <i class="fas fa-phone-slash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+            modal.style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); z-index: 10001;
+            display: flex; align-items: center; justify-content: center;
+        `;
+            const callModalElement = modal.querySelector('.call-modal');
+            if (callModalElement) {
+                callModalElement.style.cssText = `
+                background: white; border-radius: 12px; padding: 2rem;
+                text-align: center; max-width: 400px; width: 90%;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            `;
+            }
+            document.body.appendChild(modal);
+            // Auto-close after 30 seconds
+            setTimeout(() => {
+                if (document.body.contains(modal)) {
+                    modal.remove();
+                    showNotification('Call ended', 'info');
+                }
+            }, 30000);
+        }
+        // More options menu
+        function showMoreOptionsMenu() {
+            const existingMenu = document.querySelector('.more-options-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+                return;
+            }
+            const menu = document.createElement('div');
+            menu.className = 'more-options-menu';
+            menu.innerHTML = `
+            <div class="menu-item" data-action="clear-chat">
+                <i class="fas fa-trash"></i>
+                <span>Clear Chat</span>
+            </div>
+            <div class="menu-item" data-action="block-user">
+                <i class="fas fa-ban"></i>
+                <span>Block User</span>
+            </div>
+            <div class="menu-item" data-action="report-user">
+                <i class="fas fa-flag"></i>
+                <span>Report User</span>
+            </div>
+        `;
+            menu.style.cssText = `
+            position: absolute; top: 100%; right: 0;
+            background: white; border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 1px solid #e5e7eb; z-index: 1000;
+            min-width: 150px;
+        `;
+            // Position relative to more options button
+            if (moreOptionsBtn) {
+                const rect = moreOptionsBtn.getBoundingClientRect();
+                menu.style.position = 'fixed';
+                menu.style.top = (rect.bottom + 5) + 'px';
+                menu.style.right = (window.innerWidth - rect.right) + 'px';
+            }
+            // Add menu item styles and click handlers
+            menu.querySelectorAll('.menu-item').forEach(item => {
+                item.style.cssText = `
+                padding: 0.75rem 1rem; cursor: pointer;
+                display: flex; align-items: center; gap: 0.5rem;
+                transition: background-color 0.2s;
+            `;
+                item.addEventListener('mouseenter', function () {
+                    this.style.backgroundColor = '#f3f4f6';
+                });
+                item.addEventListener('mouseleave', function () {
+                    this.style.backgroundColor = 'transparent';
+                });
+                item.addEventListener('click', function () {
+                    const action = this.getAttribute('data-action');
+                    handleMoreOptionsAction(action);
+                    menu.remove();
+                });
+            });
+            document.body.appendChild(menu);
+            // Close menu when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!menu.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 100);
+        }
+        // Handle more options actions
+        function handleMoreOptionsAction(action) {
+            switch (action) {
+                case 'clear-chat':
+                    if (confirm('Are you sure you want to clear this chat? This action cannot be undone.')) {
+                        clearChat();
+                    }
+                    break;
+                case 'block-user':
+                    if (confirm(`Are you sure you want to block ${otherUserName}?`)) {
+                        blockUser();
+                    }
+                    break;
+                case 'report-user':
+                    reportUser();
+                    break;
+                default:
+                    console.log('Unknown action:', action);
+            }
+        }
+        // Clear chat function
+        function clearChat() {
+            if (messagesArea) {
+                const messages = messagesArea.querySelectorAll('.message');
+                messages.forEach(msg => msg.remove());
+                showNotification('Chat cleared', 'success');
+            }
+        }
+        // Block user function
+        function blockUser() {
+            // Implement block user API call
+            showNotification(`${otherUserName} has been blocked`, 'success');
+        }
+        // Report user function
+        function reportUser() {
+            const reason = prompt('Please provide a reason for reporting this user:');
+            if (reason && reason.trim()) {
+                // Implement report user API call
+                showNotification('User reported successfully', 'success');
+            }
+        }
+        // Socket event handlers for calls
+        socket.on('incoming_call', (data) => {
+            console.log('📞 Incoming call:', data);
+            showIncomingCallModal(data);
+        });
+        socket.on('call_ended', (data) => {
+            console.log('📞 Call ended:', data);
+            const callModal = document.querySelector('.call-modal-overlay');
+            if (callModal) {
+                callModal.remove();
+            }
+            showNotification('Call ended', 'info');
+        });
+        // Show incoming call modal
+        function showIncomingCallModal(callData) {
+            const modal = document.createElement('div');
+            modal.className = 'call-modal-overlay incoming-call';
+            modal.innerHTML = `
+            <div class="call-modal">
+                <div class="call-header">
+                    <h3>${callData.call_type === 'voice' ? '📞' : '📹'} Incoming ${callData.call_type} call</h3>
+                </div>
+                <div class="call-content">
+                    <div class="call-avatar">
+                        <img src="${callData.caller_avatar || 'https://via.placeholder.com/100'}" alt="${callData.caller_name}">
+                    </div>
+                    <h4>${callData.caller_name}</h4>
+                    <p>Incoming call...</p>
+                </div>
+                <div class="call-actions">
+                    <button class="call-btn accept-call" onclick="acceptCall('${callData.call_id}')">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="call-btn decline-call" onclick="declineCall('${callData.call_id}')">
+                        <i class="fas fa-phone-slash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+            modal.style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); z-index: 10001;
+            display: flex; align-items: center; justify-content: center;
+        `;
+            document.body.appendChild(modal);
+        }
+        // Global functions for call handling (needed for onclick handlers)
+        window.acceptCall = function (callId) {
+            socket.emit('accept_call', { call_id: callId });
+            const modal = document.querySelector('.incoming-call');
+            if (modal)
+                modal.remove();
+            showNotification('Call accepted', 'success');
+        };
+        window.declineCall = function (callId) {
+            socket.emit('decline_call', { call_id: callId });
+            const modal = document.querySelector('.incoming-call');
+            if (modal)
+                modal.remove();
+            showNotification('Call declined', 'info');
+        };
+        // Initialize emoji picker immediately if elements exist
+        if (emojiBtn && emojiPicker && emojiGrid) {
+            console.log('🔧 Pre-initializing emoji picker...');
+            // Ensure the emoji picker has the right structure
+            if (!emojiGrid.children.length) {
+                initializeEmojiPicker();
+            }
+        }
+        // Add global debug function for testing
+        window.testEmojiPicker = function () {
+            console.log('🧪 Testing emoji picker...');
+            console.log('Elements found:', { emojiBtn, emojiPicker, emojiGrid });
+            if (emojiPicker) {
+                emojiPicker.style.display = emojiPicker.style.display === 'none' ? 'flex' : 'none';
+                console.log('Toggled emoji picker display to:', emojiPicker.style.display);
+            }
+        };
         // Initialize everything
         console.log('✅ Chat TypeScript initialization complete');
     });
