@@ -10,7 +10,7 @@ from .connection import get_db_connection
 from . import user_roles
 from .user_roles import (
     login_required, verified_user_required, admin_required,
-    get_user_role_info, get_colleges, submit_verification_request,
+    get_user_role_info, get_communities, submit_verification_request,
     get_pending_verification_requests, approve_verification_request,
     reject_verification_request, is_admin
 )
@@ -642,47 +642,70 @@ def handle_join(data):
 
 @socketio.on('send_message')
 def handle_send_message(data):
+    print(f"📨 Received send_message: {data}")
+    
+    # Validate required fields
+    if not data.get('sender_id') or not data.get('receiver_id') or not data.get('message'):
+        print(f"❌ Invalid message data: {data}")
+        return {'status': 'error', 'message': 'Missing required fields'}
+    
+    message_content = data['message'].strip()
+    if not message_content:
+        print("❌ Empty message content")
+        return {'status': 'error', 'message': 'Message cannot be empty'}
+    
     room = utils.get_room_id(data['sender_id'], data['receiver_id'])
+    print(f"🏠 Using room: {room}")
     
     mydb = get_db_connection()
     cur = mydb.cursor()
     try:
+        # Insert message into database
         cur.execute(
             "INSERT INTO messages (sender_id, receiver_id, content) VALUES (%s,%s,%s)",
-            (data['sender_id'], data['receiver_id'], data['message'])
+            (data['sender_id'], data['receiver_id'], message_content)
         )
         mydb.commit()
         message_id = cur.lastrowid
+        print(f"💾 Message saved with ID: {message_id}")
 
-        
+        # Get sender info
         cur.execute("SELECT username, pfp_path FROM users WHERE user_id=%s", (data['sender_id'],))
         row = cur.fetchone()
-        sender_username = row[0] if row else None
+        sender_username = row[0] if row else f"User {data['sender_id']}"
         sender_pfp = row[1] if row and row[1] else None
+        print(f"👤 Sender info: {sender_username}, {sender_pfp}")
 
         enriched = {
             'sender_id': data['sender_id'],
             'receiver_id': data['receiver_id'],
-            'message': data['message'],
+            'content': message_content,  # Frontend expects 'content'
+            'message': message_content,  # Keep both for compatibility
             'client_message_id': data.get('client_message_id'),
             'sender_username': sender_username,
             'sender_pfp': sender_pfp,
             'message_id': message_id,
         }
+        
+        print(f"📤 Emitting to room {room}: {enriched}")
+        emit('receive_message', enriched, room=room)
+        
+        return {'status': 'ok', 'message_id': message_id}
+        
+    except Exception as e:
+        print(f"🔥 Error in send_message: {str(e)}")
+        mydb.rollback()
+        return {'status': 'error', 'message': str(e)}
     finally:
         cur.close()
         mydb.close()
-
-    emit('receive_message', enriched, room=room)
-    
-    return {'status': 'ok', 'message_id': message_id}
 
 @socketio.on('typing')
 def handle_typing(data):
     """Notify the other participant that the user is typing."""
     try:
         room = utils.get_room_id(data['user_id'], data['receiver_id'])
-        emit('typing', {'user_id': data['user_id']}, room=room, include_self=False)
+        emit('user_typing', {'user_id': data['user_id']}, room=room, include_self=False)
     except Exception:
         pass
 
@@ -691,7 +714,7 @@ def handle_stop_typing(data):
     """Notify the other participant that the user stopped typing."""
     try:
         room = utils.get_room_id(data['user_id'], data['receiver_id'])
-        emit('stop_typing', {'user_id': data['user_id']}, room=room, include_self=False)
+        emit('user_stopped_typing', {'user_id': data['user_id']}, room=room, include_self=False)
     except Exception:
         pass
 
@@ -801,9 +824,9 @@ def verification_request():
         cur = mydb.cursor()
         
         cur.execute("""
-            SELECT vr.request_id, vr.status, vr.created_at, vr.review_notes, c.college_name, vr.requested_role
+            SELECT vr.request_id, vr.status, vr.created_at, vr.review_notes, c.name, vr.requested_role
             FROM verification_requests vr
-            JOIN colleges c ON vr.college_id = c.college_id
+            JOIN communities c ON vr.community_id = c.community_id
             WHERE vr.user_id = %s AND vr.status IN ('pending', 'approved')
             ORDER BY vr.created_at DESC LIMIT 1
         """, (user_id,))
@@ -822,7 +845,7 @@ def verification_request():
             }
         
         if request.method == 'POST':
-            college_id = request.form.get('college_id')
+            community_id = request.form.get('community_id')
             requested_role = request.form.get('requested_role')
             student_id = request.form.get('student_id')
             graduation_year = request.form.get('graduation_year')
@@ -830,7 +853,7 @@ def verification_request():
             request_message = request.form.get('request_message')
             
             success, message = submit_verification_request(
-                user_id, college_id, requested_role, student_id,
+                user_id, community_id, requested_role, student_id,
                 graduation_year, department, request_message
             )
             
@@ -840,10 +863,10 @@ def verification_request():
             else:
                 flash(message, 'error')
         
-        colleges = get_colleges()
+        communities = get_communities()
         
         return render_template('verification_request.html', 
-                             colleges=colleges, 
+                             communities=communities, 
                              current_request=current_request_data)
         
     except Exception as e:
@@ -893,7 +916,7 @@ def admin_dashboard():
         # Count pending requests
         cur.execute("""
             SELECT COUNT(*) FROM verification_requests vr
-            JOIN admin_permissions ap ON vr.college_id = ap.college_id
+            JOIN admin_permissions ap ON vr.community_id = ap.community_id
             WHERE ap.admin_user_id = %s AND ap.is_active = TRUE AND vr.status = 'pending'
         """, (user_id,))
         pending_count = cur.fetchone()[0]
@@ -901,9 +924,9 @@ def admin_dashboard():
         # Count total verified users
         cur.execute("""
             SELECT COUNT(*) FROM users u
-            JOIN admin_permissions ap ON u.college_id = ap.college_id
+            JOIN admin_permissions ap ON u.community_id = ap.community_id
             WHERE ap.admin_user_id = %s AND ap.is_active = TRUE 
-            AND u.user_role IN ('student', 'alumni')
+            AND u.role IN ('student', 'alumni')
         """, (user_id,))
         total_verified = cur.fetchone()[0]
         
@@ -946,13 +969,13 @@ def user_role_info():
         app.logger.error(f"Error in user_role_info: {str(e)}")
         return {'success': False, 'message': 'Error retrieving user information'}
 
-@app.route('/check_college_access/<int:college_id>')
+@app.route('/check_community_access/<int:community_id>')
 @verified_user_required
-def check_college_access(college_id):
-    """Check if user has access to college features"""
+def check_community_access(community_id):
+    """Check if user has access to community features"""
     try:
         user_id = session['user_id']
-        has_access = user_roles.can_access_college_features(user_id, college_id)
+        has_access = user_roles.can_access_community_features(user_id, community_id)
         
         return {'success': True, 'has_access': has_access}
         

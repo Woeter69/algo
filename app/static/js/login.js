@@ -88,8 +88,8 @@ if (loginForm) {
     const onLoad = function () {
         const script = document.createElement("script");
         script.src = "https://www.chatbase.co/embed.min.js";
-        script.id = "F-fo5HUnUDi93XxXc0vJY";
-        script.domain = "www.chatbase.co";
+        script.id = "rUFhD5wxmCkjLaxaWfwKk";
+        script.setAttribute('domain', "www.chatbase.co");
         document.body.appendChild(script);
     };
     if (document.readyState === "complete") {

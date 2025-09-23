@@ -26,10 +26,10 @@ def get_user_role_info(user_id):
     
     try:
         cur.execute("""
-            SELECT u.user_role, u.college_id, u.verification_status, u.verified_at,
-                   c.college_name, c.college_code, u.student_id, u.graduation_year, u.department
+            SELECT u.role, u.community_id, u.verification_status, u.verified_at,
+                   c.name, c.college_code, u.enrollment_number, u.graduation_year, u.department
             FROM users u
-            LEFT JOIN colleges c ON u.college_id = c.college_id
+            LEFT JOIN communities c ON u.community_id = c.community_id
             WHERE u.user_id = %s
         """, (user_id,))
         
@@ -37,12 +37,12 @@ def get_user_role_info(user_id):
         if result:
             return {
                 'role': result[0],
-                'college_id': result[1],
+                'community_id': result[1],
                 'verification_status': result[2],
                 'verified_at': result[3],
-                'college_name': result[4],
+                'community_name': result[4],
                 'college_code': result[5],
-                'student_id': result[6],
+                'enrollment_number': result[6],
                 'graduation_year': result[7],
                 'department': result[8]
             }
@@ -52,21 +52,21 @@ def get_user_role_info(user_id):
         cur.close()
         mydb.close()
 
-def is_admin(user_id, college_id=None):
-    """Check if user is admin (optionally for specific college)"""
+def is_admin(user_id, community_id=None):
+    """Check if user is admin (optionally for specific community)"""
     mydb = get_db_connection()
     cur = mydb.cursor()
     
     try:
-        if college_id:
+        if community_id:
             cur.execute("""
                 SELECT ap.permission_id FROM admin_permissions ap
                 JOIN users u ON ap.admin_user_id = u.user_id
-                WHERE u.user_id = %s AND ap.college_id = %s AND ap.is_active = TRUE
-            """, (user_id, college_id))
+                WHERE u.user_id = %s AND ap.community_id = %s AND ap.is_active = TRUE
+            """, (user_id, community_id))
         else:
             cur.execute("""
-                SELECT user_role FROM users WHERE user_id = %s AND user_role = 'admin'
+                SELECT role FROM users WHERE user_id = %s AND role = 'admin'
             """, (user_id,))
         
         return cur.fetchone() is not None
@@ -82,8 +82,8 @@ def is_verified_user(user_id):
     
     try:
         cur.execute("""
-            SELECT user_role FROM users 
-            WHERE user_id = %s AND user_role IN ('student', 'alumni', 'admin')
+            SELECT role FROM users 
+            WHERE user_id = %s AND role IN ('student', 'alumni', 'admin')
         """, (user_id,))
         
         return cur.fetchone() is not None
@@ -92,17 +92,17 @@ def is_verified_user(user_id):
         cur.close()
         mydb.close()
 
-def can_access_college_features(user_id, college_id):
-    """Check if user can access college-specific features"""
+def can_access_community_features(user_id, community_id):
+    """Check if user can access community-specific features"""
     mydb = get_db_connection()
     cur = mydb.cursor()
     
     try:
         cur.execute("""
-            SELECT user_role, college_id FROM users 
-            WHERE user_id = %s AND college_id = %s 
-            AND user_role IN ('student', 'alumni', 'admin')
-        """, (user_id, college_id))
+            SELECT role, community_id FROM users 
+            WHERE user_id = %s AND community_id = %s 
+            AND role IN ('student', 'alumni', 'admin')
+        """, (user_id, community_id))
         
         return cur.fetchone() is not None
         
@@ -110,54 +110,54 @@ def can_access_college_features(user_id, college_id):
         cur.close()
         mydb.close()
 
-def get_colleges():
-    """Get list of all colleges"""
+def get_communities():
+    """Get list of all communities"""
     mydb = get_db_connection()
     cur = mydb.cursor()
     
     try:
         cur.execute("""
-            SELECT college_id, college_name, college_code, location 
-            FROM colleges ORDER BY college_name
+            SELECT community_id, name, college_code, location 
+            FROM communities ORDER BY name
         """)
         
-        colleges = []
+        communities = []
         for row in cur.fetchall():
-            colleges.append({
+            communities.append({
                 'id': row[0],
                 'name': row[1],
-                'code': row[2],
-                'location': row[3]
+                'code': row[2] if row[2] else '',
+                'location': row[3] if row[3] else ''
             })
-        return colleges
+        return communities
         
     finally:
         cur.close()
         mydb.close()
 
-def submit_verification_request(user_id, college_id, requested_role, student_id=None, 
+def submit_verification_request(user_id, community_id, requested_role, student_id=None, 
                               graduation_year=None, department=None, request_message=None):
     """Submit a verification request"""
     mydb = get_db_connection()
     cur = mydb.cursor()
     
     try:
-        # Check if user already has a pending request for this college
+        # Check if user already has a pending request for this community
         cur.execute("""
             SELECT request_id FROM verification_requests 
-            WHERE user_id = %s AND college_id = %s AND status = 'pending'
-        """, (user_id, college_id))
+            WHERE user_id = %s AND community_id = %s AND status = 'pending'
+        """, (user_id, community_id))
         
         if cur.fetchone():
-            return False, "You already have a pending verification request for this college."
+            return False, "You already have a pending verification request for this community."
         
         # Insert new verification request
         cur.execute("""
             INSERT INTO verification_requests 
-            (user_id, college_id, requested_role, student_id, graduation_year, 
+            (user_id, community_id, requested_role, student_id, graduation_year, 
              department, request_message, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (user_id, college_id, requested_role, student_id, graduation_year, 
+        """, (user_id, community_id, requested_role, student_id, graduation_year, 
               department, request_message, datetime.datetime.utcnow()))
         
         mydb.commit()
@@ -172,7 +172,7 @@ def submit_verification_request(user_id, college_id, requested_role, student_id=
         mydb.close()
 
 def get_pending_verification_requests(admin_user_id):
-    """Get pending verification requests for admin's colleges"""
+    """Get pending verification requests for admin's communities"""
     mydb = get_db_connection()
     cur = mydb.cursor()
     
@@ -180,11 +180,11 @@ def get_pending_verification_requests(admin_user_id):
         cur.execute("""
             SELECT vr.request_id, vr.user_id, u.firstname, u.lastname, u.email,
                    vr.requested_role, vr.student_id, vr.graduation_year, vr.department,
-                   vr.request_message, vr.created_at, c.college_name
+                   vr.request_message, vr.created_at, c.name
             FROM verification_requests vr
             JOIN users u ON vr.user_id = u.user_id
-            JOIN colleges c ON vr.college_id = c.college_id
-            JOIN admin_permissions ap ON vr.college_id = ap.college_id
+            JOIN communities c ON vr.community_id = c.community_id
+            JOIN admin_permissions ap ON vr.community_id = ap.community_id
             WHERE ap.admin_user_id = %s AND ap.is_active = TRUE 
             AND vr.status = 'pending'
             ORDER BY vr.created_at DESC
@@ -220,7 +220,7 @@ def approve_verification_request(request_id, admin_user_id, review_notes=None):
     try:
         # Get request details
         cur.execute("""
-            SELECT user_id, college_id, requested_role, student_id, graduation_year, department
+            SELECT user_id, community_id, requested_role, student_id, graduation_year, department
             FROM verification_requests WHERE request_id = %s AND status = 'pending'
         """, (request_id,))
         
@@ -228,16 +228,16 @@ def approve_verification_request(request_id, admin_user_id, review_notes=None):
         if not request_data:
             return False, "Request not found or already processed."
         
-        user_id, college_id, requested_role, student_id, graduation_year, department = request_data
+        user_id, community_id, requested_role, student_id, graduation_year, department = request_data
         
         # Update user record
         cur.execute("""
             UPDATE users SET 
-                user_role = %s, college_id = %s, verification_status = 'approved',
-                verified_by = %s, verified_at = %s, student_id = %s,
+                role = %s, community_id = %s, verification_status = 'approved',
+                verified_by = %s, verified_at = %s, enrollment_number = %s,
                 graduation_year = %s, department = %s
             WHERE user_id = %s
-        """, (requested_role, college_id, admin_user_id, datetime.datetime.utcnow(),
+        """, (requested_role, community_id, admin_user_id, datetime.datetime.utcnow(),
               student_id, graduation_year, department, user_id))
         
         # Update verification request
@@ -326,23 +326,23 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def college_access_required(f):
-    """Require user to have access to college features"""
+def community_access_required(f):
+    """Require user to have access to community features"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             flash('Please log in to access this page.', 'error')
             return redirect(url_for('login'))
         
-        # Get college_id from request args or form
-        college_id = request.args.get('college_id') or request.form.get('college_id')
+        # Get community_id from request args or form
+        community_id = request.args.get('community_id') or request.form.get('community_id')
         
-        if not college_id:
-            flash('College information required.', 'error')
+        if not community_id:
+            flash('Community information required.', 'error')
             return redirect(url_for('user_dashboard'))
         
-        if not can_access_college_features(session['user_id'], college_id):
-            flash('You do not have access to this college\'s features.', 'error')
+        if not can_access_community_features(session['user_id'], community_id):
+            flash('You do not have access to this community\'s features.', 'error')
             return redirect(url_for('user_dashboard'))
         
         return f(*args, **kwargs)

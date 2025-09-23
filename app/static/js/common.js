@@ -81,13 +81,13 @@ export class DOMUtils {
         return document.getElementById(id);
     }
     static addClass(element, className) {
-        element?.classList.add(className);
+        element === null || element === void 0 ? void 0 : element.classList.add(className);
     }
     static removeClass(element, className) {
-        element?.classList.remove(className);
+        element === null || element === void 0 ? void 0 : element.classList.remove(className);
     }
     static toggleClass(element, className) {
-        element?.classList.toggle(className);
+        element === null || element === void 0 ? void 0 : element.classList.toggle(className);
     }
 }
 // Common navigation functionality

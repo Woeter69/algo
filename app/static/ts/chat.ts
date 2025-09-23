@@ -1,11 +1,17 @@
 // Using global io from CDN instead of imports
 declare const io: any;
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Chat.ts loaded - DOM ready');
+// Prevent multiple initializations
+if ((window as any).chatInitialized) {
+    console.log('Chat already initialized, skipping...');
+} else {
+    (window as any).chatInitialized = true;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Chat.ts initializing - DOM ready');
     
     // Get user data from the template with type safety
-    const chatData: any = window.chatData || {};
+    const chatData: any = (window as any).chatData || {};
     console.log('Chat data:', chatData);
     
     const currentUserId: number | null = chatData.currentUserId ? Number(chatData.currentUserId) : null;
@@ -154,33 +160,43 @@ document.addEventListener('DOMContentLoaded', function() {
     // Current conversation tracking
     let currentConversationUserId: number = otherUserId || 0;
 
-    // Message tracking
-    let lastSentMessage: string | null = null;
-    const seenClientMessageIds = new Set<string>();
-    const deliveredClientIds = new Set<string>();
+    // Message tracking for deduplication
+    const processedMessages = new Set<string>();
+    let lastSentMessageTime = 0;
 
-    // Socket message handlers
+    // Socket message handlers with deduplication
     socket.on('receive_message', (data: any) => {
+        console.log('📨 Message received:', data);
+        
         const senderId = Number(data.sender_id);
         const receiverId = Number(data.receiver_id);
+        const content = data.content || data.message || '';
         
-        if (data.client_message_id) {
-            deliveredClientIds.add(data.client_message_id);
+        if (!content.trim()) {
+            console.warn('⚠️ Received empty message, ignoring');
+            return;
         }
         
-        if (senderId === currentConversationUserId || receiverId === currentConversationUserId) {
+        // Create unique message identifier for deduplication
+        const messageKey = `${senderId}-${receiverId}-${content}-${data.message_id || Date.now()}`;
+        if (processedMessages.has(messageKey)) {
+            console.log('🔄 Duplicate message detected, ignoring:', messageKey);
+            return;
+        }
+        processedMessages.add(messageKey);
+        
+        // Only show messages for current conversation
+        if (otherUserId && (senderId === otherUserId || receiverId === otherUserId)) {
             const isSent = senderId === currentUserId;
-
-            if (data.client_message_id && seenClientMessageIds.has(data.client_message_id)) {
+            console.log('💬 Displaying message:', { content, isSent, senderId, receiverId });
+            
+            // Prevent showing our own sent messages twice (optimistic UI already showed it)
+            if (isSent && (Date.now() - lastSentMessageTime < 2000)) {
+                console.log('🚫 Skipping own recent message to prevent duplicate');
                 return;
             }
-
-            if (isSent && lastSentMessage && lastSentMessage === data.content) {
-                lastSentMessage = null; 
-                return;
-            }
-
-            const messageElement = createMessageElement(data.content, isSent, {
+            
+            const messageElement = createMessageElement(content, isSent, {
                 senderUsername: data.sender_username,
                 senderPfp: data.sender_pfp
             });
@@ -189,15 +205,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 messagesArea.appendChild(messageElement);
                 scrollToBottom();
             }
-
-            const otherId = isSent ? receiverId : senderId;
             
+            // Update conversation list
+            const otherId = isSent ? receiverId : senderId;
             if (!getConversationItem(otherId)) {
                 const name = isSent ? (chatUserName?.textContent || `User ${otherId}`) : (data.sender_username || `User ${otherId}`);
                 const avatar = isSent ? (chatUserAvatar?.getAttribute('src') || otherUserPfp) : (data.sender_pfp || 'https://via.placeholder.com/50');
                 ensureConversationItem(otherId, name, avatar);
             }
-            updateConversationLastMessage(otherId, data.content);
+            updateConversationLastMessage(otherId, content);
         }
     });
 
@@ -214,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Send message function with proper typing
+    // Send message function with proper typing and deduplication
     let isSending = false;
     
     async function sendMessage(): Promise<void> {
@@ -222,16 +238,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const message = messageInput.value.trim();
         
-        if (!message || !currentConversationUserId || isSending) {
+        if (!message || !otherUserId || isSending) {
             return;
         }
 
         isSending = true;
+        lastSentMessageTime = Date.now();
+        
+        // Clear input immediately for better UX
         messageInput.value = '';
         messageInput.style.height = 'auto';
-
-        const clientMessageId = `${currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        seenClientMessageIds.add(clientMessageId);
 
         if (!socket.connected) {
             showNotification('Not connected to server. Please refresh the page.', 'error');
@@ -240,6 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
+            // Create optimistic message element (show immediately)
             const messageElement = createMessageElement(message, true);
             if (messagesArea) {
                 messagesArea.appendChild(messageElement);
@@ -247,24 +264,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             socket.emit('send_message', {
-                sender_id: currentUserId!,  // We already checked it's not null above
-                receiver_id: currentConversationUserId,
+                sender_id: currentUserId!,
+                receiver_id: otherUserId,
                 message: message,
-                client_message_id: clientMessageId
+                client_message_id: `${currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`
             });
 
-            lastSentMessage = message;
-
-            if (!getConversationItem(currentConversationUserId)) {
-                const name = chatUserName?.textContent || `User ${currentConversationUserId}`;
-                const avatar = chatUserAvatar?.getAttribute('src') || otherUserPfp || 'https://via.placeholder.com/50';
-                ensureConversationItem(currentConversationUserId, name, avatar);
-            }
-            updateConversationLastMessage(currentConversationUserId, message);
+            // Update conversation list
+            updateConversationLastMessage(otherUserId, message);
 
         } catch (error) {
             console.error('Error sending message:', error);
             showNotification('Failed to send message. Please try again.', 'error');
+            
+            // Restore message to input on error
+            messageInput.value = message;
         } finally {
             isSending = false;
         }
@@ -353,7 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function showTypingIndicator(): void {
         if (typingIndicator) {
             typingIndicator.style.display = 'flex';
-            scrollToBottom();
+            // No need to scroll when showing typing indicator since it's at bottom
         }
     }
 
@@ -544,28 +558,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize everything
-    console.log('Chat TypeScript initialization complete');
-});
-
-// === EXTRACTED INLINE SCRIPTS ===
-
-// Test basic functionality
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded - testing elements...');
-    console.log('Send button:', document.getElementById('sendBtn'));
-    console.log('Message input:', document.getElementById('messageInput'));
-    console.log('Messages area:', document.getElementById('messagesArea'));
-    
-    // Test if Socket.IO is available
-    if (typeof io !== 'undefined') {
-        console.log('Socket.IO is available');
-    } else {
-        console.error('Socket.IO is NOT available');
-    }
-});
-
-// Initialize chat after DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Chat initialized');
-    // Any additional initialization can go here
-});
+    console.log('✅ Chat TypeScript initialization complete');
+    });
+}

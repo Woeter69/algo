@@ -22,8 +22,8 @@ if (newChatBtn && newChatModal) {
         usernameInput.value = '';
         modalError.style.display = 'none';
     }
-    closeModal?.addEventListener('click', closeNewChatModal);
-    cancelBtn?.addEventListener('click', closeNewChatModal);
+    closeModal === null || closeModal === void 0 ? void 0 : closeModal.addEventListener('click', closeNewChatModal);
+    cancelBtn === null || cancelBtn === void 0 ? void 0 : cancelBtn.addEventListener('click', closeNewChatModal);
     // Close modal on overlay click
     newChatModal.addEventListener('click', function (e) {
         if (e.target === newChatModal) {
@@ -31,7 +31,7 @@ if (newChatBtn && newChatModal) {
         }
     });
     // Start chat functionality
-    startChatBtn?.addEventListener('click', async function () {
+    startChatBtn === null || startChatBtn === void 0 ? void 0 : startChatBtn.addEventListener('click', async function () {
         const username = usernameInput.value.trim();
         if (!username) {
             showModalError('Please enter a username');
@@ -67,7 +67,7 @@ if (newChatBtn && newChatModal) {
         }
     });
     // Enter key to start chat
-    usernameInput?.addEventListener('keypress', function (e) {
+    usernameInput === null || usernameInput === void 0 ? void 0 : usernameInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             startChatBtn.click();
         }
