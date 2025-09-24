@@ -33,11 +33,11 @@ function initializeFilters(): void {
             
             // Show/hide cards based on filter
             requestCards.forEach(card => {
-                if (filter === 'all' || card.classList.contains(filter || '')) {
+                if (filter === 'all') {
                     card.style.display = 'block';
                 } else {
-                    const status = card.dataset.status;
-                    if (filter === status) {
+                    const cardRole = card.dataset.role;
+                    if (cardRole === filter) {
                         card.style.display = 'block';
                     } else {
                         card.style.display = 'none';
@@ -49,11 +49,16 @@ function initializeFilters(): void {
 }
 
 // Modal functionality
-function initializeModal() {
-    const modal = document.getElementById('reviewModal');
+function initializeModal(): void {
+    const modal = document.getElementById('reviewModal') as HTMLElement;
     const modalOverlay = modal;
-    const closeBtn = document.querySelector('.modal-close');
-    const cancelBtn = document.querySelector('.btn-secondary');
+    const closeBtn = document.querySelector('.modal-close') as HTMLElement;
+    const cancelBtn = document.querySelector('.btn-secondary') as HTMLElement;
+    
+    if (!modal) {
+        console.error('Review modal not found');
+        return;
+    }
     
     // Close modal when clicking close button or cancel
     if (closeBtn) {
@@ -65,14 +70,14 @@ function initializeModal() {
     }
     
     // Close modal when clicking overlay
-    modalOverlay.addEventListener('click', function(e) {
+    modalOverlay.addEventListener('click', function(e: Event) {
         if (e.target === modalOverlay) {
             closeReviewModal();
         }
     });
     
     // Close modal with Escape key
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function(e: KeyboardEvent) {
         if (e.key === 'Escape' && modal.classList.contains('active')) {
             closeReviewModal();
         }
@@ -80,19 +85,24 @@ function initializeModal() {
 }
 
 // Show review modal
-function showReviewModal(requestId, action, userName) {
-    const modal = document.getElementById('reviewModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const requestIdInput = document.getElementById('requestId');
-    const actionInput = document.getElementById('action');
-    const submitBtn = document.getElementById('submitBtn');
-    const reviewForm = document.getElementById('reviewForm');
+function showReviewModal(requestId: number, action: string, userName: string): void {
+    const modal = document.getElementById('reviewModal') as HTMLElement;
+    const modalTitle = document.getElementById('modalTitle') as HTMLElement;
+    const requestIdInput = document.getElementById('requestId') as HTMLInputElement;
+    const actionInput = document.getElementById('action') as HTMLInputElement;
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const reviewForm = document.getElementById('reviewForm') as HTMLFormElement;
+    
+    if (!modal || !modalTitle || !requestIdInput || !actionInput || !submitBtn || !reviewForm) {
+        console.error('Required modal elements not found');
+        return;
+    }
     
     // Set form action to current page
     reviewForm.action = window.location.pathname;
     
     // Set form values
-    requestIdInput.value = requestId;
+    requestIdInput.value = requestId.toString();
     actionInput.value = action;
     
     // Update modal title and button
@@ -112,18 +122,20 @@ function showReviewModal(requestId, action, userName) {
     modal.classList.add('active');
     
     // Focus on textarea
-    const textarea = document.getElementById('reviewNotes');
+    const textarea = document.getElementById('reviewNotes') as HTMLTextAreaElement;
     if (textarea) {
         setTimeout(() => textarea.focus(), 100);
     }
 }
 
 // Close review modal
-function closeReviewModal() {
-    const modal = document.getElementById('reviewModal');
-    const form = document.getElementById('reviewForm');
+function closeReviewModal(): void {
+    const modal = document.getElementById('reviewModal') as HTMLElement;
+    const form = document.getElementById('reviewForm') as HTMLFormElement;
     
-    modal.classList.remove('active');
+    if (modal) {
+        modal.classList.remove('active');
+    }
     
     // Reset form
     if (form) {
@@ -132,9 +144,9 @@ function closeReviewModal() {
 }
 
 // Navigation functionality
-function initializeNavigation() {
-    const hamburger = document.querySelector('.hamburger');
-    const navLinks = document.querySelector('.nav-links');
+function initializeNavigation(): void {
+    const hamburger = document.querySelector('.hamburger') as HTMLElement;
+    const navLinks = document.querySelector('.nav-links') as HTMLElement;
     
     if (hamburger && navLinks) {
         hamburger.addEventListener('click', function() {
@@ -145,16 +157,16 @@ function initializeNavigation() {
 }
 
 // Show coming soon alert
-function showComingSoon() {
+function showComingSoon(): void {
     alert('This feature is coming soon!');
 }
 
 // Auto-refresh functionality (optional)
-function enableAutoRefresh(intervalMinutes = 5) {
+function enableAutoRefresh(intervalMinutes: number = 5): void {
     setInterval(function() {
         // Only refresh if there are no open modals
-        const modal = document.getElementById('reviewModal');
-        if (!modal.classList.contains('active')) {
+        const modal = document.getElementById('reviewModal') as HTMLElement;
+        if (modal && !modal.classList.contains('active')) {
             window.location.reload();
         }
     }, intervalMinutes * 60 * 1000);
@@ -164,7 +176,7 @@ function enableAutoRefresh(intervalMinutes = 5) {
 // enableAutoRefresh(5); // Refresh every 5 minutes
 
 // Utility functions
-function formatDate(dateString) {
+function formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -173,7 +185,7 @@ function formatDate(dateString) {
     });
 }
 
-function showNotification(message, type = 'info') {
+function showNotification(message: string, type: 'info' | 'success' | 'error' = 'info'): void {
     // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -208,8 +220,8 @@ function showNotification(message, type = 'info') {
 }
 
 // Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
+const adminStyle = document.createElement('style');
+adminStyle.textContent = `
     @keyframes slideIn {
         from {
             transform: translateX(100%);
@@ -256,4 +268,4 @@ style.textContent = `
         transform: rotate(45deg) translate(-5px, -6px);
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(adminStyle);

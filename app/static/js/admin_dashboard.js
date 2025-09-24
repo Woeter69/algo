@@ -1,4 +1,4 @@
-// Admin Dashboard JavaScript
+// Admin Dashboard TypeScript
 document.addEventListener('DOMContentLoaded', function () {
     initializeAdminDashboard();
 });
@@ -20,8 +20,9 @@ function initializeFilters() {
             filterButtons.forEach(btn => btn.classList.remove('active'));
             // Add active class to clicked button
             this.classList.add('active');
-            const filter = this.dataset.filter;
-            // Filter request cards
+            // Get filter value
+            const filter = this.getAttribute('data-filter');
+            // Show/hide cards based on filter
             requestCards.forEach(card => {
                 if (filter === 'all') {
                     card.style.display = 'block';
@@ -45,6 +46,10 @@ function initializeModal() {
     const modalOverlay = modal;
     const closeBtn = document.querySelector('.modal-close');
     const cancelBtn = document.querySelector('.btn-secondary');
+    if (!modal) {
+        console.error('Review modal not found');
+        return;
+    }
     // Close modal when clicking close button or cancel
     if (closeBtn) {
         closeBtn.addEventListener('click', closeReviewModal);
@@ -73,10 +78,14 @@ function showReviewModal(requestId, action, userName) {
     const actionInput = document.getElementById('action');
     const submitBtn = document.getElementById('submitBtn');
     const reviewForm = document.getElementById('reviewForm');
+    if (!modal || !modalTitle || !requestIdInput || !actionInput || !submitBtn || !reviewForm) {
+        console.error('Required modal elements not found');
+        return;
+    }
     // Set form action to current page
     reviewForm.action = window.location.pathname;
     // Set form values
-    requestIdInput.value = requestId;
+    requestIdInput.value = requestId.toString();
     actionInput.value = action;
     // Update modal title and button
     if (action === 'approve') {
@@ -103,7 +112,9 @@ function showReviewModal(requestId, action, userName) {
 function closeReviewModal() {
     const modal = document.getElementById('reviewModal');
     const form = document.getElementById('reviewForm');
-    modal.classList.remove('active');
+    if (modal) {
+        modal.classList.remove('active');
+    }
     // Reset form
     if (form) {
         form.reset();
@@ -129,7 +140,7 @@ function enableAutoRefresh(intervalMinutes = 5) {
     setInterval(function () {
         // Only refresh if there are no open modals
         const modal = document.getElementById('reviewModal');
-        if (!modal.classList.contains('active')) {
+        if (modal && !modal.classList.contains('active')) {
             window.location.reload();
         }
     }, intervalMinutes * 60 * 1000);
@@ -176,8 +187,8 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 // Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
+const adminStyle = document.createElement('style');
+adminStyle.textContent = `
     @keyframes slideIn {
         from {
             transform: translateX(100%);
@@ -224,4 +235,4 @@ style.textContent = `
         transform: rotate(45deg) translate(-5px, -6px);
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(adminStyle);

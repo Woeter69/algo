@@ -83,10 +83,9 @@ if (userProfile && userDropdown && dropdownArrow) {
     const dropdownItems = document.querySelectorAll('.dropdown-item');
     dropdownItems.forEach(item => {
         item.addEventListener('click', (e) => {
-            var _a;
             e.stopPropagation();
             const spanElement = item.querySelector('span');
-            const text = ((_a = spanElement === null || spanElement === void 0 ? void 0 : spanElement.textContent) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || '';
+            const text = spanElement?.textContent?.toLowerCase() || '';
             switch (text) {
                 case 'view profile':
                     console.log('View Profile clicked');

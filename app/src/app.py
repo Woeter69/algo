@@ -399,7 +399,8 @@ def logout():
     flash("You have been logged out successfully.")
     return redirect(url_for('home'))
 
-@app.route("/chats")
+@app.route("/chat")
+@app.route("/chat_list")
 @validators.login_required
 def chat_list():
     user_id = session['user_id']

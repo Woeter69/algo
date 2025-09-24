@@ -86,11 +86,11 @@ else {
         setInterval(fetchOnlineStatus, 30000);
         // Socket event handlers with proper typing
         socket.on('connect_error', (err) => {
-            console.error('Socket connect_error:', (err === null || err === void 0 ? void 0 : err.message) || err);
+            console.error('Socket connect_error:', err?.message || err);
         });
         // Note: reconnect_error is not in the standard Socket.IO events, using connect_error instead
         socket.on('connect_error', (err) => {
-            console.error('Socket reconnect_error:', (err === null || err === void 0 ? void 0 : err.message) || err);
+            console.error('Socket reconnect_error:', err?.message || err);
         });
         socket.on('disconnect', (reason) => {
             console.warn('Socket disconnected:', reason);
@@ -192,8 +192,8 @@ else {
                 // Update conversation list
                 const otherId = isSent ? receiverId : senderId;
                 if (!getConversationItem(otherId)) {
-                    const name = isSent ? ((chatUserName === null || chatUserName === void 0 ? void 0 : chatUserName.textContent) || `User ${otherId}`) : (data.sender_username || `User ${otherId}`);
-                    const avatar = isSent ? ((chatUserAvatar === null || chatUserAvatar === void 0 ? void 0 : chatUserAvatar.getAttribute('src')) || otherUserPfp) : (data.sender_pfp || 'https://via.placeholder.com/50');
+                    const name = isSent ? (chatUserName?.textContent || `User ${otherId}`) : (data.sender_username || `User ${otherId}`);
+                    const avatar = isSent ? (chatUserAvatar?.getAttribute('src') || otherUserPfp) : (data.sender_pfp || 'https://via.placeholder.com/50');
                     ensureConversationItem(otherId, name, avatar);
                 }
                 updateConversationLastMessage(otherId, content);
