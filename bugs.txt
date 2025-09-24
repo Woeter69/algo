@@ -16,6 +16,7 @@ Home page showing big GLGL instead of ALGO
 Chatbot not updating
 No way for people to make connections with each others 
 No actual db data showing on most of the pages
+sql.schema not updated as per the database
 
 NOTE: Suggest more features and point out bugs just add your name then type the bug like this 
 # <NAME>

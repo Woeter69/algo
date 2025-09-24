@@ -984,6 +984,10 @@ def check_community_access(community_id):
         app.logger.error(f"Error in check_college_access: {str(e)}")
         return {'success': False, 'message': 'Error checking access'}
 
+@app.route("/recommendations")
+@validators.login_required
+def recommendations():
+    return render_template("recommendations.html")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
