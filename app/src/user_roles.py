@@ -27,7 +27,7 @@ def get_user_role_info(user_id):
     try:
         cur.execute("""
             SELECT u.role, u.community_id, u.verification_status, u.verified_at,
-                   c.name, c.college_code, u.enrollment_number, u.graduation_year, u.department
+                   c.name, u.enrollment_number, u.graduation_year, u.department
             FROM users u
             LEFT JOIN communities c ON u.community_id = c.community_id
             WHERE u.user_id = %s
@@ -40,11 +40,10 @@ def get_user_role_info(user_id):
                 'community_id': result[1],
                 'verification_status': result[2],
                 'verified_at': result[3],
-                'community_name': result[4],
-                'college_code': result[5],
-                'enrollment_number': result[6],
-                'graduation_year': result[7],
-                'department': result[8]
+                'college_name': result[4],
+                'enrollment_number': result[5],
+                'graduation_year': result[6],
+                'department': result[7]
             }
         return None
         
@@ -59,17 +58,19 @@ def is_admin(user_id, community_id=None):
     
     try:
         if community_id:
+            # Check if user has admin permissions for specific community
             cur.execute("""
                 SELECT ap.permission_id FROM admin_permissions ap
                 JOIN users u ON ap.admin_user_id = u.user_id
                 WHERE u.user_id = %s AND ap.community_id = %s AND ap.is_active = TRUE
             """, (user_id, community_id))
+            return cur.fetchone() is not None
         else:
+            # Check if user has admin role
             cur.execute("""
                 SELECT role FROM users WHERE user_id = %s AND role = 'admin'
             """, (user_id,))
-        
-        return cur.fetchone() is not None
+            return cur.fetchone() is not None
         
     finally:
         cur.close()
