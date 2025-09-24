@@ -19,21 +19,6 @@
             otherUserPfp: {{ other_user_pfp | tojson | safe }}
         };
         console.log('Template data loaded:', window.chatData);
-        
-        // Test basic functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded - testing elements...');
-            console.log('Send button:', document.getElementById('sendBtn'));
-            console.log('Message input:', document.getElementById('messageInput'));
-            console.log('Messages area:', document.getElementById('messagesArea'));
-            
-            // Test if Socket.IO is available
-            if (typeof io !== 'undefined') {
-                console.log('Socket.IO is available');
-            } else {
-                console.error('Socket.IO is NOT available');
-            }
-        });
     </script>
 </head>
 
@@ -106,7 +91,7 @@
                     <div class="chat-user-details">
                         <h3 id="chatUserName">{{ other_user_name if other_user_name else 'Select a conversation' }}</h3>
                         <span class="user-status" id="chatUserOnlineStatus">Checking status...</span>
-                        <span class="timezone-indicator" id="timezoneIndicator"></span>
+                        <span class="connection-status" id="connectionStatus">Connecting...</span>
                     </div>
                 </div>
                 <div class="chat-actions">
@@ -144,16 +129,16 @@
                     </div>
                     {% endfor %}
                 {% endif %}
+            </div>
 
-                <div class="typing-indicator" id="typingIndicator" style="display: none;">
-                    <div class="message-avatar">
-                        <img src="https://via.placeholder.com/32" alt="">
-                    </div>
-                    <div class="typing-dots">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                    </div>
+            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                <div class="message-avatar">
+                    <img src="{{ other_user_pfp or 'https://via.placeholder.com/32' }}" alt="">
+                </div>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
                 </div>
             </div>
 
@@ -163,32 +148,30 @@
                         <i class="fas fa-paperclip"></i>
                     </button>
                     <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                    <div class="input-wrapper">
+                    <div class="input-wrapper" style="position: relative;">
                         <textarea placeholder="Type a message..." id="messageInput" rows="1"></textarea>
                         <button class="emoji-btn" id="emojiBtn" title="Add emoji">
                             <i class="fas fa-smile"></i>
                         </button>
+                        <div class="emoji-picker" id="emojiPicker" style="display: none;">
+                            <div class="emoji-categories">
+                                <button class="emoji-category active" data-category="smileys">😀</button>
+                                <button class="emoji-category" data-category="people">👋</button>
+                                <button class="emoji-category" data-category="nature">🌸</button>
+                                <button class="emoji-category" data-category="food">🍕</button>
+                                <button class="emoji-category" data-category="activities">⚽</button>
+                                <button class="emoji-category" data-category="travel">✈️</button>
+                                <button class="emoji-category" data-category="objects">💡</button>
+                                <button class="emoji-category" data-category="symbols">❤️</button>
+                            </div>
+                            <div class="emoji-grid" id="emojiGrid">
+                                
+                            </div>
+                        </div>
                     </div>
                     <button class="send-btn" id="sendBtn">
                         <i class="fas fa-paper-plane"></i>
                     </button>
-                </div>
-                
-                
-                <div class="emoji-picker" id="emojiPicker" style="display: none;">
-                    <div class="emoji-categories">
-                        <button class="emoji-category active" data-category="smileys">😀</button>
-                        <button class="emoji-category" data-category="people">👋</button>
-                        <button class="emoji-category" data-category="nature">🌸</button>
-                        <button class="emoji-category" data-category="food">🍕</button>
-                        <button class="emoji-category" data-category="activities">⚽</button>
-                        <button class="emoji-category" data-category="travel">✈️</button>
-                        <button class="emoji-category" data-category="objects">💡</button>
-                        <button class="emoji-category" data-category="symbols">❤️</button>
-                    </div>
-                    <div class="emoji-grid" id="emojiGrid">
-                        
-                    </div>
                 </div>
             </div>
         </div>
