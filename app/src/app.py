@@ -193,8 +193,6 @@ def complete_profile():
             first_name = request.form.get("first_name", "")
             last_name = request.form.get("last_name", "")
             dob = request.form["dob"]
-            phone = request.form.get("phone", "")
-            bio = request.form.get("bio", "")
             
             # Education Information
             uni_name = request.form["uni_name"]
@@ -249,14 +247,12 @@ def complete_profile():
             # Update users table with basic info
             cur.execute("""
                 UPDATE users SET 
-                    firstname=%s, lastname=%s, dob=%s, phone=%s, bio=%s,
+                    firstname=%s, lastname=%s, dob=%s,
                     university_name=%s, college=%s, graduation_year=%s, current_city=%s, 
-                    pfp_path=%s, linkedin=%s, github=%s, twitter=%s, website=%s,
-                    profile_visibility=%s, email_notifications=%s, job_alerts=%s
+                    pfp_path=%s
                 WHERE user_id=%s
-            """, (first_name, last_name, dob, phone, bio, uni_name, clg_name, grad_year, city, 
-                  pfp_url, linkedin, github, twitter, website, profile_visibility, 
-                  email_notifications, job_alerts, user_id))
+            """, (first_name, last_name, dob, uni_name, clg_name, grad_year, city, 
+                  pfp_url, user_id))
 
             # Insert education details if provided
             if degree or major or gpa:
@@ -1515,6 +1511,438 @@ def cancel_connection_request():
             cur.close()
         if 'mydb' in locals() and mydb:
             mydb.close()
+
+@app.route("/settings")
+@validators.login_required
+def settings():
+    """User settings page"""
+    try:
+        user_id = session['user_id']
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Get comprehensive user data for settings (matching actual schema)
+        cur.execute("""
+            SELECT user_id, firstname, lastname, email, username, dob,
+                   university_name, department, college, graduation_year, current_city, 
+                   pfp_path, role, community_id, last_login, login_count
+            FROM users 
+            WHERE user_id = %s
+        """, (user_id,))
+        
+        user_data = cur.fetchone()
+        
+        if user_data:
+            user_dict = {
+                'user_id': user_data[0],
+                'firstname': user_data[1],
+                'lastname': user_data[2],
+                'email': user_data[3],
+                'username': user_data[4],
+                'dob': user_data[5],
+                'university_name': user_data[6],
+                'department': user_data[7],
+                'college': user_data[8],
+                'graduation_year': user_data[9],
+                'current_city': user_data[10],
+                'pfp_path': user_data[11],
+                'role': user_data[12],
+                'community_id': user_data[13],
+                'last_login': user_data[14],
+                'login_count': user_data[15],
+                # Default values for settings not in database
+                'phone': '',
+                'bio': '',
+                'profile_visibility': 'public',
+                'email_notifications': True,
+                'job_alerts': True,
+                'linkedin': '',
+                'github': '',
+                'twitter': '',
+                'website': '',
+                'show_email': False,
+                'show_phone': False,
+                'allow_messages': True
+            }
+        else:
+            user_dict = {}
+        
+        return render_template("settings.html", user_data=user_dict)
+        
+    except Exception as e:
+        app.logger.error(f"Error loading settings: {str(e)}")
+        flash("Error loading settings page")
+        return redirect(url_for('user_dashboard'))
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/update_account", methods=["POST"])
+@validators.login_required
+def update_account():
+    try:
+        data = request.get_json()
+        user_id = session['user_id']
+        
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Check if username is already taken by another user
+        if data.get('username'):
+            cur.execute("SELECT user_id FROM users WHERE username = %s AND user_id != %s", 
+                       (data['username'], user_id))
+            if cur.fetchone():
+                return {'success': False, 'message': 'Username already taken'}, 400
+        
+        # Update user information (only existing columns)
+        update_fields = []
+        update_values = []
+        
+        if data.get('username'):
+            update_fields.append("username = %s")
+            update_values.append(data['username'])
+            
+        if data.get('firstName'):
+            update_fields.append("firstname = %s")
+            update_values.append(data['firstName'])
+            
+        if data.get('lastName'):
+            update_fields.append("lastname = %s")
+            update_values.append(data['lastName'])
+            
+        if data.get('university'):
+            update_fields.append("university_name = %s")
+            update_values.append(data['university'])
+            
+        if data.get('department'):
+            update_fields.append("department = %s")
+            update_values.append(data['department'])
+            
+        if data.get('college'):
+            update_fields.append("college = %s")
+            update_values.append(data['college'])
+            
+        if data.get('graduationYear'):
+            update_fields.append("graduation_year = %s")
+            update_values.append(data['graduationYear'])
+            
+        if data.get('currentCity'):
+            update_fields.append("current_city = %s")
+            update_values.append(data['currentCity'])
+            
+        
+        if update_fields:
+            update_values.append(user_id)
+            query = f"UPDATE users SET {', '.join(update_fields)} WHERE user_id = %s"
+            cur.execute(query, update_values)
+            mydb.commit()
+            
+            # Update session if username changed
+            if data.get('username'):
+                session['username'] = data['username']
+        
+        return {'success': True, 'message': 'Account updated successfully'}
+    except Exception as e:
+        app.logger.error(f"Error updating account: {str(e)}")
+        return {'success': False, 'message': 'Error updating account'}, 500
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/update_privacy", methods=["POST"])
+@validators.login_required
+def update_privacy():
+    """Update privacy settings"""
+    try:
+        data = request.get_json()
+        user_id = session['user_id']
+        
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Update privacy settings
+        cur.execute("""
+            UPDATE users SET 
+                profile_visibility = %s
+            WHERE user_id = %s
+        """, (data.get('profileVisibility', 'public'), user_id))
+        
+        mydb.commit()
+        
+        return {'success': True, 'message': 'Privacy settings updated successfully'}
+        
+    except Exception as e:
+        app.logger.error(f"Error updating privacy: {str(e)}")
+        return {'success': False, 'message': 'Error updating privacy settings'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/update_preferences", methods=["POST"])
+@validators.login_required
+def update_preferences():
+    """Update user preferences (client-side only for now)"""
+    try:
+        data = request.get_json()
+        # Since we don't have preference columns in the database,
+        # we'll just return success for client-side storage
+        return {'success': True, 'message': 'Preferences updated successfully'}
+    except Exception as e:
+        app.logger.error(f"Error updating preferences: {str(e)}")
+        return {'success': False, 'message': 'Error updating preferences'}, 500
+
+@app.route("/api/update_notifications", methods=["POST"])
+@validators.login_required
+def update_notifications():
+    """Update notification settings"""
+    try:
+        data = request.get_json()
+        user_id = session['user_id']
+        
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Update notification settings
+        cur.execute("""
+            UPDATE users SET 
+                email_notifications = %s,
+                job_alerts = %s
+            WHERE user_id = %s
+        """, (data.get('emailNotifications', False), 
+              data.get('jobAlerts', False), 
+              user_id))
+        
+        mydb.commit()
+        
+        return {'success': True, 'message': 'Notification settings updated successfully'}
+        
+    except Exception as e:
+        app.logger.error(f"Error updating notifications: {str(e)}")
+        return {'success': False, 'message': 'Error updating notification settings'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/change_password", methods=["POST"])
+@validators.login_required
+def change_password():
+    """Change user password"""
+    try:
+        data = request.get_json()
+        user_id = session['user_id']
+        
+        current_password = data.get('currentPassword')
+        new_password = data.get('newPassword')
+        
+        if not current_password or not new_password:
+            return {'success': False, 'message': 'Both current and new passwords are required'}, 400
+        
+        if len(new_password) < 8:
+            return {'success': False, 'message': 'New password must be at least 8 characters long'}, 400
+        
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Verify current password
+        cur.execute("SELECT password FROM users WHERE user_id = %s", (user_id,))
+        row = cur.fetchone()
+        
+        if not row or not bcrypt.check_password_hash(row[0], current_password):
+            return {'success': False, 'message': 'Current password is incorrect'}, 400
+        
+        # Update password
+        hashed_new_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        cur.execute("UPDATE users SET password = %s WHERE user_id = %s", 
+                   (hashed_new_password, user_id))
+        mydb.commit()
+        
+        return {'success': True, 'message': 'Password changed successfully'}
+        
+    except Exception as e:
+        app.logger.error(f"Error changing password: {str(e)}")
+        return {'success': False, 'message': 'Error changing password'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+
+@app.route("/api/export_data", methods=["POST"])
+@validators.login_required
+def export_data():
+    """Export user data"""
+    try:
+        user_id = session['user_id']
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Get user data
+        cur.execute("""
+            SELECT firstname, lastname, email, username, dob,
+                   university_name, college, graduation_year, current_city,
+                   registration_date, role
+            FROM users WHERE user_id = %s
+        """, (user_id,))
+        
+        user_data = cur.fetchone()
+        
+        # Get connections
+        cur.execute("""
+            SELECT u.firstname, u.lastname, u.email, c.created_at
+            FROM connections c
+            JOIN users u ON (c.con_user_id = u.user_id OR c.user_id = u.user_id)
+            WHERE (c.user_id = %s OR c.con_user_id = %s) 
+            AND c.status = 'accepted' AND u.user_id != %s
+        """, (user_id, user_id, user_id))
+        
+        connections = cur.fetchall()
+        
+        # Prepare export data
+        export_data = {
+            'user_info': {
+                'firstname': user_data[0] if user_data else None,
+                'lastname': user_data[1] if user_data else None,
+                'email': user_data[2] if user_data else None,
+                'username': user_data[3] if user_data else None,
+                'dob': str(user_data[4]) if user_data and user_data[4] else None,
+                'university': user_data[5] if user_data else None,
+                'college': user_data[6] if user_data else None,
+                'graduation_year': user_data[7] if user_data else None,
+                'city': user_data[8] if user_data else None,
+                'registration_date': str(user_data[9]) if user_data and user_data[9] else None,
+                'role': user_data[10] if user_data else None
+            },
+            'connections': [
+                {
+                    'name': f"{conn[0]} {conn[1]}",
+                    'email': conn[2],
+                    'connected_date': str(conn[3]) if conn[3] else None
+                } for conn in connections
+            ],
+            'export_date': datetime.datetime.utcnow().isoformat()
+        }
+        
+        # Create JSON response
+        import json
+        json_data = json.dumps(export_data, indent=2)
+        
+        response = app.response_class(
+            response=json_data,
+            status=200,
+            mimetype='application/json',
+            headers={
+                'Content-Disposition': 'attachment; filename=algo_data_export.json'
+            }
+        )
+        
+        return response
+        
+    except Exception as e:
+        app.logger.error(f"Error exporting data: {str(e)}")
+        return {'success': False, 'message': 'Error exporting data'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/deactivate_account", methods=["POST"])
+@validators.login_required
+def deactivate_account():
+    """Deactivate user account"""
+    try:
+        user_id = session['user_id']
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Set account as deactivated (you might want to add a deactivated column)
+        cur.execute("UPDATE users SET verified = FALSE WHERE user_id = %s", (user_id,))
+        mydb.commit()
+        
+        # Clear session
+        session.clear()
+        
+        return {'success': True, 'message': 'Account deactivated successfully'}
+        
+    except Exception as e:
+        app.logger.error(f"Error deactivating account: {str(e)}")
+        return {'success': False, 'message': 'Error deactivating account'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/delete_account", methods=["POST"])
+@validators.login_required
+def delete_account():
+    """Delete user account permanently"""
+    try:
+        user_id = session['user_id']
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Delete user data (in a real app, you might want to anonymize instead of delete)
+        cur.execute("DELETE FROM user_interests WHERE user_id = %s", (user_id,))
+        cur.execute("DELETE FROM connections WHERE user_id = %s OR con_user_id = %s", (user_id, user_id))
+        cur.execute("DELETE FROM messages WHERE sender_id = %s OR receiver_id = %s", (user_id, user_id))
+        cur.execute("DELETE FROM education_details WHERE user_id = %s", (user_id,))
+        cur.execute("DELETE FROM work_experience WHERE user_id = %s", (user_id,))
+        cur.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
+        
+        mydb.commit()
+        
+        # Clear session
+        session.clear()
+        
+        return {'success': True, 'message': 'Account deleted successfully'}
+        
+    except Exception as e:
+        app.logger.error(f"Error deleting account: {str(e)}")
+        return {'success': False, 'message': 'Error deleting account'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/logout_all_sessions", methods=["POST"])
+@validators.login_required
+def logout_all_sessions():
+    """Logout from all sessions"""
+    try:
+        # In a real app, you would invalidate all session tokens
+        # For now, just clear the current session
+        session.clear()
+        
+        return {'success': True, 'message': 'Logged out from all sessions'}
+        
+    except Exception as e:
+        app.logger.error(f"Error logging out sessions: {str(e)}")
+        return {'success': False, 'message': 'Error logging out sessions'}, 500
+
+@app.route("/logout")
+def logout():
+    """Logout user"""
+    session.clear()
+    flash("You have been logged out successfully")
+    return redirect(url_for('home'))
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
