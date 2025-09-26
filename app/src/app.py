@@ -15,26 +15,19 @@ from .user_roles import (
     reject_verification_request, is_admin
 )
 
-
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
-
-socketio = SocketIO(
-    app,
-    cors_allowed_origins="*",
-    async_mode="gevent",
-    ping_timeout=30,
-    ping_interval=25,
-    logger=True,
-    engineio_logger=True,
-)
-
 bcrypt = Bcrypt(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Import generate_default_avatar from utils
+from .utils import generate_default_avatar
 @app.context_processor
 def inject_time_functions():
     return {
         'to_ist': utils.to_ist,
-        'format_ist_time': utils.format_ist_time
+        'format_ist_time': utils.format_ist_time,
+        'generate_default_avatar': utils.generate_default_avatar
     }
 
 @app.route('/')
@@ -68,16 +61,18 @@ def login():
 
             
             cur.execute(
-                "SELECT user_id, password, login_count, username FROM users WHERE email=%s OR username=%s",
+                "SELECT user_id, password, login_count, username, pfp_path, role FROM users WHERE email=%s OR username=%s",
                 (email_or_username, email_or_username)
             )
             row = cur.fetchone()
 
             if row:
-                user_id, hashed_password, login_count, username = row
+                user_id, hashed_password, login_count, username, pfp_path, role = row
                 if bcrypt.check_password_hash(hashed_password, password):
                     session['user_id'] = user_id
                     session['username'] = username
+                    session['pfp_path'] = pfp_path
+                    session['role'] = role
 
                     
                     cur.execute(
@@ -194,17 +189,52 @@ def complete_profile():
         cutoff_date = datetime.datetime.utcnow().date().replace(year=datetime.datetime.utcnow().year - 16)
         cities = utils.load_cities()
         if request.method == "POST":
-            uni_name = request.form["uni-name"]
-            clg_name = request.form["clg-name"]
+            # Personal Information
+            first_name = request.form.get("first_name", "")
+            last_name = request.form.get("last_name", "")
             dob = request.form["dob"]
+            phone = request.form.get("phone", "")
+            bio = request.form.get("bio", "")
+            
+            # Education Information
+            uni_name = request.form["uni_name"]
+            clg_name = request.form.get("clg_name", "")
+            degree = request.form.get("degree", "")
+            major = request.form.get("major", "")
             grad_year = request.form["grad_year"]
+            gpa = request.form.get("gpa", "")
+            
+            # Location
             city = request.form["city"]
+            
+            # Work Experience
+            company = request.form.get("company", "")
+            job_title = request.form.get("job_title", "")
+            join_year = request.form.get("join_year", "")
+            leave_year = request.form.get("leave_year", "")
+            
+            # Skills and Interests
+            skills = request.form.get("skills", "")
+            interests = request.form.get("interests", "")
+            
+            # Social Links
+            linkedin = request.form.get("linkedin", "")
+            github = request.form.get("github", "")
+            twitter = request.form.get("twitter", "")
+            website = request.form.get("website", "")
+            
+            # Privacy Settings
+            profile_visibility = request.form.get("profile_visibility", "")
+            email_notifications = request.form.get("email_notifications", "")
+            job_alerts = request.form.get("job_alerts", "")
 
+            # Handle profile picture upload
             pfp_file = request.files.get("pfp")
             pfp_url = None
             if pfp_file and validators.allowed_file(pfp_file.filename):
                 pfp_url = utils.upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
             
+            # Validate age
             dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
             today = datetime.date.today()
             age = today.year - dob_date.year - ((today.month, today.day) < (dob_date.month, dob_date.day))
@@ -214,10 +244,70 @@ def complete_profile():
 
             mydb = get_db_connection()
             cur = mydb.cursor()
-
             user_id = session.get('user_id')
 
-            cur.execute("UPDATE users SET university_name=%s,college=%s,dob=%s,graduation_year=%s,current_city=%s,pfp_path=%s WHERE user_id=%s",(uni_name,clg_name,dob,grad_year,city,pfp_url,user_id))
+            # Update users table with basic info
+            cur.execute("""
+                UPDATE users SET 
+                    firstname=%s, lastname=%s, dob=%s, phone=%s, bio=%s,
+                    university_name=%s, college=%s, graduation_year=%s, current_city=%s, 
+                    pfp_path=%s, linkedin=%s, github=%s, twitter=%s, website=%s,
+                    profile_visibility=%s, email_notifications=%s, job_alerts=%s
+                WHERE user_id=%s
+            """, (first_name, last_name, dob, phone, bio, uni_name, clg_name, grad_year, city, 
+                  pfp_url, linkedin, github, twitter, website, profile_visibility, 
+                  email_notifications, job_alerts, user_id))
+
+            # Insert education details if provided
+            if degree or major or gpa:
+                # Check if education record exists
+                cur.execute("SELECT COUNT(*) FROM education_details WHERE user_id = %s", (user_id,))
+                if cur.fetchone()[0] > 0:
+                    # Update existing record
+                    cur.execute("""
+                        UPDATE education_details SET 
+                            degree_type=%s, major=%s, university_name=%s, college_name=%s, 
+                            graduation_year=%s, gpa=%s
+                        WHERE user_id=%s
+                    """, (degree, major, uni_name, clg_name, grad_year, 
+                          float(gpa) if gpa else None, user_id))
+                else:
+                    # Insert new record
+                    cur.execute("""
+                        INSERT INTO education_details 
+                        (user_id, degree_type, major, university_name, college_name, graduation_year, gpa)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, (user_id, degree, major, uni_name, clg_name, grad_year, 
+                          float(gpa) if gpa else None))
+
+            # Insert work experience if provided (and not "None" or empty)
+            if company and company.lower() not in ['none', 'n/a', ''] and job_title:
+                # Check if work experience record exists
+                cur.execute("SELECT COUNT(*) FROM work_experience WHERE user_id = %s", (user_id,))
+                if cur.fetchone()[0] > 0:
+                    # Update existing record
+                    cur.execute("""
+                        UPDATE work_experience SET 
+                            company_name=%s, job_title=%s, join_year=%s, leave_year=%s
+                        WHERE user_id=%s
+                    """, (company, job_title, 
+                          int(join_year) if join_year else None,
+                          int(leave_year) if leave_year else None, user_id))
+                else:
+                    # Insert new record
+                    cur.execute("""
+                        INSERT INTO work_experience 
+                        (user_id, company_name, job_title, join_year, leave_year)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (user_id, company, job_title, 
+                          int(join_year) if join_year else None,
+                          int(leave_year) if leave_year else None))
+
+            # Update session with new profile picture and name
+            if pfp_url:
+                session['pfp_path'] = pfp_url
+            if first_name and last_name:
+                session['username'] = f"{first_name} {last_name}"
 
             mydb.commit()
             return redirect(url_for("interests"))
@@ -988,6 +1078,443 @@ def check_community_access(community_id):
 @validators.login_required
 def recommendations():
     return render_template("recommendations.html")
+
+@app.route("/requests")
+@validators.login_required
+def requests():
+    """Requests page - manage connection requests"""
+    user_id = session['user_id']
+    mydb = None
+    cur = None
+    
+    try:
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Get pending incoming requests (where current user is the target)
+        cur.execute("""
+            SELECT c.connection_id, c.user_id, c.request, c.created_at,
+                   u.firstname, u.lastname, u.username, u.pfp_path
+            FROM connections c
+            JOIN users u ON c.user_id = u.user_id
+            WHERE c.con_user_id = %s AND c.status = 'pending'
+            ORDER BY c.created_at DESC
+        """, (user_id,))
+        
+        pending_requests = []
+        for row in cur.fetchall():
+            pending_requests.append({
+                'connection_id': row[0],
+                'user_id': row[1],
+                'message': row[2],
+                'created_at': row[3],
+                'name': f"{row[4]} {row[5]}",
+                'username': row[6],
+                'avatar': row[7]
+            })
+        
+        # Get sent requests (where current user is the sender)
+        cur.execute("""
+            SELECT c.connection_id, c.con_user_id, c.request, c.created_at,
+                   u.firstname, u.lastname, u.username, u.pfp_path
+            FROM connections c
+            JOIN users u ON c.con_user_id = u.user_id
+            WHERE c.user_id = %s AND c.status = 'pending'
+            ORDER BY c.created_at DESC
+        """, (user_id,))
+        
+        sent_requests = []
+        for row in cur.fetchall():
+            sent_requests.append({
+                'connection_id': row[0],
+                'user_id': row[1],
+                'message': row[2],
+                'created_at': row[3],
+                'name': f"{row[4]} {row[5]}",
+                'username': row[6],
+                'avatar': row[7]
+            })
+        
+        # Get accepted connections
+        cur.execute("""
+            SELECT DISTINCT
+                CASE 
+                    WHEN c.user_id = %s THEN c.con_user_id 
+                    ELSE c.user_id 
+                END as other_user_id,
+                CASE 
+                    WHEN c.user_id = %s THEN u2.firstname 
+                    ELSE u1.firstname 
+                END as firstname,
+                CASE 
+                    WHEN c.user_id = %s THEN u2.lastname 
+                    ELSE u1.lastname 
+                END as lastname,
+                CASE 
+                    WHEN c.user_id = %s THEN u2.username 
+                    ELSE u1.username 
+                END as username,
+                CASE 
+                    WHEN c.user_id = %s THEN u2.pfp_path 
+                    ELSE u1.pfp_path 
+                END as avatar,
+                c.created_at
+            FROM connections c
+            JOIN users u1 ON c.user_id = u1.user_id
+            JOIN users u2 ON c.con_user_id = u2.user_id
+            WHERE (c.user_id = %s OR c.con_user_id = %s) AND c.status = 'accepted'
+            ORDER BY c.created_at DESC
+        """, (user_id, user_id, user_id, user_id, user_id, user_id, user_id))
+        
+        connections = []
+        for row in cur.fetchall():
+            connections.append({
+                'user_id': row[0],
+                'name': f"{row[1]} {row[2]}",
+                'username': row[3],
+                'avatar': row[4],
+                'connected_at': row[5]
+            })
+        
+        connections_count = len(connections)
+        
+        return render_template("requests.html",
+                             pending_requests=pending_requests,
+                             sent_requests=sent_requests,
+                             connections=connections,
+                             connections_count=connections_count)
+        
+    except Exception as e:
+        app.logger.error(f"Error in requests route: {str(e)}")
+        flash("Error loading requests page")
+        return redirect(url_for('user_dashboard'))
+    
+    finally:
+        if cur:
+            cur.close()
+        if mydb:
+            mydb.close()
+
+@app.route("/connect")
+@validators.login_required
+def connect():
+    """Connect page - show alumni for networking"""
+    user_id = session['user_id']
+    mydb = None
+    cur = None
+    
+    try:
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Get current user info
+        cur.execute("SELECT username, university_name, graduation_year, current_city FROM users WHERE user_id = %s", (user_id,))
+        current_user = cur.fetchone()
+        
+        # Get all users except current user with their details
+        cur.execute("""
+            SELECT u.user_id, u.firstname, u.lastname, u.username, u.university_name, 
+                   u.graduation_year, u.current_city, u.pfp_path, u.role,
+                   we.company_name, we.job_title,
+                   STRING_AGG(i.name, ', ') as interests
+            FROM users u
+            LEFT JOIN work_experience we ON u.user_id = we.user_id AND we.leave_year IS NULL
+            LEFT JOIN user_interests ui ON u.user_id = ui.user_id
+            LEFT JOIN interests i ON ui.interest_id = i.interest_id
+            WHERE u.user_id != %s AND u.verified = TRUE
+            GROUP BY u.user_id, u.firstname, u.lastname, u.username, u.university_name, 
+                     u.graduation_year, u.current_city, u.pfp_path, u.role,
+                     we.company_name, we.job_title
+            ORDER BY u.lastname, u.firstname
+        """, (user_id,))
+        
+        all_users = cur.fetchall()
+        
+        # Get existing connections for current user
+        cur.execute("""
+            SELECT con_user_id, status, connection_id FROM connections 
+            WHERE user_id = %s
+        """, (user_id,))
+        
+        connections = {row[0]: {'status': row[1], 'connection_id': row[2]} for row in cur.fetchall()}
+        
+        # Get reverse connections (where current user is the target)
+        cur.execute("""
+            SELECT user_id, status, connection_id FROM connections 
+            WHERE con_user_id = %s
+        """, (user_id,))
+        
+        reverse_connections = {row[0]: {'status': row[1], 'connection_id': row[2]} for row in cur.fetchall()}
+        
+        # Process users data
+        people_data = []
+        for user in all_users:
+            # Generate default avatar if none exists
+            name = f"{user[1]} {user[2]}"
+            avatar = user[7] if user[7] else generate_default_avatar(name)
+            
+            user_data = {
+                'id': user[0],
+                'name': name,
+                'username': user[3],
+                'university': user[4] or 'Not specified',
+                'graduation_year': user[5] or 'Not specified',
+                'location': user[6] or 'Not specified',
+                'avatar': avatar,
+                'role': user[8] or 'unverified',
+                'company': user[9] or 'Not specified',
+                'title': user[10] or 'Not specified',
+                'interests': user[11].split(', ') if user[11] else [],
+                'connection_status': 'none'
+            }
+            
+            # Determine connection status
+            if user[0] in connections:
+                user_data['connection_status'] = connections[user[0]]['status']
+                user_data['connection_id'] = connections[user[0]]['connection_id']
+            elif user[0] in reverse_connections:
+                if reverse_connections[user[0]]['status'] == 'accepted':
+                    user_data['connection_status'] = 'connected'
+                elif reverse_connections[user[0]]['status'] == 'pending':
+                    user_data['connection_status'] = 'received_request'
+                    user_data['connection_id'] = reverse_connections[user[0]]['connection_id']
+            
+            people_data.append(user_data)
+        
+        # Get unique universities, graduation years, and locations for filters
+        universities = list(set([user['university'] for user in people_data if user['university'] != 'Not specified']))
+        graduation_years = list(set([str(user['graduation_year']) for user in people_data if user['graduation_year'] != 'Not specified']))
+        locations = list(set([user['location'] for user in people_data if user['location'] != 'Not specified']))
+        
+        # Sort the filter options
+        universities.sort()
+        graduation_years.sort(reverse=True)
+        locations.sort()
+        
+        return render_template("connect.html", 
+                             people=people_data,
+                             universities=universities,
+                             graduation_years=graduation_years,
+                             locations=locations,
+                             current_user=current_user)
+        
+    except Exception as e:
+        app.logger.error(f"Error in connect route: {str(e)}")
+        flash("Error loading connections page")
+        return redirect(url_for('user_dashboard'))
+    
+    finally:
+        if cur:
+            cur.close()
+        if mydb:
+            mydb.close()
+
+@app.route("/api/send_connection_request", methods=["POST"])
+@validators.login_required
+def send_connection_request():
+    """Send a connection request to another user"""
+    try:
+        data = request.get_json()
+        target_user_id = data.get('user_id')
+        message = data.get('message', '')
+        
+        if not target_user_id:
+            return {'success': False, 'message': 'User ID is required'}, 400
+        
+        user_id = session['user_id']
+        
+        # Check if trying to connect to self
+        if user_id == target_user_id:
+            return {'success': False, 'message': 'Cannot connect to yourself'}, 400
+        
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Check if connection already exists
+        cur.execute("""
+            SELECT connection_id, status FROM connections 
+            WHERE (user_id = %s AND con_user_id = %s) OR (user_id = %s AND con_user_id = %s)
+        """, (user_id, target_user_id, target_user_id, user_id))
+        
+        existing_connection = cur.fetchone()
+        
+        if existing_connection:
+            status = existing_connection[1]
+            if status == 'accepted':
+                return {'success': False, 'message': 'Already connected'}, 400
+            elif status == 'pending':
+                return {'success': False, 'message': 'Connection request already sent'}, 400
+        
+        # Insert new connection request
+        cur.execute("""
+            INSERT INTO connections (user_id, con_user_id, request, status)
+            VALUES (%s, %s, %s, 'pending')
+        """, (user_id, target_user_id, message))
+        
+        mydb.commit()
+        
+        # Get target user info for response
+        cur.execute("SELECT firstname, lastname FROM users WHERE user_id = %s", (target_user_id,))
+        target_user = cur.fetchone()
+        target_name = f"{target_user[0]} {target_user[1]}" if target_user else "User"
+        
+        return {
+            'success': True, 
+            'message': f'Connection request sent to {target_name}',
+            'status': 'pending'
+        }
+        
+    except Exception as e:
+        app.logger.error(f"Error sending connection request: {str(e)}")
+        return {'success': False, 'message': 'Error sending connection request'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/respond_connection_request", methods=["POST"])
+@validators.login_required
+def respond_connection_request():
+    """Accept or reject a connection request"""
+    try:
+        data = request.get_json()
+        connection_id = data.get('connection_id')
+        action = data.get('action')  # 'accept' or 'reject'
+        
+        if not connection_id or action not in ['accept', 'reject']:
+            return {'success': False, 'message': 'Invalid request'}, 400
+        
+        user_id = session['user_id']
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Verify the connection request exists and is for current user
+        cur.execute("""
+            SELECT user_id, con_user_id, status FROM connections 
+            WHERE connection_id = %s AND con_user_id = %s AND status = 'pending'
+        """, (connection_id, user_id))
+        
+        connection = cur.fetchone()
+        
+        if not connection:
+            return {'success': False, 'message': 'Connection request not found'}, 404
+        
+        # Update connection status
+        new_status = 'accepted' if action == 'accept' else 'denied'
+        cur.execute("""
+            UPDATE connections SET status = %s WHERE connection_id = %s
+        """, (new_status, connection_id))
+        
+        mydb.commit()
+        
+        return {
+            'success': True,
+            'message': f'Connection request {action}ed',
+            'status': new_status
+        }
+        
+    except Exception as e:
+        app.logger.error(f"Error responding to connection request: {str(e)}")
+        return {'success': False, 'message': 'Error processing request'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/get_connection_requests")
+@validators.login_required
+def get_connection_requests():
+    """Get pending connection requests for current user"""
+    try:
+        user_id = session['user_id']
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Get pending requests where current user is the target
+        cur.execute("""
+            SELECT c.connection_id, c.user_id, c.request, c.created_at,
+                   u.firstname, u.lastname, u.username, u.pfp_path
+            FROM connections c
+            JOIN users u ON c.user_id = u.user_id
+            WHERE c.con_user_id = %s AND c.status = 'pending'
+            ORDER BY c.created_at DESC
+        """, (user_id,))
+        
+        requests = []
+        for row in cur.fetchall():
+            requests.append({
+                'connection_id': row[0],
+                'user_id': row[1],
+                'message': row[2],
+                'created_at': row[3].isoformat() if row[3] else None,
+                'name': f"{row[4]} {row[5]}",
+                'username': row[6],
+                'avatar': row[7]
+            })
+        
+        return {'success': True, 'requests': requests}
+        
+    except Exception as e:
+        app.logger.error(f"Error getting connection requests: {str(e)}")
+        return {'success': False, 'message': 'Error loading requests'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@app.route("/api/cancel_connection_request", methods=["POST"])
+@validators.login_required
+def cancel_connection_request():
+    """Cancel a sent connection request"""
+    try:
+        data = request.get_json()
+        connection_id = data.get('connection_id')
+        
+        if not connection_id:
+            return {'success': False, 'message': 'Connection ID is required'}, 400
+        
+        user_id = session['user_id']
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Verify the connection request exists and belongs to current user
+        cur.execute("""
+            SELECT user_id, con_user_id, status FROM connections 
+            WHERE connection_id = %s AND user_id = %s AND status = 'pending'
+        """, (connection_id, user_id))
+        
+        connection = cur.fetchone()
+        
+        if not connection:
+            return {'success': False, 'message': 'Connection request not found'}, 404
+        
+        # Delete the connection request
+        cur.execute("""
+            DELETE FROM connections WHERE connection_id = %s
+        """, (connection_id,))
+        
+        mydb.commit()
+        
+        return {
+            'success': True,
+            'message': 'Connection request cancelled successfully'
+        }
+        
+    except Exception as e:
+        app.logger.error(f"Error cancelling connection request: {str(e)}")
+        return {'success': False, 'message': 'Error cancelling request'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))

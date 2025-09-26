@@ -20,7 +20,11 @@ CREATE TABLE users (
     department TEXT,
     college TEXT,
     current_city TEXT,
-    pfp_path TEXT
+    pfp_path TEXT,
+    role TEXT DEFAULT 'unverified',
+    community_id INT,
+    last_login TIMESTAMP,
+    login_count INT DEFAULT 0
 );
 
 CREATE TABLE verification_tokens (
@@ -69,6 +73,7 @@ CREATE TABLE connections (
     con_user_id INT NOT NULL,
     request TEXT,
     status TEXT CHECK (status IN ('pending','accepted','denied')) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (con_user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
@@ -102,4 +107,14 @@ CREATE TABLE work_experience (
     join_year INT NOT NULL,
     leave_year INT,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE messages (
+    message_id SERIAL PRIMARY KEY,
+    sender_id INT NOT NULL,
+    receiver_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

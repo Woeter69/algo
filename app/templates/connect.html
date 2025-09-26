@@ -6,23 +6,52 @@
     <title>Connect - ALGO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../static/styles/connect.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/connect.css') }}">
 </head>
 <body>
     <!-- HEADER -->
     <header>
         <div class="container">
             <nav>
-                <a href="#" class="logo" id="home-link">algo</a>
+                <a href="{{ url_for('home') }}" class="logo" id="home-link">algo</a>
                 <ul class="nav-links">
-                    <li><a href="#" data-section="home">Home</a></li>
-                    <li><a href="#" class="active">Connect</a></li>
-                    <li><a href="#" data-section="jobs">Job Board</a></li>
-                    <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="#" data-section="contact">Contact Us</a></li>
-                    <li><a href="#" data-section="profile">Profile</a></li>
-                    <li><a href="#" class="nav-signup">Dashboard</a></li>
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('connect') }}" class="active">Connect</a></li>
+                    <li><a href="{{ url_for('channels') }}">Channels</a></li>
+                    <li><a href="{{ url_for('chat_list') }}">Chat</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('user_dashboard') }}" class="nav-signup">Dashboard</a></li>
                 </ul>
+                <div class="user-profile" id="userprofile">
+                    <img src="{{ session.get('pfp_path', '') or generate_default_avatar(session.get('username', 'User')) }}" alt="profile" data-user-name="{{ session.get('username', 'User') }}" onerror="this.src='{{ generate_default_avatar(session.get('username', 'User')) }}'">
+                    <div class="user-info">
+                        <div class="user-name">{{ session.get('username', 'User') }}</div>
+                        <div class="user-role">{{ session.get('role', 'user') }}</div>
+                    </div>
+                    <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
+                    <div class="user-dropdown" id="userdropdown">
+                        <div class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>view profile</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-edit"></i>
+                            <span>edit profile</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>settings</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-bell"></i>
+                            <span>notifications</span>
+                        </div>
+                        <div class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>logout</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="hamburger">
                     <div class="line1"></div>
                     <div class="line2"></div>
@@ -60,43 +89,36 @@
                     <label>University</label>
                     <select id="universityFilter">
                         <option value="">All Universities</option>
-                        <option value="harvard">Harvard University</option>
-                        <option value="mit">MIT</option>
-                        <option value="stanford">Stanford University</option>
-                        <option value="berkeley">UC Berkeley</option>
+                        {% for university in universities %}
+                        <option value="{{ university }}">{{ university }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="filter-group">
                     <label>Graduation Year</label>
                     <select id="yearFilter">
                         <option value="">All Years</option>
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
-                        <option value="2021">2021</option>
-                        <option value="2020">2020</option>
+                        {% for year in graduation_years %}
+                        <option value="{{ year }}">{{ year }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label>Industry</label>
-                    <select id="industryFilter">
-                        <option value="">All Industries</option>
-                        <option value="technology">Technology</option>
-                        <option value="finance">Finance</option>
-                        <option value="healthcare">Healthcare</option>
-                        <option value="consulting">Consulting</option>
-                        <option value="education">Education</option>
+                    <label>Role</label>
+                    <select id="roleFilter">
+                        <option value="">All Roles</option>
+                        <option value="student">Student</option>
+                        <option value="alumni">Alumni</option>
+                        <option value="admin">Admin</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label>Location</label>
                     <select id="locationFilter">
                         <option value="">All Locations</option>
-                        <option value="new-york">New York, NY</option>
-                        <option value="san-francisco">San Francisco, CA</option>
-                        <option value="boston">Boston, MA</option>
-                        <option value="chicago">Chicago, IL</option>
-                        <option value="remote">Remote</option>
+                        {% for location in locations %}
+                        <option value="{{ location }}">{{ location }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -201,10 +223,10 @@
                 <div class="footer-links">
                     <h3>Quick Links</h3>
                     <ul>
-                        <li><a href="#" data-section="home">Home</a></li>
-                        <li><a href="#" class="active">Connect</a></li>
-                        <li><a href="#" data-section="jobs">Job Board</a></li>
-                        <li><a href="#" data-section="events">Events</a></li>
+                        <li><a href="{{ url_for('home') }}">Home</a></li>
+                        <li><a href="{{ url_for('connect') }}" class="active">Connect</a></li>
+                        <li><a href="{{ url_for('channels') }}">Channels</a></li>
+                        <li><a href="{{ url_for('chat_list') }}">Chat</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
@@ -220,7 +242,7 @@
                     <h3>Support</h3>
                     <ul>
                         <li><a href="#">Help Center</a></li>
-                        <li><a href="#" data-section="contact">Contact Us</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
                         <li><a href="#">Privacy Policy</a></li>
                         <li><a href="#">Terms of Service</a></li>
                     </ul>
@@ -230,6 +252,259 @@
         </div>
     </footer>
 
-    <script src="../static/js/connect.js"></script>
+    <!-- Pass data to JavaScript -->
+    <script>
+        window.connectData = {
+            people: {{ people | tojson }},
+            universities: {{ universities | tojson }},
+            graduationYears: {{ graduation_years | tojson }},
+            locations: {{ locations | tojson }}
+        };
+    </script>
+    <style>
+        /* Enhanced Search Results Styling */
+        .search-results-info {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin: 1rem auto;
+            max-width: 800px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #6D28D9;
+            display: none;
+            position: relative;
+            z-index: 10;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .search-results-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #4b5563;
+        }
+
+        .search-results-content i {
+            color: #6D28D9;
+            font-size: 1.1rem;
+        }
+
+        .search-results-content strong {
+            color: #1f2937;
+        }
+
+        .search-results-content em {
+            color: #6D28D9;
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .clear-search-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .clear-search-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        /* Enhanced search input styling */
+        #searchInput {
+            transition: all 0.3s ease;
+        }
+
+        #searchInput:focus {
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.1);
+            border-color: #6D28D9;
+        }
+
+        /* Hero section spacing adjustment for search results */
+        .hero {
+            padding-bottom: 2rem;
+            min-height: auto;
+        }
+
+        /* Search container positioning */
+        .search-container {
+            position: relative;
+            margin-bottom: 1rem;
+            z-index: 20;
+        }
+
+        /* Ensure search results are immediately visible */
+        .search-results-info {
+            position: sticky;
+            top: 80px; /* Below fixed header */
+            z-index: 15;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Mobile responsive search results */
+        @media (max-width: 768px) {
+            .search-results-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.75rem;
+            }
+
+            .clear-search-btn {
+                margin-left: 0;
+                align-self: center;
+            }
+
+            .search-results-info {
+                margin: 0.5rem 1rem;
+                padding: 0.75rem 1rem;
+            }
+        }
+
+        /* User Profile Dropdown Styles */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-left: 1rem;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            line-height: 1.2;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: capitalize;
+            line-height: 1.2;
+        }
+
+        .dropdown-arrow {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background: #f3f4f6;
+            color: #6D28D9;
+        }
+
+        .dropdown-item i {
+            width: 16px;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item#logoutBtn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .user-profile {
+                margin-left: 0;
+                padding: 0.5rem;
+            }
+            
+            .user-info {
+                display: none;
+            }
+            
+            .user-dropdown {
+                right: -50px;
+                min-width: 180px;
+            }
+        }
+    </style>
+    <script src="{{ url_for('static', filename='js/connect.js') }}"></script>
 </body>
 </html>
