@@ -131,6 +131,54 @@ function initializeNavigation() {
         });
     }
 }
+// Handle request approval/rejection for demo
+function handleRequest(button, action) {
+    const requestCard = button.closest('.request-card');
+    const userName = requestCard.querySelector('h3').textContent;
+    const pendingCountElement = document.getElementById('pending-count');
+    const requestsGrid = document.getElementById('requests-grid');
+    const emptyState = document.getElementById('empty-state');
+    
+    // Show confirmation with animation
+    requestCard.style.transform = 'scale(0.95)';
+    requestCard.style.opacity = '0.7';
+    
+    // Show notification
+    const message = action === 'approve' ? 
+        `${userName} has been approved successfully!` : 
+        `${userName}'s request has been rejected.`;
+    showNotification(message, action === 'approve' ? 'success' : 'error');
+    
+    // Remove the card after animation
+    setTimeout(() => {
+        requestCard.remove();
+        
+        // Update pending count
+        const currentCount = parseInt(pendingCountElement.textContent);
+        const newCount = Math.max(0, currentCount - 1);
+        pendingCountElement.textContent = newCount;
+        
+        // Show empty state if no more requests
+        const remainingCards = requestsGrid.querySelectorAll('.request-card');
+        if (remainingCards.length === 0) {
+            emptyState.style.display = 'block';
+        }
+        
+        // Update filter buttons to reflect new counts
+        updateFilterCounts();
+    }, 300);
+}
+
+// Update filter button counts
+function updateFilterCounts() {
+    const allCards = document.querySelectorAll('.request-card');
+    const studentCards = document.querySelectorAll('.request-card[data-role="student"]');
+    const alumniCards = document.querySelectorAll('.request-card[data-role="alumni"]');
+    
+    // You could update button text to show counts if desired
+    // Example: "Students (3)", "Alumni (2)", etc.
+}
+
 // Show coming soon alert
 function showComingSoon() {
     alert('This feature is coming soon!');
