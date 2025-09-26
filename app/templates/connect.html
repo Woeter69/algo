@@ -23,10 +23,13 @@
                     <li><a href="{{ url_for('user_dashboard') }}" class="nav-signup">Dashboard</a></li>
                 </ul>
                 <div class="user-profile" id="userprofile">
-                    <img src="{{ session.get('pfp_path', '') or generate_default_avatar(session.get('username', 'User')) }}" alt="profile" data-user-name="{{ session.get('username', 'User') }}" onerror="this.src='{{ generate_default_avatar(session.get('username', 'User')) }}'">
+                    {% set user_full_name = (current_user[1] or '') + ' ' + (current_user[2] or '') if current_user else session.get('username', 'User') %}
+                    {% set user_pfp = current_user[4] if current_user else session.get('pfp_path', '') %}
+                    {% set user_role = current_user[3] if current_user else session.get('role', 'user') %}
+                    <img src="{% if user_pfp %}{{ user_pfp }}{% else %}{{ generate_default_avatar(user_full_name) }}{% endif %}" alt="profile" data-user-name="{{ user_full_name }}" onerror="this.src='{{ generate_default_avatar(user_full_name) }}'">
                     <div class="user-info">
-                        <div class="user-name">{{ session.get('username', 'User') }}</div>
-                        <div class="user-role">{{ session.get('role', 'user') }}</div>
+                        <div class="user-name">{{ user_full_name.strip() if user_full_name.strip() else current_user[0] if current_user else session.get('username', 'User') }}</div>
+                        <div class="user-role">{{ user_role.title() if user_role else 'User' }}</div>
                     </div>
                     <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
                     <div class="user-dropdown" id="userdropdown">

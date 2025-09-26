@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
         graduationYear: person.graduation_year || person.graduationYear,
         location: person.location,
         role: person.role,
-        avatar: person.avatar || generateDefaultAvatar(person.name),
+        avatar: person.avatar ? person.avatar : generateDefaultAvatar(person.name),
         skills: person.interests || person.skills || [],
         connectionStatus: person.connection_status || person.connectionStatus || "none",
         connection_id: person.connection_id || null,
