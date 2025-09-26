@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - ALGO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/settings.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="{{ url_for('home') }}" class="logo">algo</a>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('connect') }}">Connect</a></li>
+                    <li><a href="{{ url_for('requests') }}">Requests</a></li>
+                    <li><a href="{{ url_for('chat_list') }}">Chat</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('channels') }}">Channels</a></li>
+                </ul>
+                <div class="user-profile" id="userprofile">
+                    <img src="{% if session.pfp_path %}{{ session.pfp_path }}{% else %}{{ generate_default_avatar(session.username) }}{% endif %}" alt="profile" onerror="this.src='{{ generate_default_avatar(session.username) }}'">
+                    <div class="user-info">
+                        <div class="user-name">{{ session.username }}</div>
+                        <div class="user-role">{{ session.role }}</div>
+                    </div>
+                    <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
+                    <div class="user-dropdown" id="userdropdown">
+                        <div class="dropdown-item" onclick="window.location.href='{{ url_for('profile', username=session.username) }}'">
+                            <i class="fas fa-user"></i>
+                            <span>View Profile</span>
+                        </div>
+                        <div class="dropdown-item" onclick="window.location.href='{{ url_for('complete_profile') }}'">
+                            <i class="fas fa-edit"></i>
+                            <span>Edit Profile</span>
+                        </div>
+                        <div class="dropdown-item active">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </div>
+                        <div class="dropdown-item" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hamburger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="settings-main">
+        <div class="settings-container">
+            <div class="settings-sidebar">
+                <h2>Settings</h2>
+                <nav class="settings-nav">
+                    <a href="#account" class="nav-item active" data-section="account">
+                        <i class="fas fa-user"></i>
+                        Account Settings
+                    </a>
+                    <a href="#privacy" class="nav-item" data-section="privacy">
+                        <i class="fas fa-info-circle"></i>
+                        Account Information
+                    </a>
+                    <a href="#notifications" class="nav-item" data-section="notifications">
+                        <i class="fas fa-cog"></i>
+                        Preferences
+                    </a>
+                    <a href="#security" class="nav-item" data-section="security">
+                        <i class="fas fa-lock"></i>
+                        Security
+                    </a>
+                    <a href="#preferences" class="nav-item" data-section="preferences">
+                        <i class="fas fa-database"></i>
+                        Data & Export
+                    </a>
+                    <a href="#data" class="nav-item" data-section="data">
+                        <i class="fas fa-question-circle"></i>
+                        Help & Support
+                    </a>
+                </nav>
+            </div>
+
+            <div class="settings-content">
+                <!-- Account Settings -->
+                <section id="account" class="settings-section active">
+                    <div class="section-header">
+                        <h3>Account Settings</h3>
+                        <p>Manage your basic account information</p>
+                    </div>
+
+                    <form class="settings-form" id="accountForm">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" value="{{ user_data.email if user_data else '' }}" readonly>
+                            <small>Contact support to change your email address</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" value="{{ user_data.username if user_data else '' }}">
+                            <small>This is how others will find you on ALGO</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName">First Name</label>
+                                <input type="text" id="firstName" name="firstName" value="{{ user_data.firstname if user_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" value="{{ user_data.lastname if user_data else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="university">University</label>
+                                <input type="text" id="university" name="university" value="{{ user_data.university_name if user_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="department">Department</label>
+                                <input type="text" id="department" name="department" value="{{ user_data.department if user_data else '' }}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="college">College</label>
+                                <input type="text" id="college" name="college" value="{{ user_data.college if user_data else '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="graduationYear">Graduation Year</label>
+                                <input type="number" id="graduationYear" name="graduationYear" value="{{ user_data.graduation_year if user_data else '' }}" min="1950" max="2030">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="currentCity">Current City</label>
+                            <input type="text" id="currentCity" name="currentCity" value="{{ user_data.current_city if user_data else '' }}">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetForm('accountForm')">Reset</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Account Information -->
+                <section id="privacy" class="settings-section">
+                    <div class="section-header">
+                        <h3>Account Information</h3>
+                        <p>View your account details and role information</p>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-item">
+                            <div class="info-label">Account Role</div>
+                            <div class="info-value">{{ user_data.role.title() if user_data.role else 'Unverified' }}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Registration Date</div>
+                            <div class="info-value">{{ user_data.registration_date.strftime('%B %d, %Y') if user_data and user_data.registration_date else 'N/A' }}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Last Login</div>
+                            <div class="info-value">{{ user_data.last_login.strftime('%B %d, %Y at %I:%M %p') if user_data and user_data.last_login else 'N/A' }}</div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-label">Login Count</div>
+                            <div class="info-value">{{ user_data.login_count if user_data else 0 }} times</div>
+                        </div>
+                        
+                        {% if user_data.community_id %}
+                        <div class="info-item">
+                            <div class="info-label">Community ID</div>
+                            <div class="info-value">{{ user_data.community_id }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- Preferences -->
+                <section id="notifications" class="settings-section">
+                    <div class="section-header">
+                        <h3>Preferences</h3>
+                        <p>Customize your ALGO experience</p>
+                    </div>
+
+                    <form class="settings-form" id="preferencesForm">
+                        <div class="form-group">
+                            <label>Theme</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="theme" value="light" checked>
+                                    <span class="radio-custom"></span>
+                                    <div class="radio-content">
+                                        <strong>Light</strong>
+                                        <small>Light theme</small>
+                                    </div>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="theme" value="dark">
+                                    <span class="radio-custom"></span>
+                                    <div class="radio-content">
+                                        <strong>Dark</strong>
+                                        <small>Dark theme</small>
+                                    </div>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="theme" value="auto">
+                                    <span class="radio-custom"></span>
+                                    <div class="radio-content">
+                                        <strong>Auto</strong>
+                                        <small>Follow system preference</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="language">Language</label>
+                            <select id="language" name="language">
+                                <option value="en" selected>English</option>
+                                <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Preferences</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Security Settings -->
+                <section id="security" class="settings-section">
+                    <div class="section-header">
+                        <h3>Security Settings</h3>
+                        <p>Manage your account security and password</p>
+                    </div>
+
+                    <form class="settings-form" id="securityForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" name="currentPassword" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" name="newPassword" required>
+                            <small>Password must be at least 8 characters long</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Data & Export -->
+                <section id="preferences" class="settings-section">
+                    <div class="section-header">
+                        <h3>Data & Export</h3>
+                        <p>Manage your data and account</p>
+                    </div>
+
+                    <div class="data-section">
+                        <h4>Export Your Data</h4>
+                        <p>Download a copy of your ALGO data including profile information and connections.</p>
+                        <button class="btn btn-secondary" onclick="exportData()">
+                            <i class="fas fa-download"></i>
+                            Export Data
+                        </button>
+                    </div>
+
+                    <div class="data-section danger-zone">
+                        <h4>Danger Zone</h4>
+                        <div class="danger-item">
+                            <div class="danger-info">
+                                <strong>Delete Account</strong>
+                                <small>Permanently delete your account and all associated data. This action cannot be undone.</small>
+                            </div>
+                            <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Help & Support -->
+                <section id="data" class="settings-section">
+                    <div class="section-header">
+                        <h3>Help & Support</h3>
+                        <p>Get help and contact support</p>
+                    </div>
+
+                    <div class="data-section">
+                        <h4>Need Help?</h4>
+                        <p>If you have questions or need assistance, feel free to contact our support team.</p>
+                        <button class="btn btn-secondary" onclick="window.location.href='{{ url_for('contact') }}'">
+                            <i class="fas fa-envelope"></i>
+                            Contact Support
+                        </button>
+                    </div>
+
+                    <div class="data-section">
+                        <h4>Account Actions</h4>
+                        <button class="btn btn-secondary" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+
+</html>
