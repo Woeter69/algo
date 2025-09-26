@@ -28,10 +28,13 @@
                     <li><a href="{{ url_for('user_dashboard') }}" class="nav-signup">Dashboard</a></li>
                 </ul>
                 <div class="user-profile" id="userprofile">
-                    <img src="{{ session.get('pfp_path', '') or generate_default_avatar(session.get('username', 'User')) }}" alt="profile" data-user-name="{{ session.get('username', 'User') }}" onerror="this.src='{{ generate_default_avatar(session.get('username', 'User')) }}'">
+                    {% set profile_user_name = (user_data[1] or '') + ' ' + (user_data[2] or '') if user_data else session.get('username', 'User') %}
+                    {% set profile_user_pfp = user_data[11] if user_data else session.get('pfp_path', '') %}
+                    {% set profile_user_role = user_data[13] if user_data else session.get('role', 'user') %}
+                    <img src="{% if profile_user_pfp %}{{ profile_user_pfp }}{% else %}{{ generate_default_avatar(profile_user_name) }}{% endif %}" alt="profile" data-user-name="{{ profile_user_name }}" onerror="this.src='{{ generate_default_avatar(profile_user_name) }}'">
                     <div class="user-info">
-                        <div class="user-name">{{ session.get('username', 'User') }}</div>
-                        <div class="user-role">{{ session.get('role', 'user') }}</div>
+                        <div class="user-name">{{ profile_user_name.strip() if profile_user_name.strip() else user_data[4] if user_data else session.get('username', 'User') }}</div>
+                        <div class="user-role">{{ profile_user_role.title() if profile_user_role else 'User' }}</div>
                     </div>
                     <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
                     <div class="user-dropdown" id="userdropdown">
@@ -73,8 +76,8 @@
             <div class="profile-header">
                 <div class="profile-cover">
                     <div class="profile-avatar has-placeholder" id="profileAvatarContainer">
-                        {% set profile_pic = user_data[11] or generate_default_avatar((user_data[1] or '') + ' ' + (user_data[2] or '')) %}
-                        <img alt="Profile Picture" id="profilePicture" src="{{ profile_pic }}" 
+                        <img alt="Profile Picture" id="profilePicture" 
+                             src="{% if user_data[11] %}{{ user_data[11] }}{% else %}{{ generate_default_avatar((user_data[1] or '') + ' ' + (user_data[2] or '')) }}{% endif %}" 
                              onerror="this.src='{{ generate_default_avatar((user_data[1] or '') + ' ' + (user_data[2] or '')) }}'" 
                              style="display: block;">
                         <div class="avatar-placeholder" id="avatarPlaceholder" style="display: none;">

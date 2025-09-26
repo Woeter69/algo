@@ -483,11 +483,6 @@ def user_dashboard():
 def channels():
     return render_template("channels.html")
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    flash("You have been logged out successfully.")
-    return redirect(url_for('home'))
 
 @app.route("/chat")
 @app.route("/chat_list")
@@ -1091,6 +1086,10 @@ def requests():
         mydb = get_db_connection()
         cur = mydb.cursor()
         
+        # Get current user info
+        cur.execute("SELECT username, firstname, lastname, role, pfp_path FROM users WHERE user_id = %s", (user_id,))
+        current_user = cur.fetchone()
+        
         # Get pending incoming requests (where current user is the target)
         cur.execute("""
             SELECT c.connection_id, c.user_id, c.request, c.created_at,
@@ -1182,7 +1181,8 @@ def requests():
                              pending_requests=pending_requests,
                              sent_requests=sent_requests,
                              connections=connections,
-                             connections_count=connections_count)
+                             connections_count=connections_count,
+                             current_user=current_user)
         
     except Exception as e:
         app.logger.error(f"Error in requests route: {str(e)}")
@@ -1208,7 +1208,7 @@ def connect():
         cur = mydb.cursor()
         
         # Get current user info
-        cur.execute("SELECT username, university_name, graduation_year, current_city FROM users WHERE user_id = %s", (user_id,))
+        cur.execute("SELECT username, firstname, lastname, role, pfp_path, university_name, graduation_year, current_city FROM users WHERE user_id = %s", (user_id,))
         current_user = cur.fetchone()
         
         # Get all users except current user with their details

@@ -28,7 +28,7 @@
                     <li><a href="{{ url_for('channels') }}">channels</a></li>
                 </ul>
                 <div class="user-profile" id="userprofile">
-                    <img src="{{pfp_path}}" alt="profile">
+                    <img src="{% if pfp_path %}{{ pfp_path }}{% else %}{{ generate_default_avatar(username) }}{% endif %}" alt="profile" onerror="this.src='{{ generate_default_avatar(username) }}'">
                     <div class="user-info">
                         <div class="user-name">{{username}}</div>
                         <div class="user-role">{{role}}</div>
@@ -210,7 +210,7 @@
         <section class="profile-section">
             <div class="container">
                 <div class="profile-card">
-                    <img src="{{pfp_path}}" alt="Profile Picture" class="profile-avatar">
+                    <img src="{% if pfp_path %}{{ pfp_path }}{% else %}{{ generate_default_avatar(username) }}{% endif %}" alt="Profile Picture" class="profile-avatar" onerror="this.src='{{ generate_default_avatar(username) }}'">
                     <h3 class="profile-name">{{username}}</h3>
                     <p class="profile-role">{{role}}</p>
                     <p class="profile-bio">Building connections and creating opportunities in the alumni network.</p>
