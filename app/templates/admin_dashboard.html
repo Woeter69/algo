@@ -22,12 +22,6 @@
                     <li><a href="#" data-section="jobs">Job Board</a></li>
                     <li><a href="#" data-section="events">Events</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    {% if session.role == 'admin' %}
-                    <li><a href="{{ url_for('admin_dashboard') }}" class="nav-signup">Admin</a></li>
-                    {% else %}
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
-                    {% endif %}
                 </ul>
                 <div class="hamburger">
                     <div class="line1"></div>
