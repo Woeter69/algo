@@ -1551,7 +1551,6 @@ def settings():
                 'last_login': user_data[14],
                 'login_count': user_data[15],
                 # Default values for settings not in database
-                'phone': '',
                 'bio': '',
                 'profile_visibility': 'public',
                 'email_notifications': True,
@@ -1561,7 +1560,6 @@ def settings():
                 'twitter': '',
                 'website': '',
                 'show_email': False,
-                'show_phone': False,
                 'allow_messages': True
             }
         else:
