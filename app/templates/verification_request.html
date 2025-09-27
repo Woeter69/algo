@@ -41,32 +41,7 @@
                     <p>Get verified to access college-specific features and connect with your alumni network</p>
                 </div>
 
-                {% if current_request %}
-                <div class="current-request-status">
-                    <div class="status-card {{ current_request.status }}">
-                        <div class="status-icon">
-                            {% if current_request.status == 'pending' %}
-                                <i class="fas fa-clock"></i>
-                            {% elif current_request.status == 'approved' %}
-                                <i class="fas fa-check-circle"></i>
-                            {% else %}
-                                <i class="fas fa-times-circle"></i>
-                            {% endif %}
-                        </div>
-                        <div class="status-info">
-                            <h3>Current Request Status: {{ current_request.status.title() }}</h3>
-                            <p><strong>College:</strong> {{ current_request.college_name }}</p>
-                            <p><strong>Requested Role:</strong> {{ current_request.requested_role.title() }}</p>
-                            <p><strong>Submitted:</strong> {{ current_request.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
-                            {% if current_request.review_notes %}
-                                <p><strong>Admin Notes:</strong> {{ current_request.review_notes }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if not current_request or current_request.status == 'rejected' %}
+                <!-- Simplified form - no current request status display for now -->
                 <form method="POST" class="verification-form">
                     <div class="form-section">
                         <h3><i class="fas fa-university"></i> College Information</h3>
@@ -75,9 +50,7 @@
                             <label for="college_id">Select Your College *</label>
                             <select id="college_id" name="college_id" required>
                                 <option value="">Choose your college...</option>
-                                {% for college in colleges %}
-                                <option value="{{ college.id }}">{{ college.name }} ({{ college.location }})</option>
-                                {% endfor %}
+                                <option value="1">Sample University (Sample Location)</option>
                             </select>
                         </div>
 
@@ -85,8 +58,8 @@
                             <label for="requested_role">I am a *</label>
                             <select id="requested_role" name="requested_role" required>
                                 <option value="">Select your status...</option>
-                                <option value="student">Current Student</option>
-                                <option value="alumni">Alumni/Graduate</option>
+                                <option value="student" {% if form_data.requested_role == 'student' %}selected{% endif %}>Current Student</option>
+                                <option value="alumni" {% if form_data.requested_role == 'alumni' %}selected{% endif %}>Alumni/Graduate</option>
                             </select>
                         </div>
                     </div>
@@ -106,7 +79,7 @@
                                 <select id="graduation_year" name="graduation_year" required>
                                     <option value="">Select year...</option>
                                     {% for year in range(1980, 2031) %}
-                                    <option value="{{ year }}" {% if year == 2024 %}selected{% endif %}>{{ year }}</option>
+                                    <option value="{{ year }}" {% if form_data.graduation_year and form_data.graduation_year|string == year|string %}selected{% elif year == 2024 and not form_data.graduation_year %}selected{% endif %}>{{ year }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -149,17 +122,13 @@
                         Submit Verification Request
                     </button>
                 </form>
-                {% endif %}
 
-                {% if current_request and current_request.status == 'pending' %}
-                <div class="pending-actions">
-                    <p>Your verification request is being reviewed. You'll receive an email notification once it's processed.</p>
+                <div class="form-actions">
                     <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         Back to Dashboard
                     </a>
                 </div>
-                {% endif %}
             </div>
         </div>
     </section>
