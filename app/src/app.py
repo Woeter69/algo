@@ -332,8 +332,8 @@ def complete_profile():
             
             mydb.commit()
             
-            # Redirect to limited dashboard instead of interests
-            return redirect(url_for("limited_dashboard"))
+            # Redirect to interests page to complete profile setup
+            return redirect(url_for("interests"))
         return render_template('complete_profile.html',cities=cities,cutoff_date=cutoff_date)
     except Exception as e:
             app.logger.error(f"Error during register: {str(e)}")
@@ -432,7 +432,7 @@ def interests():
             mydb.commit()
            
 
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("user_dashboard"))
         return render_template("interests.html",db_interests=db_interests)
     
     except Exception as e:

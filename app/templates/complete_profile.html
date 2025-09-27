@@ -67,25 +67,6 @@
                     <h3><i class="fas fa-user"></i> Personal Information</h3>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>First Name</label>
-                        <div class="readonly-field">
-                            <span class="readonly-value">{{ firstname }}</span>
-                            <small class="readonly-note">This was set during registration and cannot be changed</small>
-                        </div>
-                        <input type="hidden" name="first_name" value="{{ firstname }}">
-                    </div>
-                    <div class="form-group">
-                        <label>Last Name</label>
-                        <div class="readonly-field">
-                            <span class="readonly-value">{{ lastname }}</span>
-                            <small class="readonly-note">This was set during registration and cannot be changed</small>
-                        </div>
-                        <input type="hidden" name="last_name" value="{{ lastname }}">
-                    </div>
-                </div>
-
                 <div class="form-group">
                     <label for="dob">Date of Birth *</label>
                     <input type="date" id="dob" name="dob" required max="{{cutoff_date}}">
