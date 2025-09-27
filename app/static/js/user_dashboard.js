@@ -1,5 +1,5 @@
 // Dashboard TypeScript - User Dashboard functionality
-// 🎉 TEST: This line was added to show TS → JS compilation!
+console.log('🚀 User Dashboard TypeScript loaded!');
 // Dashboard Carousel/Slider Functionality
 let currentSlideIndex = 0;
 const slides = document.querySelectorAll('.slide');
@@ -44,12 +44,12 @@ if (hamburger && navLinks) {
     });
 }
 // Close mobile menu when clicking on a nav link
-links.forEach(link => {
+links.forEach((link) => {
     link.addEventListener('click', () => {
         if (navLinks && hamburger) {
             navLinks.classList.remove('open');
             hamburger.classList.remove('toggle');
-            links.forEach(link => {
+            links.forEach((link) => {
                 link.style.animation = '';
             });
         }
@@ -67,7 +67,9 @@ const userProfile = document.getElementById('userprofile');
 const userDropdown = document.getElementById('userdropdown');
 const dropdownArrow = document.getElementById('dropdownarrow');
 if (userProfile && userDropdown && dropdownArrow) {
+    console.log('✅ Dashboard dropdown elements found, adding event listeners...');
     userProfile.addEventListener('click', (e) => {
+        console.log('🖱️ Dashboard dropdown clicked!');
         e.stopPropagation();
         userDropdown.classList.toggle('show');
         dropdownArrow.classList.toggle('rotated');
@@ -81,7 +83,7 @@ if (userProfile && userDropdown && dropdownArrow) {
     });
     // Handle dropdown item clicks with proper typing
     const dropdownItems = document.querySelectorAll('.dropdown-item');
-    dropdownItems.forEach(item => {
+    dropdownItems.forEach((item) => {
         item.addEventListener('click', (e) => {
             e.stopPropagation();
             const spanElement = item.querySelector('span');
@@ -89,7 +91,7 @@ if (userProfile && userDropdown && dropdownArrow) {
             switch (text) {
                 case 'view profile':
                     console.log('View Profile clicked');
-                    // Add your view profile logic here
+                    window.location.href = '/profile';
                     break;
                 case 'edit profile':
                     console.log('Edit Profile clicked');
@@ -97,11 +99,15 @@ if (userProfile && userDropdown && dropdownArrow) {
                     break;
                 case 'settings':
                     console.log('Settings clicked');
-                    // Add your settings logic here
+                    window.location.href = '/settings';
+                    break;
+                case 'change password':
+                    console.log('Change Password clicked');
+                    window.location.href = '/forgot-password';
                     break;
                 case 'notifications':
-                    console.log('Chat TypeScript initialization complete');
-                    console.log('🎉 TEST: This was added to TypeScript file!');
+                    console.log('Dashboard TypeScript initialization complete');
+                    console.log('🎉 TypeScript dropdown functionality working!');
                     // Add your notifications logic here
                     break;
                 case 'logout':
@@ -134,7 +140,7 @@ if (logoutBtn) {
 }
 // Action card animations with proper typing
 const actionCards = document.querySelectorAll('.action-card');
-actionCards.forEach(card => {
+actionCards.forEach((card) => {
     card.addEventListener('mouseenter', function () {
         this.style.transform = 'translateY(-10px) scale(1.02)';
     });

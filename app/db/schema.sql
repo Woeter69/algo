@@ -34,6 +34,17 @@ CREATE TABLE verification_tokens (
     expiry TIMESTAMP NOT NULL
 );
 
+CREATE TABLE password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    email TEXT NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    expiry TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 CREATE TABLE interests (
     interest_id SERIAL PRIMARY KEY,
     name TEXT UNIQUE NOT NULL

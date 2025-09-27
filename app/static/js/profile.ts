@@ -196,6 +196,10 @@ document.addEventListener('DOMContentLoaded', function (): void {
                     case 'settings':
                         window.location.href = '/settings';
                         break;
+                    case 'change password':
+                        console.log('Change Password clicked from profile');
+                        window.location.href = '/forgot-password';
+                        break;
                     case 'notifications':
                         console.log('Notifications clicked');
                         // Add notifications logic here

@@ -21,8 +21,33 @@
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact</a></li>
                     <li><a href="{{ url_for('profile_redirect') }}">Profile</a></li>
-                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 </ul>
+                <div class="user-profile" id="userprofile">
+                    <img src="{% if user.pfp_path %}{{ user.pfp_path }}{% else %}{{ generate_default_avatar(user.username) }}{% endif %}" alt="profile" onerror="this.src='{{ generate_default_avatar(user.username) }}'">
+                    <div class="user-info">
+                        <div class="user-name">{{ user.username }}</div>
+                        <div class="user-role">{{ user.role.title() if user.role else 'User' }}</div>
+                    </div>
+                    <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
+                    <div class="user-dropdown" id="userdropdown">
+                        <div class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>view profile</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-key"></i>
+                            <span>change password</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>settings</span>
+                        </div>
+                        <div class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>logout</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="hamburger">
                     <div class="line1"></div>
                     <div class="line2"></div>
@@ -307,6 +332,200 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/limited_dashboard.js') }}"></script>
+    
+    <!-- User Dropdown Styles -->
+    <style>
+        /* User Profile Dropdown Styles */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-left: 1rem;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1f2937;
+            line-height: 1.2;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: capitalize;
+            line-height: 1.2;
+        }
+
+        .dropdown-arrow {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-arrow.rotated {
+            transform: rotate(180deg);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem 0;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .user-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background: #f3f4f6;
+            color: #6D28D9;
+        }
+
+        .dropdown-item i {
+            width: 16px;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item#logoutBtn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .user-profile {
+                margin-left: 0;
+                padding: 0.4rem 0.8rem;
+                gap: 0.5rem;
+            }
+            
+            .user-info {
+                display: flex;
+            }
+            
+            .user-name {
+                font-size: 0.8rem;
+            }
+            
+            .user-role {
+                font-size: 0.7rem;
+            }
+            
+            .user-dropdown {
+                right: -1rem;
+            }
+        }
+    </style>
+
+    <script>
+        // User Profile Dropdown functionality for Limited Dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            const userProfile = document.getElementById('userprofile');
+            const userDropdown = document.getElementById('userdropdown');
+            const dropdownArrow = document.getElementById('dropdownarrow');
+            
+            if (userProfile && userDropdown && dropdownArrow) {
+                console.log('✅ Limited Dashboard dropdown elements found');
+                
+                userProfile.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('show');
+                    dropdownArrow.classList.toggle('rotated');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!userProfile.contains(e.target)) {
+                        userDropdown.classList.remove('show');
+                        dropdownArrow.classList.remove('rotated');
+                    }
+                });
+                
+                // Handle dropdown item clicks
+                const dropdownItems = document.querySelectorAll('.dropdown-item');
+                dropdownItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const spanElement = item.querySelector('span');
+                        const text = spanElement?.textContent?.toLowerCase() || '';
+                        
+                        switch (text) {
+                            case 'view profile':
+                                window.location.href = '/profile';
+                                break;
+                            case 'change password':
+                                window.location.href = '/forgot-password';
+                                break;
+                            case 'settings':
+                                window.location.href = '/settings';
+                                break;
+                            case 'logout':
+                                if (confirm('Are you sure you want to logout?')) {
+                                    window.location.href = '/logout';
+                                }
+                                break;
+                            default:
+                                console.log('Unknown dropdown item:', text);
+                        }
+                        
+                        // Close dropdown after click
+                        userDropdown.classList.remove('show');
+                        dropdownArrow.classList.remove('rotated');
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
