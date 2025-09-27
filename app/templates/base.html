@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- This block allows child templates to set their own page titles -->
+    <!-- If no title is provided, it defaults to "algo - Alumni Network" -->
+    <title>{% block title %}Algo - Alumni Network{% endblock %}</title>
+    
+    <!-- Add any common CSS files here that all pages will use -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- This block allows child templates to add their own CSS files -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Add any common meta tags, favicon, etc. here -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <!-- HEADER SECTION - This will appear on every page -->
+    <header>
+        <div class="container">
+            <nav>
+                <!-- Logo/Brand name -->
+                <a href="{{ url_for('home') }}" class="logo" id="home-link">algo</a>
+                
+                <!-- Main navigation menu -->
+                <ul class="nav-links">
+                    <!-- 
+                        Using url_for() ensures that links work correctly even if route names change
+                        The 'active' class can be conditionally applied based on current page
+                    -->
+                    <li><a href="{{ url_for('home') }}" 
+                           class="{% if request.endpoint == 'home' %}active{% endif %}" 
+                           data-section="home">Home</a></li>
+                    
+                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                    <li><a href="#" data-section="jobs">Job Board</a></li>
+                    <li><a href="#" data-section="events">Events</a></li>
+                    
+                    <li><a href="{{ url_for('contact') }}" 
+                           class="{% if request.endpoint == 'contact' %}active{% endif %}">Contact Us</a></li>
+                    
+                    <li><a href="{{ url_for('about') }}" 
+                           class="{% if request.endpoint == 'about' %}active{% endif %}">About Us</a></li>
+                    
+                    <!-- Authentication links - these could be made conditional based on user login status -->
+                    <li><a href="{{ url_for('login') }}" 
+                           class="{% if request.endpoint == 'login' %}active{% endif %}">Loda</a></li>
+                    
+                    <li><a href="{{ url_for('register') }}" 
+                           class="nav-signup {% if request.endpoint == 'register' %}active{% endif %}">Sign Up</a></li>
+                </ul>
+                
+                <!-- Mobile hamburger menu -->
+                <div class="hamburger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <!-- This is where child templates will insert their unique content -->
+    <main>
+        <!-- 
+            Flash messages block - displays success/error messages from Flask
+            This is optional but very useful for user feedback
+        -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                            <button type="button" class="close" onclick="this.parentElement.style.display='none';">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- 
+            This is the main content block where child templates will put their content
+            Child templates MUST define this block to display their content
+        -->
+        {% block content %}
+        <!-- Default content if child template doesn't define content block -->
+        <div class="container">
+            <h1>Welcome to algo Alumni Network</h1>
+            <p>This is the base template. Child templates should override the content block.</p>
+        </div>
+        {% endblock %}
+    </main>
+
+    <!-- FOOTER SECTION - This will appear on every page -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo">algo</span>
+                    <p>Connecting students and alumni for career growth and opportunities.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                            target="_blank"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#" data-section="home">Home</a></li>
+                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                        <li><a href="#" data-section="jobs">Job Board</a></li>
+                        <li><a href="#" data-section="events">Events</a></li>
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Career Tips</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Common JavaScript files that all pages will use -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- This block allows child templates to add their own JavaScript -->
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

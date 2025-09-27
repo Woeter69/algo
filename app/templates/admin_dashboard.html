@@ -229,4 +229,155 @@
     <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
 </body>
 
+                            </div>
+                            <div class="detail-item">
+                                <strong>Graduation Year:</strong> 2018
+                            </div>
+                            <div class="detail-item">
+                                <strong>Current Position:</strong> Resident Physician at Mass General
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="btn-approve" onclick="handleRequest(this, 'approve')">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn-reject" onclick="handleRequest(this, 'reject')">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Fake Request 5 -->
+                    <div class="request-card" data-role="student">
+                        <div class="request-header">
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <img src="https://ui-avatars.com/api/?name=Jessica+Park&background=8b5cf6&color=fff&size=50" alt="Jessica Park">
+                                </div>
+                                <div class="user-details">
+                                    <h3>Jessica Park</h3>
+                                    <p class="user-email">j.park@caltech.edu</p>
+                                    <span class="role-badge student">Student</span>
+                                </div>
+                            </div>
+                            <div class="request-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>1 hour ago</span>
+                            </div>
+                        </div>
+                        <div class="request-details">
+                            <div class="detail-item">
+                                <strong>University:</strong> California Institute of Technology
+                            </div>
+                            <div class="detail-item">
+                                <strong>Department:</strong> Physics
+                            </div>
+                            <div class="detail-item">
+                                <strong>Graduation Year:</strong> 2026
+                            </div>
+                            <div class="detail-item">
+                                <strong>Student ID:</strong> CIT2022PH012
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="btn-approve" onclick="handleRequest(this, 'approve')">
+                                <i class="fas fa-check"></i> Approve
+                            </button>
+                            <button class="btn-reject" onclick="handleRequest(this, 'reject')">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </div>
+                    </div>
+
+                <!-- Empty state when no requests -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>All caught up!</h3>
+                    <p>No pending verification requests at the moment.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REVIEW MODAL -->
+    <div class="modal-overlay" id="reviewModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Review Request</h3>
+                <button class="modal-close" onclick="closeReviewModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form id="reviewForm" method="POST">
+                    <input type="hidden" id="requestId" name="request_id">
+                    <input type="hidden" id="action" name="action">
+                    
+                    <div class="form-group">
+                        <label for="reviewNotes">Review Notes (Optional)</label>
+                        <textarea id="reviewNotes" name="review_notes" rows="4" 
+                                  placeholder="Add any notes for the user..."></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeReviewModal()">Cancel</button>
+                        <button type="submit" class="btn" id="submitBtn">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo">algo</span>
+                    <p>Connecting students and alumni for career growth and opportunities.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#" data-section="home">Home</a></li>
+                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                        <li><a href="#" data-section="jobs">Job Board</a></li>
+                        <li><a href="#" data-section="events">Events</a></li>
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Career Tips</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+</body>
+
 </html>
