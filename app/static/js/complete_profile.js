@@ -155,6 +155,37 @@ requiredFields.forEach(field => {
         }
     });
 });
+// Role field toggling functionality
+function toggleRoleFields() {
+    const roleSelect = document.getElementById('role');
+    const studentFields = document.getElementById('student-fields');
+    const alumniFields = document.getElementById('alumni-fields');
+    const staffFields = document.getElementById('staff-fields');
+    
+    // Hide all role-specific fields first
+    studentFields.style.display = 'none';
+    alumniFields.style.display = 'none';
+    staffFields.style.display = 'none';
+    
+    // Clear required attributes from all role-specific fields
+    document.getElementById('student-id').removeAttribute('required');
+    document.getElementById('employee-id').removeAttribute('required');
+    document.getElementById('department-role').removeAttribute('required');
+    
+    // Show relevant fields based on selected role
+    const selectedRole = roleSelect.value;
+    if (selectedRole === 'student') {
+        studentFields.style.display = 'block';
+        document.getElementById('student-id').setAttribute('required', 'required');
+    } else if (selectedRole === 'alumni') {
+        alumniFields.style.display = 'block';
+    } else if (selectedRole === 'staff') {
+        staffFields.style.display = 'block';
+        document.getElementById('employee-id').setAttribute('required', 'required');
+        document.getElementById('department-role').setAttribute('required', 'required');
+    }
+}
+
 // Helper functions
 function showFieldError(field, message) {
     clearFieldError(field);

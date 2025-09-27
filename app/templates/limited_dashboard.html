@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to ALGO - Limited Access</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/limited_dashboard.css') }}">
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="{{ url_for('home') }}" class="logo">algo</a>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="{{ url_for('about') }}">About Us</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                    <li><a href="{{ url_for('profile_redirect') }}">Profile</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                </ul>
+                <div class="hamburger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- WELCOME SECTION -->
+    <section class="welcome-section">
+        <div class="container">
+            <div class="welcome-content">
+                <div class="welcome-header">
+                    <h1>Welcome to ALGO, {{ user.firstname }}!</h1>
+                    <p>Your profile is complete, but you need verification to access full features.</p>
+                </div>
+                
+                <div class="verification-status">
+                    <div class="status-card pending">
+                        <div class="status-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="status-info">
+                            <h3>Verification Pending</h3>
+                            <p>Your role as <strong>{{ user.role.title() }}</strong> needs admin verification</p>
+                            {% if verification_request %}
+                                <small>Request submitted {{ verification_request.created_at.strftime('%B %d, %Y') }}</small>
+                            {% else %}
+                                <a href="{{ url_for('verification_request') }}" class="verify-btn">
+                                    <i class="fas fa-user-check"></i>
+                                    Request Verification
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PREVIEW FEATURES SECTION -->
+    <section class="preview-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Explore ALGO Features</h2>
+                <p>Here's what you'll have access to once verified</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Alumni Network -->
+                <div class="feature-card locked">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                        <div class="lock-overlay">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Alumni Network</h3>
+                        <p>Connect with alumni from your college and build professional relationships.</p>
+                        <div class="feature-stats">
+                            <span><i class="fas fa-user-graduate"></i> 1,200+ Alumni</span>
+                            <span><i class="fas fa-building"></i> 50+ Companies</span>
+                        </div>
+                    </div>
+                    <div class="unlock-badge">Requires Verification</div>
+                </div>
+
+                <!-- Job Board -->
+                <div class="feature-card locked">
+                    <div class="feature-icon">
+                        <i class="fas fa-briefcase"></i>
+                        <div class="lock-overlay">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Exclusive Job Board</h3>
+                        <p>Access job opportunities shared by alumni and partner companies.</p>
+                        <div class="feature-stats">
+                            <span><i class="fas fa-clipboard-list"></i> 150+ Jobs</span>
+                            <span><i class="fas fa-handshake"></i> Direct Referrals</span>
+                        </div>
+                    </div>
+                    <div class="unlock-badge">Requires Verification</div>
+                </div>
+
+                <!-- Mentorship -->
+                <div class="feature-card locked">
+                    <div class="feature-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <div class="lock-overlay">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Mentorship Program</h3>
+                        <p>Get guidance from experienced alumni in your field of interest.</p>
+                        <div class="feature-stats">
+                            <span><i class="fas fa-user-tie"></i> 300+ Mentors</span>
+                            <span><i class="fas fa-star"></i> 4.8/5 Rating</span>
+                        </div>
+                    </div>
+                    <div class="unlock-badge">Requires Verification</div>
+                </div>
+
+                <!-- Events -->
+                <div class="feature-card locked">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="lock-overlay">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Networking Events</h3>
+                        <p>Join exclusive events, workshops, and networking sessions.</p>
+                        <div class="feature-stats">
+                            <span><i class="fas fa-calendar-check"></i> Weekly Events</span>
+                            <span><i class="fas fa-users"></i> 500+ Attendees</span>
+                        </div>
+                    </div>
+                    <div class="unlock-badge">Requires Verification</div>
+                </div>
+
+                <!-- Chat System -->
+                <div class="feature-card locked">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                        <div class="lock-overlay">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Direct Messaging</h3>
+                        <p>Chat directly with alumni and build meaningful connections.</p>
+                        <div class="feature-stats">
+                            <span><i class="fas fa-bolt"></i> Real-time Chat</span>
+                            <span><i class="fas fa-image"></i> File Sharing</span>
+                        </div>
+                    </div>
+                    <div class="unlock-badge">Requires Verification</div>
+                </div>
+
+                <!-- Community Channels -->
+                <div class="feature-card locked">
+                    <div class="feature-icon">
+                        <i class="fas fa-hashtag"></i>
+                        <div class="lock-overlay">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="feature-content">
+                        <h3>Community Channels</h3>
+                        <p>Join topic-based discussions and stay updated with college news.</p>
+                        <div class="feature-stats">
+                            <span><i class="fas fa-comments"></i> 25+ Channels</span>
+                            <span><i class="fas fa-fire"></i> Active Community</span>
+                        </div>
+                    </div>
+                    <div class="unlock-badge">Requires Verification</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AVAILABLE FEATURES SECTION -->
+    <section class="available-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Available Now</h2>
+                <p>Features you can access while waiting for verification</p>
+            </div>
+
+            <div class="available-grid">
+                <div class="available-card">
+                    <div class="available-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="available-content">
+                        <h3>Profile Management</h3>
+                        <p>Update your profile information, skills, and preferences.</p>
+                        <a href="{{ url_for('profile_redirect') }}" class="action-btn">
+                            <i class="fas fa-edit"></i>
+                            Edit Profile
+                        </a>
+                    </div>
+                </div>
+
+                <div class="available-card">
+                    <div class="available-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="available-content">
+                        <h3>Platform Information</h3>
+                        <p>Learn more about ALGO and how it can help your career.</p>
+                        <a href="{{ url_for('about') }}" class="action-btn">
+                            <i class="fas fa-arrow-right"></i>
+                            Learn More
+                        </a>
+                    </div>
+                </div>
+
+                <div class="available-card">
+                    <div class="available-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="available-content">
+                        <h3>Support & Help</h3>
+                        <p>Get help with your account or ask questions about verification.</p>
+                        <a href="{{ url_for('contact') }}" class="action-btn">
+                            <i class="fas fa-envelope"></i>
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VERIFICATION CTA SECTION -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <div class="cta-text">
+                    <h2>Ready to Get Verified?</h2>
+                    <p>Submit your verification request to unlock all ALGO features and start networking with your alumni community.</p>
+                </div>
+                {% if not verification_request %}
+                <div class="cta-action">
+                    <a href="{{ url_for('verification_request') }}" class="cta-btn">
+                        <i class="fas fa-user-check"></i>
+                        Request Verification Now
+                    </a>
+                </div>
+                {% else %}
+                <div class="cta-action">
+                    <div class="pending-message">
+                        <i class="fas fa-clock"></i>
+                        <span>Verification request submitted. We'll notify you once reviewed!</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo">algo</span>
+                    <p>Connecting students and alumni for career growth and opportunities.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="{{ url_for('home') }}">Home</a></li>
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="{{ url_for('contact') }}">Help Center</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/limited_dashboard.js') }}"></script>
+</body>
+
+</html>

@@ -131,52 +131,81 @@ function initializeNavigation() {
         });
     }
 }
-// Handle request approval/rejection for demo
-function handleRequest(button, action) {
-    const requestCard = button.closest('.request-card');
+// Handle request approval/rejection
+function handleRequest(requestId, action) {
+    const requestCard = document.querySelector(`[onclick*="'${requestId}'"]`).closest('.request-card');
     const userName = requestCard.querySelector('h3').textContent;
-    const pendingCountElement = document.getElementById('pending-count');
-    const requestsGrid = document.getElementById('requests-grid');
-    const emptyState = document.getElementById('empty-state');
     
-    // Show confirmation with animation
-    requestCard.style.transform = 'scale(0.95)';
-    requestCard.style.opacity = '0.7';
-    
-    // Show notification
-    const message = action === 'approve' ? 
-        `${userName} has been approved successfully!` : 
-        `${userName}'s request has been rejected.`;
-    showNotification(message, action === 'approve' ? 'success' : 'error');
-    
-    // Remove the card after animation
-    setTimeout(() => {
-        requestCard.remove();
-        
-        // Update pending count
-        const currentCount = parseInt(pendingCountElement.textContent);
-        const newCount = Math.max(0, currentCount - 1);
-        pendingCountElement.textContent = newCount;
-        
-        // Show empty state if no more requests
-        const remainingCards = requestsGrid.querySelectorAll('.request-card');
-        if (remainingCards.length === 0) {
-            emptyState.style.display = 'block';
-        }
-        
-        // Update filter buttons to reflect new counts
-        updateFilterCounts();
-    }, 300);
+    // Show modal for confirmation
+    showReviewModal(requestId, action, userName);
 }
+
+// Handle form submission for verification requests
+function handleVerificationSubmission() {
+    const form = document.getElementById('reviewForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const requestId = formData.get('request_id');
+        const action = formData.get('action');
+        const reviewNotes = formData.get('review_notes');
+        
+        // Show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Processing...';
+        submitBtn.disabled = true;
+        
+        // Submit to backend
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(() => {
+            // Success - reload page to show updated data
+            const message = action === 'approve' ? 
+                `${userName} has been approved successfully!` : 
+                `${userName}'s request has been rejected.`;
+            showNotification(message, action === 'approve' ? 'success' : 'error');
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred. Please try again.', 'error');
+            
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+}
+
+// Initialize form submission handler
+document.addEventListener('DOMContentLoaded', function() {
+    handleVerificationSubmission();
+});
 
 // Update filter button counts
 function updateFilterCounts() {
     const allCards = document.querySelectorAll('.request-card');
     const studentCards = document.querySelectorAll('.request-card[data-role="student"]');
     const alumniCards = document.querySelectorAll('.request-card[data-role="alumni"]');
+    const staffCards = document.querySelectorAll('.request-card[data-role="staff"]');
     
     // You could update button text to show counts if desired
-    // Example: "Students (3)", "Alumni (2)", etc.
+    // Example: "Students (3)", "Alumni (2)", "Staff (1)", etc.
 }
 
 // Show coming soon alert

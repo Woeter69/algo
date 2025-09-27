@@ -193,6 +193,14 @@ def complete_profile():
             first_name = request.form.get("first_name", "")
             last_name = request.form.get("last_name", "")
             dob = request.form["dob"]
+            bio = request.form.get("bio", "")
+            
+            # Role Information
+            role = request.form.get("role")
+            student_id = request.form.get("student_id", "")
+            alumni_id = request.form.get("alumni_id", "")
+            employee_id = request.form.get("employee_id", "")
+            department_role = request.form.get("department_role", "")
             
             # Education Information
             uni_name = request.form["uni_name"]
@@ -244,15 +252,29 @@ def complete_profile():
             cur = mydb.cursor()
             user_id = session.get('user_id')
 
-            # Update users table with basic info
+            # Validate role selection
+            if not role or role not in ['student', 'alumni', 'staff']:
+                return render_template("complete_profile.html", cities=cities, cutoff_date=cutoff_date, 
+                                     error="Please select a valid role")
+            
+            # Validate role-specific fields
+            if role == 'student' and not student_id:
+                return render_template("complete_profile.html", cities=cities, cutoff_date=cutoff_date,
+                                     error="Student ID is required for student role")
+            elif role == 'staff' and (not employee_id or not department_role):
+                return render_template("complete_profile.html", cities=cities, cutoff_date=cutoff_date,
+                                     error="Employee ID and Department/Position are required for staff role")
+
+            # Update users table with basic info and role
             cur.execute("""
                 UPDATE users SET 
                     firstname=%s, lastname=%s, dob=%s,
                     university_name=%s, college=%s, graduation_year=%s, current_city=%s, 
-                    pfp_path=%s
+                    pfp_path=%s, role=%s, student_id=%s, alumni_id=%s, employee_id=%s, 
+                    department_role=%s, verification_status='pending'
                 WHERE user_id=%s
             """, (first_name, last_name, dob, uni_name, clg_name, grad_year, city, 
-                  pfp_url, user_id))
+                  pfp_url, role, student_id, alumni_id, employee_id, department_role, user_id))
 
             # Insert education details if provided
             if degree or major or gpa:
@@ -305,8 +327,14 @@ def complete_profile():
             if first_name and last_name:
                 session['username'] = f"{first_name} {last_name}"
 
+            # Update session with role information
+            session['role'] = role
+            session['verification_status'] = 'pending'
+            
             mydb.commit()
-            return redirect(url_for("interests"))
+            
+            # Redirect to limited dashboard instead of interests
+            return redirect(url_for("limited_dashboard"))
         return render_template('complete_profile.html',cities=cities,cutoff_date=cutoff_date)
     except Exception as e:
             app.logger.error(f"Error during register: {str(e)}")
@@ -473,18 +501,83 @@ def user_dashboard():
 
     mydb = get_db_connection()
     cur = mydb.cursor()
-    cur.execute("SELECT username, role, pfp_path FROM users WHERE user_id = %s", (user_id,))
+    cur.execute("SELECT username, role, pfp_path, verification_status FROM users WHERE user_id = %s", (user_id,))
     row = cur.fetchone()
     cur.close()
     mydb.close()
 
-    username, role, pfp_path = row
+    username, role, pfp_path, verification_status = row
+    
+    # Redirect unverified users to limited dashboard
+    if role == 'unverified' or verification_status == 'pending':
+        return redirect(url_for('limited_dashboard'))
 
     return render_template("user_dashboard.html", username=username,role=role,pfp_path=pfp_path)
 
 
+@app.route("/limited_dashboard", methods=["GET"])
+@validators.login_required
+def limited_dashboard():
+    """Dashboard for unverified users with limited access"""
+    user_id = session['user_id']
+    
+    mydb = get_db_connection()
+    cur = mydb.cursor()
+    
+    try:
+        # Get user information
+        cur.execute("""
+            SELECT firstname, lastname, role, verification_status, pfp_path 
+            FROM users WHERE user_id = %s
+        """, (user_id,))
+        user_row = cur.fetchone()
+        
+        if not user_row:
+            flash("User not found", "error")
+            return redirect(url_for('login'))
+        
+        user = {
+            'firstname': user_row[0],
+            'lastname': user_row[1],
+            'role': user_row[2],
+            'verification_status': user_row[3],
+            'pfp_path': user_row[4]
+        }
+        
+        # Check if user has a pending verification request
+        cur.execute("""
+            SELECT request_id, created_at FROM verification_requests 
+            WHERE user_id = %s AND status = 'pending'
+            ORDER BY created_at DESC LIMIT 1
+        """, (user_id,))
+        verification_request = cur.fetchone()
+        
+        verification_req = None
+        if verification_request:
+            verification_req = {
+                'request_id': verification_request[0],
+                'created_at': verification_request[1]
+            }
+        
+        return render_template("limited_dashboard.html", 
+                             user=user, 
+                             verification_request=verification_req)
+    
+    except Exception as e:
+        app.logger.error(f"Error in limited_dashboard: {str(e)}")
+        flash("An error occurred loading the dashboard.", 'error')
+        return redirect(url_for('home'))
+    
+    finally:
+        if cur:
+            cur.close()
+        if mydb:
+            mydb.close()
+
+
 @app.route("/channels", methods=["GET","POST"])
 @validators.login_required
+@verified_user_required
 def channels():
     return render_template("channels.html")
 
@@ -492,6 +585,7 @@ def channels():
 @app.route("/chat")
 @app.route("/chat_list")
 @validators.login_required
+@verified_user_required
 def chat_list():
     user_id = session['user_id']
     mydb = get_db_connection()
@@ -909,15 +1003,28 @@ def verification_request():
     """Handle verification requests from users"""
     try:
         user_id = session['user_id']
-        
-        # Check if user already has a pending request
         mydb = get_db_connection()
         cur = mydb.cursor()
         
+        # Get user's current role and info
+        cur.execute("""
+            SELECT role, student_id, alumni_id, employee_id, department_role, 
+                   university_name, graduation_year, department
+            FROM users WHERE user_id = %s
+        """, (user_id,))
+        user_info = cur.fetchone()
+        
+        if not user_info:
+            flash("User information not found", "error")
+            return redirect(url_for('limited_dashboard'))
+        
+        user_role, student_id, alumni_id, employee_id, dept_role, uni_name, grad_year, department = user_info
+        
+        # Check if user already has a request
         cur.execute("""
             SELECT vr.request_id, vr.status, vr.created_at, vr.review_notes, c.name, vr.requested_role
             FROM verification_requests vr
-            JOIN communities c ON vr.community_id = c.community_id
+            LEFT JOIN communities c ON vr.community_id = c.community_id
             WHERE vr.user_id = %s AND vr.status IN ('pending', 'approved')
             ORDER BY vr.created_at DESC LIMIT 1
         """, (user_id,))
@@ -931,34 +1038,44 @@ def verification_request():
                 'status': current_request[1],
                 'created_at': current_request[2],
                 'review_notes': current_request[3],
-                'college_name': current_request[4],
+                'college_name': current_request[4] or 'Not specified',
                 'requested_role': current_request[5]
             }
         
         if request.method == 'POST':
-            community_id = request.form.get('community_id')
-            requested_role = request.form.get('requested_role')
-            student_id = request.form.get('student_id')
-            graduation_year = request.form.get('graduation_year')
-            department = request.form.get('department')
+            community_id = request.form.get('college_id')
+            requested_role = user_role  # Use the role from profile completion
+            verification_id = student_id or alumni_id or employee_id
+            graduation_year = request.form.get('graduation_year') or grad_year
+            department_name = request.form.get('department') or department
             request_message = request.form.get('request_message')
             
             success, message = submit_verification_request(
-                user_id, community_id, requested_role, student_id,
-                graduation_year, department, request_message
+                user_id, community_id, requested_role, verification_id,
+                graduation_year, department_name, request_message
             )
             
             if success:
                 flash(message, 'success')
-                return redirect(url_for('verification_request'))
+                return redirect(url_for('limited_dashboard'))
             else:
                 flash(message, 'error')
         
         communities = get_communities()
         
+        # Pre-fill form data from user profile
+        form_data = {
+            'requested_role': user_role,
+            'student_id': student_id or alumni_id or employee_id,
+            'graduation_year': grad_year,
+            'department': department,
+            'university_name': uni_name
+        }
+        
         return render_template('verification_request.html', 
                              communities=communities, 
-                             current_request=current_request_data)
+                             current_request=current_request_data,
+                             form_data=form_data)
         
     except Exception as e:
         app.logger.error(f"Error in verification_request: {str(e)}")
@@ -1202,6 +1319,7 @@ def requests():
 
 @app.route("/connect")
 @validators.login_required
+@verified_user_required
 def connect():
     """Connect page - show alumni for networking"""
     user_id = session['user_id']
@@ -1316,6 +1434,7 @@ def connect():
 
 @app.route("/api/send_connection_request", methods=["POST"])
 @validators.login_required
+@verified_user_required
 def send_connection_request():
     """Send a connection request to another user"""
     try:

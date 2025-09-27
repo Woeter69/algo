@@ -47,7 +47,7 @@
                             <i class="fas fa-clock"></i>
                         </div>
                         <div class="stat-info">
-                            <h3 id="pending-count">5</h3>
+                            <h3 id="pending-count">{{ pending_count }}</h3>
                             <p>Pending Requests</p>
                         </div>
                     </div>
@@ -56,7 +56,7 @@
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>247</h3>
+                            <h3>{{ total_verified }}</h3>
                             <p>Verified Users</p>
                         </div>
                     </div>
@@ -71,228 +71,81 @@
                         <button class="filter-btn active" data-filter="all">All</button>
                         <button class="filter-btn" data-filter="student">Students</button>
                         <button class="filter-btn" data-filter="alumni">Alumni</button>
+                        <button class="filter-btn" data-filter="staff">Staff</button>
                     </div>
                 </div>
 
                 <div class="requests-grid" id="requests-grid">
-                    <!-- Fake Request 1 -->
-                    <div class="request-card" data-role="student">
-                        <div class="request-header">
-                            <div class="user-info">
-                                <div class="user-avatar">
-                                    <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=667eea&color=fff&size=50" alt="Sarah Johnson">
+                    {% if pending_requests %}
+                        {% for request in pending_requests %}
+                        <div class="request-card" data-role="{{ request.requested_role }}">
+                            <div class="request-header">
+                                <div class="user-info">
+                                    <div class="user-avatar">
+                                        {% if request.pfp_path %}
+                                            <img src="{{ request.pfp_path }}" alt="{{ request.username }}">
+                                        {% else %}
+                                            <img src="https://ui-avatars.com/api/?name={{ request.username|replace(' ', '+') }}&background=667eea&color=fff&size=50" alt="{{ request.username }}">
+                                        {% endif %}
+                                    </div>
+                                    <div class="user-details">
+                                        <h3>{{ request.username }}</h3>
+                                        <p class="user-email">{{ request.email }}</p>
+                                        <span class="role-badge {{ request.requested_role }}">{{ request.requested_role.title() }}</span>
+                                    </div>
                                 </div>
-                                <div class="user-details">
-                                    <h3>Sarah Johnson</h3>
-                                    <p class="user-email">sarah.johnson@mit.edu</p>
-                                    <span class="role-badge student">Student</span>
-                                </div>
-                            </div>
-                            <div class="request-date">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>2 days ago</span>
-                            </div>
-                        </div>
-                        <div class="request-details">
-                            <div class="detail-item">
-                                <strong>University:</strong> Massachusetts Institute of Technology
-                            </div>
-                            <div class="detail-item">
-                                <strong>Department:</strong> Computer Science
-                            </div>
-                            <div class="detail-item">
-                                <strong>Graduation Year:</strong> 2025
-                            </div>
-                            <div class="detail-item">
-                                <strong>Student ID:</strong> MIT2021CS001
-                            </div>
-                        </div>
-                        <div class="request-actions">
-                            <button class="btn-approve" onclick="handleRequest(this, 'approve')">
-                                <i class="fas fa-check"></i> Approve
-                            </button>
-                            <button class="btn-reject" onclick="handleRequest(this, 'reject')">
-                                <i class="fas fa-times"></i> Reject
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Fake Request 2 -->
-                    <div class="request-card" data-role="alumni">
-                        <div class="request-header">
-                            <div class="user-info">
-                                <div class="user-avatar">
-                                    <img src="https://ui-avatars.com/api/?name=Michael+Chen&background=f093fb&color=fff&size=50" alt="Michael Chen">
-                                </div>
-                                <div class="user-details">
-                                    <h3>Michael Chen</h3>
-                                    <p class="user-email">m.chen@stanford.edu</p>
-                                    <span class="role-badge alumni">Alumni</span>
+                                <div class="request-date">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>{{ request.created_at.strftime('%b %d, %Y') }}</span>
                                 </div>
                             </div>
-                            <div class="request-date">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>1 day ago</span>
-                            </div>
-                        </div>
-                        <div class="request-details">
-                            <div class="detail-item">
-                                <strong>University:</strong> Stanford University
-                            </div>
-                            <div class="detail-item">
-                                <strong>Department:</strong> Electrical Engineering
-                            </div>
-                            <div class="detail-item">
-                                <strong>Graduation Year:</strong> 2019
-                            </div>
-                            <div class="detail-item">
-                                <strong>Current Position:</strong> Senior Software Engineer at Google
-                            </div>
-                        </div>
-                        <div class="request-actions">
-                            <button class="btn-approve" onclick="handleRequest(this, 'approve')">
-                                <i class="fas fa-check"></i> Approve
-                            </button>
-                            <button class="btn-reject" onclick="handleRequest(this, 'reject')">
-                                <i class="fas fa-times"></i> Reject
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Fake Request 3 -->
-                    <div class="request-card" data-role="student">
-                        <div class="request-header">
-                            <div class="user-info">
-                                <div class="user-avatar">
-                                    <img src="https://ui-avatars.com/api/?name=Emily+Rodriguez&background=34d399&color=fff&size=50" alt="Emily Rodriguez">
+                            <div class="request-details">
+                                <div class="detail-item">
+                                    <strong>University:</strong> {{ request.community_name or 'Not specified' }}
                                 </div>
-                                <div class="user-details">
-                                    <h3>Emily Rodriguez</h3>
-                                    <p class="user-email">emily.r@berkeley.edu</p>
-                                    <span class="role-badge student">Student</span>
+                                {% if request.department %}
+                                <div class="detail-item">
+                                    <strong>Department:</strong> {{ request.department }}
                                 </div>
-                            </div>
-                            <div class="request-date">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>3 hours ago</span>
-                            </div>
-                        </div>
-                        <div class="request-details">
-                            <div class="detail-item">
-                                <strong>University:</strong> UC Berkeley
-                            </div>
-                            <div class="detail-item">
-                                <strong>Department:</strong> Business Administration
-                            </div>
-                            <div class="detail-item">
-                                <strong>Graduation Year:</strong> 2024
-                            </div>
-                            <div class="detail-item">
-                                <strong>Student ID:</strong> UCB2020BA045
-                            </div>
-                        </div>
-                        <div class="request-actions">
-                            <button class="btn-approve" onclick="handleRequest(this, 'approve')">
-                                <i class="fas fa-check"></i> Approve
-                            </button>
-                            <button class="btn-reject" onclick="handleRequest(this, 'reject')">
-                                <i class="fas fa-times"></i> Reject
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Fake Request 4 -->
-                    <div class="request-card" data-role="alumni">
-                        <div class="request-header">
-                            <div class="user-info">
-                                <div class="user-avatar">
-                                    <img src="https://ui-avatars.com/api/?name=David+Kumar&background=fbbf24&color=fff&size=50" alt="David Kumar">
+                                {% endif %}
+                                {% if request.graduation_year %}
+                                <div class="detail-item">
+                                    <strong>Graduation Year:</strong> {{ request.graduation_year }}
                                 </div>
-                                <div class="user-details">
-                                    <h3>David Kumar</h3>
-                                    <p class="user-email">d.kumar@harvard.edu</p>
-                                    <span class="role-badge alumni">Alumni</span>
+                                {% endif %}
+                                {% if request.verification_id %}
+                                <div class="detail-item">
+                                    <strong>{% if request.requested_role == 'student' %}Student ID{% elif request.requested_role == 'alumni' %}Alumni ID{% else %}Employee ID{% endif %}:</strong> {{ request.verification_id }}
                                 </div>
-                            </div>
-                            <div class="request-date">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>5 hours ago</span>
-                            </div>
-                        </div>
-                        <div class="request-details">
-                            <div class="detail-item">
-                                <strong>University:</strong> Harvard University
-                            </div>
-                            <div class="detail-item">
-                                <strong>Department:</strong> Medicine
-                            </div>
-                            <div class="detail-item">
-                                <strong>Graduation Year:</strong> 2018
-                            </div>
-                            <div class="detail-item">
-                                <strong>Current Position:</strong> Resident Physician at Mass General
-                            </div>
-                        </div>
-                        <div class="request-actions">
-                            <button class="btn-approve" onclick="handleRequest(this, 'approve')">
-                                <i class="fas fa-check"></i> Approve
-                            </button>
-                            <button class="btn-reject" onclick="handleRequest(this, 'reject')">
-                                <i class="fas fa-times"></i> Reject
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Fake Request 5 -->
-                    <div class="request-card" data-role="student">
-                        <div class="request-header">
-                            <div class="user-info">
-                                <div class="user-avatar">
-                                    <img src="https://ui-avatars.com/api/?name=Jessica+Park&background=8b5cf6&color=fff&size=50" alt="Jessica Park">
+                                {% endif %}
+                                {% if request.message %}
+                                <div class="detail-item">
+                                    <strong>Message:</strong> {{ request.message }}
                                 </div>
-                                <div class="user-details">
-                                    <h3>Jessica Park</h3>
-                                    <p class="user-email">j.park@caltech.edu</p>
-                                    <span class="role-badge student">Student</span>
-                                </div>
+                                {% endif %}
                             </div>
-                            <div class="request-date">
-                                <i class="fas fa-calendar-alt"></i>
-                                <span>1 hour ago</span>
-                            </div>
-                        </div>
-                        <div class="request-details">
-                            <div class="detail-item">
-                                <strong>University:</strong> California Institute of Technology
-                            </div>
-                            <div class="detail-item">
-                                <strong>Department:</strong> Physics
-                            </div>
-                            <div class="detail-item">
-                                <strong>Graduation Year:</strong> 2026
-                            </div>
-                            <div class="detail-item">
-                                <strong>Student ID:</strong> CIT2022PH012
+                            <div class="request-actions">
+                                <button class="btn-approve" onclick="handleRequest('{{ request.id }}', 'approve')">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn-reject" onclick="handleRequest('{{ request.id }}', 'reject')">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
                             </div>
                         </div>
-                        <div class="request-actions">
-                            <button class="btn-approve" onclick="handleRequest(this, 'approve')">
-                                <i class="fas fa-check"></i> Approve
-                            </button>
-                            <button class="btn-reject" onclick="handleRequest(this, 'reject')">
-                                <i class="fas fa-times"></i> Reject
-                            </button>
-                        </div>
-                    </div>
+                        {% endfor %}
+                    {% endif %}
 
                 <!-- Empty state when no requests -->
-                <div class="empty-state" id="empty-state" style="display: none;">
+                {% if not pending_requests %}
+                <div class="empty-state" id="empty-state">
                     <div class="empty-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <h3>All caught up!</h3>
                     <p>No pending verification requests at the moment.</p>
                 </div>
+                {% endif %}
             </div>
         </div>
     </section>
