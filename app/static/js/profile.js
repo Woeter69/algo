@@ -1,6 +1,8 @@
 // @ts-nocheck
 // Profile JavaScript functionality
+console.log('🚀 Profile.js loaded!');
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('📄 DOM Content Loaded - Profile page initialized');
     // Mobile navigation
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
@@ -446,6 +448,90 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         return true;
     }
+    // User Profile Dropdown functionality
+    console.log('🔍 Initializing dropdown functionality...');
+    const userProfile = document.getElementById('userprofile');
+    const userDropdown = document.getElementById('userdropdown');
+    const dropdownArrow = document.getElementById('dropdownarrow');
+    
+    console.log('🔍 Elements found:', {
+        userProfile: !!userProfile,
+        userDropdown: !!userDropdown,
+        dropdownArrow: !!dropdownArrow
+    });
+    
+    if (userProfile && userDropdown && dropdownArrow) {
+        console.log('✅ Dropdown elements found, adding event listeners...');
+        userProfile.addEventListener('click', (e) => {
+            console.log('🖱️ Dropdown clicked!');
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+            dropdownArrow.classList.toggle('rotated');
+            console.log('🔄 Dropdown classes toggled, show class:', userDropdown.classList.contains('show'));
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userProfile.contains(e.target)) {
+                userDropdown.classList.remove('show');
+                dropdownArrow.classList.remove('rotated');
+            }
+        });
+        
+        // Handle dropdown item clicks
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const spanElement = item.querySelector('span');
+                const text = spanElement?.textContent?.toLowerCase() || '';
+                
+                switch (text) {
+                    case 'view profile':
+                        window.location.href = '/profile';
+                        break;
+                    case 'edit profile':
+                        // Open the edit modal if we're on our own profile
+                        if (editBtn && modal) {
+                            modal.classList.add('active');
+                            document.body.style.overflow = 'hidden';
+                        }
+                        break;
+                    case 'settings':
+                        window.location.href = '/settings';
+                        break;
+                    case 'notifications':
+                        console.log('Notifications clicked');
+                        // Add notifications logic here
+                        break;
+                    case 'logout':
+                        if (confirm('Are you sure you want to logout?')) {
+                            window.location.href = '/logout';
+                        }
+                        break;
+                    default:
+                        console.log('Unknown dropdown item:', text);
+                }
+                
+                // Close dropdown after click
+                userDropdown.classList.remove('show');
+                dropdownArrow.classList.remove('rotated');
+            });
+        });
+    }
+    
+    // Direct logout button handler (backup)
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        });
+    }
+
     // Add error styles
     const style = document.createElement('style');
     style.textContent = `

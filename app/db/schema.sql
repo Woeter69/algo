@@ -81,11 +81,12 @@ CREATE TABLE connections (
 CREATE TABLE education_details (
     detail_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
-    degree_type TEXT CHECK (degree_type IN ('Bachelors','Masters','PHD','Doctorate')) NOT NULL,
+    degree_type TEXT CHECK (degree_type IN ('Bachelors','Masters','PHD','Doctorate','B Tech','M Tech','B.E.','M.E.','B.Sc.','M.Sc.','BCA','MCA','MBA','BBA','Diploma')) NOT NULL,
     university_name TEXT NOT NULL,
     college_name TEXT,
     major TEXT NOT NULL,
     graduation_year INT,
+    gpa DECIMAL(3,2),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 

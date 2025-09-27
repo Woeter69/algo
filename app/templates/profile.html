@@ -28,13 +28,13 @@
                     <li><a href="{{ url_for('user_dashboard') }}" class="nav-signup">Dashboard</a></li>
                 </ul>
                 <div class="user-profile" id="userprofile">
-                    {% set profile_user_name = (user_data[1] or '') + ' ' + (user_data[2] or '') if user_data else session.get('username', 'User') %}
-                    {% set profile_user_pfp = user_data[11] if user_data else session.get('pfp_path', '') %}
-                    {% set profile_user_role = user_data[13] if user_data else session.get('role', 'user') %}
-                    <img src="{% if profile_user_pfp %}{{ profile_user_pfp }}{% else %}{{ generate_default_avatar(profile_user_name) }}{% endif %}" alt="profile" data-user-name="{{ profile_user_name }}" onerror="this.src='{{ generate_default_avatar(profile_user_name) }}'">
+                    {% set current_user_name = session.get('username', 'User') %}
+                    {% set current_user_pfp = session.get('pfp_path', '') %}
+                    {% set current_user_role = session.get('role', 'user') %}
+                    <img src="{% if current_user_pfp %}{{ current_user_pfp }}{% else %}{{ generate_default_avatar(current_user_name) }}{% endif %}" alt="profile" data-user-name="{{ current_user_name }}" onerror="this.src='{{ generate_default_avatar(current_user_name) }}'">
                     <div class="user-info">
-                        <div class="user-name">{{ profile_user_name.strip() if profile_user_name.strip() else user_data[4] if user_data else session.get('username', 'User') }}</div>
-                        <div class="user-role">{{ profile_user_role.title() if profile_user_role else 'User' }}</div>
+                        <div class="user-name">{{ current_user_name }}</div>
+                        <div class="user-role">{{ current_user_role.title() if current_user_role else 'User' }}</div>
                     </div>
                     <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
                     <div class="user-dropdown" id="userdropdown">
@@ -78,7 +78,7 @@
                     <div class="profile-avatar has-placeholder" id="profileAvatarContainer">
                         <img alt="Profile Picture" id="profilePicture" 
                              src="{% if user_data[11] %}{{ user_data[11] }}{% else %}{{ generate_default_avatar((user_data[1] or '') + ' ' + (user_data[2] or '')) }}{% endif %}" 
-                             onerror="this.src='{{ generate_default_avatar((user_data[1] or '') + ' ' + (user_data[2] or '')) }}'" 
+                             onerror="handleImageError(this)" 
                              style="display: block;">
                         <div class="avatar-placeholder" id="avatarPlaceholder" style="display: none;">
                             <i class="fas fa-user"></i>
@@ -579,7 +579,13 @@
         </div>
     </footer>
 
-    <script src="../static/js/profile.js"></script>
+    <script src="{{ url_for('static', filename='js/profile.ts') }}" type="module"></script>
+    <script>
+        function handleImageError(img) {
+            img.onerror = null; // Prevent infinite loop
+            img.src = '{{ generate_default_avatar("Profile User") }}';
+        }
+    </script>
     
     <!-- User Dropdown Styles -->
     <style>
@@ -658,7 +664,7 @@
             margin-top: 0.5rem;
         }
 
-        .user-dropdown.active {
+        .user-dropdown.show {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);

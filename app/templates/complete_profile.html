@@ -122,8 +122,24 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="degree">Degree *</label>
-                        <input type="text" id="degree" name="degree" required
-                            placeholder="e.g., Bachelor of Science, Master of Arts">
+                        <select id="degree" name="degree" required>
+                            <option value="" disabled selected>Select your degree</option>
+                            <option value="Bachelors">Bachelor's Degree</option>
+                            <option value="B Tech">B.Tech (Bachelor of Technology)</option>
+                            <option value="B.E.">B.E. (Bachelor of Engineering)</option>
+                            <option value="B.Sc.">B.Sc. (Bachelor of Science)</option>
+                            <option value="BCA">BCA (Bachelor of Computer Applications)</option>
+                            <option value="BBA">BBA (Bachelor of Business Administration)</option>
+                            <option value="Masters">Master's Degree</option>
+                            <option value="M Tech">M.Tech (Master of Technology)</option>
+                            <option value="M.E.">M.E. (Master of Engineering)</option>
+                            <option value="M.Sc.">M.Sc. (Master of Science)</option>
+                            <option value="MCA">MCA (Master of Computer Applications)</option>
+                            <option value="MBA">MBA (Master of Business Administration)</option>
+                            <option value="PHD">Ph.D. (Doctor of Philosophy)</option>
+                            <option value="Doctorate">Doctorate</option>
+                            <option value="Diploma">Diploma</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="major">Major/Field of Study *</label>

@@ -962,8 +962,7 @@ def profile(username):
         """, (user_data[0], user_data[0]))
         
         connections_count = cur.fetchone()[0]
-        
-        
+        # Get community name if exists
         community_name = None
         if user_data[15]:  
             cur.execute("SELECT name FROM communities WHERE community_id = %s", (user_data[15],))
@@ -971,13 +970,24 @@ def profile(username):
             if community_result:
                 community_name = community_result[0]
         
+        # Get current logged-in user's info for the dropdown
+        current_user_info = None
+        if user_id != user_data[0]:  # If viewing someone else's profile
+            cur.execute("""
+                SELECT user_id, firstname, lastname, email, username, pfp_path, role
+                FROM users 
+                WHERE user_id = %s
+            """, (user_id,))
+            current_user_info = cur.fetchone()
+        
         return render_template("profile.html", 
                              user_data=user_data,
                              user_interests=user_interests,
                              education_data=education_data,
                              work_experience=work_experience,
                              connections_count=connections_count,
-                             community_name=community_name)
+                             community_name=community_name,
+                             current_user_info=current_user_info)
     
     except Exception as e:
         app.logger.error(f"Error fetching profile data: {str(e)}")
