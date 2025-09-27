@@ -449,6 +449,15 @@ def contact():
 
     return render_template("contact.html")
 
+@app.route('/about')
+def about():
+    try:
+        return render_template("about.html")
+    except Exception as e:
+        app.logger.error(f"Error in about route: {str(e)}")
+        flash("An error occurred while loading the About Us page.")
+        return render_template("home.html"), 500
+
 @app.route("/thanks", methods=["GET","POST"])
 @validators.login_required
 def thanks():

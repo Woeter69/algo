@@ -136,25 +136,27 @@ nav {
 }
 
 .admin-btn {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white !important;
-    padding: 8px 16px;
+    padding: 8px 20px;
     border-radius: 6px;
+    font-size: 14px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
     transition: all 0.3s ease;
+    margin: 0 12px !important;
+    display: inline-block;
 }
 
 .admin-btn:hover {
-    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    box-shadow: 0 4px 12px rgba(109, 40, 217, 0.4);
 }
 
 .admin-btn i {
-    margin-right: 6px;
+    margin-right: 8px;
 }
 
 .user-profile {

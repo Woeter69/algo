@@ -69,25 +69,26 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="first-name">First Name *</label>
-                        <input type="text" id="first-name" name="first_name" required
-                            placeholder="Enter your first name">
+                        <label>First Name</label>
+                        <div class="readonly-field">
+                            <span class="readonly-value">{{ firstname }}</span>
+                            <small class="readonly-note">This was set during registration and cannot be changed</small>
+                        </div>
+                        <input type="hidden" name="first_name" value="{{ firstname }}">
                     </div>
                     <div class="form-group">
-                        <label for="last-name">Last Name *</label>
-                        <input type="text" id="last-name" name="last_name" required placeholder="Enter your last name">
+                        <label>Last Name</label>
+                        <div class="readonly-field">
+                            <span class="readonly-value">{{ lastname }}</span>
+                            <small class="readonly-note">This was set during registration and cannot be changed</small>
+                        </div>
+                        <input type="hidden" name="last_name" value="{{ lastname }}">
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="dob">Date of Birth *</label>
-                        <input type="date" id="dob" name="dob" required max="{{cutoff_date}}">
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" placeholder="+1 (555) 123-4567">
-                    </div>
+                <div class="form-group">
+                    <label for="dob">Date of Birth *</label>
+                    <input type="date" id="dob" name="dob" required max="{{cutoff_date}}">
                 </div>
 
                 <div class="form-group">
@@ -136,7 +137,7 @@
                     </div>
                     <div class="form-group">
                         <label for="gpa">GPA (Optional)</label>
-                        <input type="number" id="gpa" name="gpa" step="0.01" min="0" max="4" placeholder="3.85">
+                        <input type="text" id="gpa" name="gpa" pattern="^(10(\.0{1,2})?|[0-9](\.[0-9]{1,2})?)$" min="0" max="10" placeholder="Enter your GPA if applicable" title="Enter GPA between 0 and 10">
                     </div>
                 </div>
 
@@ -194,9 +195,9 @@
                     </div>
                 </div>
 
-                <!-- Skills & Interests Section -->
+                <!-- Skills Section -->
                 <div class="section-header">
-                    <h3><i class="fas fa-lightbulb"></i> Skills & Interests</h3>
+                    <h3><i class="fas fa-lightbulb"></i> Skills</h3>
                 </div>
 
                 <div class="form-group">
@@ -204,13 +205,6 @@
                     <textarea id="skills" name="skills" rows="2"
                         placeholder="Enter your skills separated by commas (e.g., JavaScript, Python, Project Management)"></textarea>
                     <small>List your technical and professional skills</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="interests">Interests</label>
-                    <textarea id="interests" name="interests" rows="2"
-                        placeholder="Enter your interests separated by commas (e.g., Technology, Entrepreneurship, Travel)"></textarea>
-                    <small>Share your hobbies and areas of interest</small>
                 </div>
 
                 <!-- Social Links Section -->
