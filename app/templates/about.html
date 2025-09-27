@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - ALGO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/about.css') }}">
+</head>
+
+<body>
+    <!-- HEADER -->
+    <header>
+        <div class="container">
+            <nav>
+                <a href="{{ url_for('home') }}" class="logo">algo</a>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                    <li><a href="#" data-section="jobs">Job Board</a></li>
+                    <li><a href="#" data-section="events">Events</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('about') }}" class="active">About Us</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
+                </ul>
+                <div class="hamburger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Meet the Team Behind ALGO</h1>
+                <p>We're a passionate team of 6 developers dedicated to connecting students and alumni for career growth and opportunities.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="about-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Story</h2>
+                <p>ALGO was born from the vision of creating a seamless platform where students and alumni can connect, mentor, and unlock exclusive career opportunities. Our team combines diverse skills and experiences to build the future of professional networking.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- TEAM SECTION -->
+    <section class="team-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Team</h2>
+                <p>Meet the talented individuals who make ALGO possible</p>
+            </div>
+            
+            <div class="team-grid">
+                <!-- Team Member 1 -->
+                <div class="team-card">
+                    <div class="member-image">
+                        <img src="https://ui-avatars.com/api/?name=Pranjul&background=6D28D9&color=fff&size=200" alt="Pranjul">
+                    </div>
+                    <div class="member-info">
+                        <h3>Pranjul</h3>
+                        <p class="member-role">Full Stack Developer</p>
+                        <p class="member-email">pranjul@algo.com</p>
+                        <div class="social-links">
+                            <a href="#" target="_blank" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" target="_blank" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Member 2 -->
+                <div class="team-card">
+                    <div class="member-image">
+                        <img src="https://ui-avatars.com/api/?name=Aditya&background=8B5CF6&color=fff&size=200" alt="Aditya">
+                    </div>
+                    <div class="member-info">
+                        <h3>Aditya</h3>
+                        <p class="member-role">Backend Developer</p>
+                        <p class="member-email">aditya@algo.com</p>
+                        <div class="social-links">
+                            <a href="#" target="_blank" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" target="_blank" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Member 3 -->
+                <div class="team-card">
+                    <div class="member-image">
+                        <img src="https://ui-avatars.com/api/?name=Nandini&background=9F1239&color=fff&size=200" alt="Nandini">
+                    </div>
+                    <div class="member-info">
+                        <h3>Nandini</h3>
+                        <p class="member-role">Frontend Developer</p>
+                        <p class="member-email">nandini@algo.com</p>
+                        <div class="social-links">
+                            <a href="#" target="_blank" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" target="_blank" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Member 4 -->
+                <div class="team-card">
+                    <div class="member-image">
+                        <img src="https://ui-avatars.com/api/?name=Chandragupt&background=34D399&color=fff&size=200" alt="Chandragupt">
+                    </div>
+                    <div class="member-info">
+                        <h3>Chandragupt</h3>
+                        <p class="member-role">UI/UX Designer</p>
+                        <p class="member-email">chandragupt@algo.com</p>
+                        <div class="social-links">
+                            <a href="#" target="_blank" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" target="_blank" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Member 5 -->
+                <div class="team-card">
+                    <div class="member-image">
+                        <img src="https://ui-avatars.com/api/?name=Himanshu&background=F59E0B&color=fff&size=200" alt="Himanshu">
+                    </div>
+                    <div class="member-info">
+                        <h3>Himanshu</h3>
+                        <p class="member-role">DevOps Engineer</p>
+                        <p class="member-email">himanshu@algo.com</p>
+                        <div class="social-links">
+                            <a href="#" target="_blank" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" target="_blank" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Member 6 -->
+                <div class="team-card">
+                    <div class="member-image">
+                        <img src="https://ui-avatars.com/api/?name=Ovesh&background=EF4444&color=fff&size=200" alt="Ovesh">
+                    </div>
+                    <div class="member-info">
+                        <h3>Ovesh</h3>
+                        <p class="member-role">Product Manager</p>
+                        <p class="member-email">ovesh@algo.com</p>
+                        <div class="social-links">
+                            <a href="#" target="_blank" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="#" target="_blank" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VALUES SECTION -->
+    <section class="values-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Values</h2>
+                <p>The principles that guide everything we do</p>
+            </div>
+            
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Community First</h3>
+                    <p>We believe in the power of community and meaningful connections between students and alumni.</p>
+                </div>
+                
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Innovation</h3>
+                    <p>We constantly innovate to provide the best platform for career growth and networking.</p>
+                </div>
+                
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>Passion</h3>
+                    <p>We're passionate about helping students and alumni achieve their career goals.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo">algo</span>
+                    <p>Connecting students and alumni for career growth and opportunities.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                            target="_blank"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#" data-section="home">Home</a></li>
+                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                        <li><a href="#" data-section="jobs">Job Board</a></li>
+                        <li><a href="#" data-section="events">Events</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Career Tips</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/about.js') }}"></script>
+</body>
+
+</html>

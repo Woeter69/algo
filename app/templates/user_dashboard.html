@@ -26,6 +26,7 @@
                     <li><a href="{{ url_for('chat_list') }}">chat</a></li>
                     <li><a href="{{ url_for('contact') }}">contact us</a></li>
                     <li><a href="{{ url_for('channels') }}">channels</a></li>
+                    <li><a href="{{ url_for('about') }}">about us</a></li>
                     {% if role == 'admin' %}
                     <li><a href="{{ url_for('admin_dashboard') }}" class="admin-btn">
                         <i class="fas fa-shield-alt"></i> admin
@@ -259,6 +260,7 @@
                         <li><a href="#" data-section="browse">Browse Alumni</a></li>
                         <li><a href="#" data-section="jobs">Job Board</a></li>
                         <li><a href="#" data-section="events">Events</a></li>
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">

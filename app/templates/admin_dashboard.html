@@ -18,10 +18,11 @@
                 <a href="{{ url_for('home') }}" class="logo">algo</a>
                 <ul class="nav-links">
                     <li><a href="{{ url_for('home') }}">Home</a></li>
-                    <li><a href="{{ url_for('connect') }}">Browse Alumni</a></li>
+                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
                     <li><a href="#" data-section="jobs">Job Board</a></li>
                     <li><a href="#" data-section="events">Events</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('about') }}">About Us</a></li>
                 </ul>
                 <div class="hamburger">
                     <div class="line1"></div>
@@ -346,6 +347,7 @@
                         <li><a href="#" data-section="browse">Browse Alumni</a></li>
                         <li><a href="#" data-section="jobs">Job Board</a></li>
                         <li><a href="#" data-section="events">Events</a></li>
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">

@@ -16,11 +16,13 @@
             <nav>
                 <a href="{{ url_for('home') }}" class="logo">algo</a>
                 <ul class="nav-links">
-                    <li><a href="{{ url_for('home') }}">Home</a></li>
-                    <li><a href="{{ url_for('connect') }}">Connect</a></li>
-                    <li><a href="{{ url_for('chat_list') }}">Chat</a></li>
-                    <li><a href="{{ url_for('requests') }}" class="active">Requests</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('home') }}">home</a></li>
+                    <li><a href="{{ url_for('connect') }}">connect</a></li>
+                    <li><a href="{{ url_for('requests') }}" class="active">requests</a></li>
+                    <li><a href="{{ url_for('chat_list') }}">chat</a></li>
+                    <li><a href="{{ url_for('contact') }}">contact us</a></li>
+                    <li><a href="{{ url_for('channels') }}">channels</a></li>
+                    <li><a href="{{ url_for('about') }}">about us</a></li>
                     <li><a href="{{ url_for('user_dashboard') }}" class="nav-signup">Dashboard</a></li>
                 </ul>
                 <div class="user-profile" id="userprofile">
