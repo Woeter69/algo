@@ -97,6 +97,32 @@
                         placeholder="Tell us about yourself, your interests, and career goals..."></textarea>
                 </div>
 
+                <!-- Role Selection Section -->
+                <div class="section-header">
+                    <h3><i class="fas fa-user-tag"></i> Role Selection</h3>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">I am a *</label>
+                    <select id="role" name="role" required onchange="toggleRoleFields()">
+                        <option value="" disabled selected>Select your role</option>
+                        <option value="student">Current Student</option>
+                        <option value="alumni">Alumni/Graduate</option>
+                        <option value="staff">Staff/Faculty</option>
+                    </select>
+                    <small>This will determine which features you can access after verification</small>
+                </div>
+
+                <div class="role-info-box" id="role-info">
+                    <div class="info-content">
+                        <i class="fas fa-info-circle"></i>
+                        <div class="info-text">
+                            <strong>Role Verification Process:</strong>
+                            <p>After completing your profile, you'll be able to browse basic features. To access full networking and communication features, an admin will need to verify your role and institutional affiliation.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Education Section -->
                 <div class="section-header">
                     <h3><i class="fas fa-graduation-cap"></i> Education</h3>
@@ -138,6 +164,35 @@
                     <div class="form-group">
                         <label for="gpa">GPA (Optional)</label>
                         <input type="text" id="gpa" name="gpa" pattern="^(10(\.0{1,2})?|[0-9](\.[0-9]{1,2})?)$" min="0" max="10" placeholder="Enter your GPA if applicable" title="Enter GPA between 0 and 10">
+                    </div>
+                </div>
+
+                <!-- Role-specific fields -->
+                <div class="role-specific-fields" id="student-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="student-id">Student ID/Roll Number *</label>
+                        <input type="text" id="student-id" name="student_id" placeholder="Enter your student ID or roll number">
+                        <small>This will be used for verification purposes</small>
+                    </div>
+                </div>
+
+                <div class="role-specific-fields" id="alumni-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="alumni-id">Alumni ID (if available)</label>
+                        <input type="text" id="alumni-id" name="alumni_id" placeholder="Enter your alumni ID if you have one">
+                        <small>Optional - helps with verification</small>
+                    </div>
+                </div>
+
+                <div class="role-specific-fields" id="staff-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="employee-id">Employee ID *</label>
+                        <input type="text" id="employee-id" name="employee_id" placeholder="Enter your employee ID">
+                        <small>Required for staff verification</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="department-role">Department/Position *</label>
+                        <input type="text" id="department-role" name="department_role" placeholder="e.g., Computer Science Department, Professor">
                     </div>
                 </div>
 
