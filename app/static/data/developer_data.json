@@ -1,0 +1,70 @@
+{
+    "students": [
+      {
+        "name": "Pranjul Gupta",
+        "email": "pranjul.here@gmail.com",
+        "phone": "9696831674",
+        "gender": "M",
+        "category": "EWS",
+        "sub_category": "N/A",
+        "country": "India",
+        "degree": "B.TECH",
+        "year": "1st yr"
+      },
+      {
+        "name": "Aditya Bhagora",
+        "email": "adityabhagora@gmail.com",
+        "phone": "9462629633",
+        "gender": "M",
+        "category": "ST",
+        "sub_category": "Not applicable",
+        "country": "India",
+        "degree": "B Tech",
+        "year": "1st Year"
+      },
+      {
+        "name": "Nandini devatwal",
+        "email": "nandinidevatwal2@gmail.com",
+        "phone": "9599919171",
+        "gender": "F",
+        "category": "UR",
+        "sub_category": "NA",
+        "country": "India",
+        "degree": "Btech",
+        "year": "1"
+      },
+      {
+        "name": "Chandragupt Sharma",
+        "email": "chandragupt.jsr@gmail.com",
+        "phone": "9204490008",
+        "gender": "M",
+        "category": "UR",
+        "sub_category": "NA",
+        "country": "India",
+        "degree": "BTech",
+        "year": "1"
+      },
+      {
+        "name": "Himanshu Yadav",
+        "email": "himanshu809809@gmail.com",
+        "phone": "6378956855",
+        "gender": "M",
+        "category": "OBC",
+        "sub_category": "NA",
+        "country": "India",
+        "degree": "BTech",
+        "year": "1st year"
+      },
+      {
+        "name": "Mohd Ovesh",
+        "email": "mohd.ovesh.official@gmail.com",
+        "phone": "6395533068",
+        "gender": "M",
+        "category": "OBC",
+        "sub_category": "NA",
+        "country": "India",
+        "degree": "B.Tech",
+        "year": "1st yr"
+      }
+    ]
+  }
