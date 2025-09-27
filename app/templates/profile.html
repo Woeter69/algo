@@ -51,6 +51,10 @@
                             <span>settings</span>
                         </div>
                         <div class="dropdown-item">
+                            <i class="fas fa-key"></i>
+                            <span>change password</span>
+                        </div>
+                        <div class="dropdown-item">
                             <i class="fas fa-bell"></i>
                             <span>notifications</span>
                         </div>
@@ -69,23 +73,23 @@
         </div>
     </header>
 
-    <!-- PROFILE SECTION -->
     <section class="profile-section">
         <div class="container">
             <!-- Profile Header -->
             <div class="profile-header">
                 <div class="profile-cover">
-                    <div class="profile-avatar has-placeholder" id="profileAvatarContainer">
+                    <div class="profile-avatar {% if not user_data[11] %}has-placeholder{% endif %}" id="profileAvatarContainer" style="cursor: pointer;" title="Click to change profile picture">
                         <img alt="Profile Picture" id="profilePicture" 
                              src="{% if user_data[11] %}{{ user_data[11] }}{% else %}{{ generate_default_avatar((user_data[1] or '') + ' ' + (user_data[2] or '')) }}{% endif %}" 
                              onerror="handleImageError(this)" 
-                             style="display: block;">
-                        <div class="avatar-placeholder" id="avatarPlaceholder" style="display: none;">
+                             style="display: {% if user_data[11] %}block{% else %}none{% endif %};">
+                        <div class="avatar-placeholder" id="avatarPlaceholder" style="display: {% if user_data[11] %}none{% else %}block{% endif %};">
                             <i class="fas fa-user"></i>
-                            <span>Upload a profile picture</span>
+                            <span>Click to upload profile picture</span>
                         </div>
                         <div class="avatar-overlay">
                             <i class="fas fa-camera"></i>
+                            <span>Change Photo</span>
                         </div>
                     </div>
                 </div>
@@ -579,7 +583,7 @@
         </div>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/profile.ts') }}" type="module"></script>
+    <script src="{{ url_for('static', filename='js/profile.js') }}" type="module"></script>
     <script>
         function handleImageError(img) {
             img.onerror = null; // Prevent infinite loop
@@ -626,13 +630,13 @@
         .user-name {
             font-weight: 600;
             font-size: 0.9rem;
-            color: white;
+            color: #1f2937;
             line-height: 1.2;
         }
 
         .user-role {
             font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.8);
+            color: #6b7280;
             text-transform: capitalize;
             line-height: 1.2;
         }
@@ -699,21 +703,28 @@
         @media (max-width: 768px) {
             .user-profile {
                 margin-left: 0;
-                padding: 0.5rem;
+                padding: 0.4rem 0.8rem;
+                gap: 0.5rem;
             }
             
             .user-info {
-                display: none;
+                display: flex;
+            }
+            
+            .user-name {
+                font-size: 0.8rem;
+            }
+            
+            .user-role {
+                font-size: 0.7rem;
             }
             
             .user-dropdown {
-                right: -50px;
-                min-width: 180px;
+                right: -1rem;
             }
         }
     </style>
-    
-    <!-- User Dropdown JavaScript -->
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize user dropdown

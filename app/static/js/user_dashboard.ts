@@ -100,7 +100,6 @@ if (userProfile && userDropdown && dropdownArrow) {
             e.stopPropagation();
             const spanElement: HTMLElement | null = item.querySelector('span');
             const text: string = spanElement?.textContent?.toLowerCase() || '';
-            
             switch (text) {
                 case 'view profile':
                     console.log('View Profile clicked');
@@ -113,6 +112,10 @@ if (userProfile && userDropdown && dropdownArrow) {
                 case 'settings':
                     console.log('Settings clicked');
                     window.location.href = '/settings';
+                    break;
+                case 'change password':
+                    console.log('Change Password clicked');
+                    window.location.href = '/forgot-password';
                     break;
                 case 'notifications':
                     console.log('Dashboard TypeScript initialization complete');
@@ -129,7 +132,6 @@ if (userProfile && userDropdown && dropdownArrow) {
                 default:
                     console.log('Unknown dropdown item:', text);
             }
-            
             // Close dropdown after click
             userDropdown.classList.remove('show');
             dropdownArrow.classList.remove('rotated');
