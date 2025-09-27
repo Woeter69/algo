@@ -1951,6 +1951,23 @@ def logout():
     flash("You have been logged out successfully")
     return redirect(url_for('home'))
 
+# New routes for Jinja2 base template examples
+@app.route('/home1')
+def home1():
+    """
+    Route for the home page using the new base template system
+    This demonstrates how to use template inheritance with Jinja2
+    """
+    try:
+        if 'user_id' in session:
+            return redirect(url_for('user_dashboard'))
+        return render_template("new_home.html")
+    except Exception as e:
+        app.logger.error(f"Error in home1 route: {str(e)}")
+        flash("An error occurred while loading the page. Please try again later.")
+        return render_template("new_home.html"), 500
+
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("DEBUG", "True") == "True"
