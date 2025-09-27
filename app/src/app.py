@@ -1006,13 +1006,29 @@ def verification_request():
         mydb = get_db_connection()
         cur = mydb.cursor()
         
-        # Get user's current role and info
-        cur.execute("""
-            SELECT role, student_id, alumni_id, employee_id, department_role, 
-                   university_name, graduation_year, department
-            FROM users WHERE user_id = %s
-        """, (user_id,))
-        user_info = cur.fetchone()
+        # Get user's current role and info - handle missing columns gracefully
+        try:
+            cur.execute("""
+                SELECT role, student_id, alumni_id, employee_id, department_role, 
+                       university_name, graduation_year, department
+                FROM users WHERE user_id = %s
+            """, (user_id,))
+        except Exception as e:
+            # If columns don't exist, fall back to basic query
+            if "does not exist" in str(e):
+                cur.execute("""
+                    SELECT role, university_name, graduation_year, department
+                    FROM users WHERE user_id = %s
+                """, (user_id,))
+                user_basic = cur.fetchone()
+                if user_basic:
+                    user_info = (user_basic[0], '', '', '', '', user_basic[1], user_basic[2], user_basic[3])
+                else:
+                    user_info = None
+            else:
+                raise e
+        else:
+            user_info = cur.fetchone()
         
         if not user_info:
             flash("User information not found", "error")
