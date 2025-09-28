@@ -2,30 +2,24 @@
 document.addEventListener('DOMContentLoaded', function () {
     initializeAboutPage();
 });
-
 function initializeAboutPage() {
     // Initialize navigation
-    initializeNavigation();
-    
+    initializeAboutNavigation();
     // Initialize animations
     initializeAnimations();
-    
     // Initialize team card interactions
     initializeTeamCards();
 }
-
 // Navigation functionality
-function initializeNavigation() {
+function initializeAboutNavigation() {
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
-    
     if (hamburger && navLinks) {
         hamburger.addEventListener('click', function () {
             navLinks.classList.toggle('active');
             hamburger.classList.toggle('active');
         });
     }
-    
     // Close mobile menu when clicking on a link
     const navItems = document.querySelectorAll('.nav-links a');
     navItems.forEach(item => {
@@ -35,14 +29,12 @@ function initializeNavigation() {
         });
     });
 }
-
 // Scroll animations
 function initializeAnimations() {
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };
-    
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -51,7 +43,6 @@ function initializeAnimations() {
             }
         });
     }, observerOptions);
-    
     // Observe team cards and value cards
     const animatedElements = document.querySelectorAll('.team-card, .value-card');
     animatedElements.forEach(el => {
@@ -61,22 +52,18 @@ function initializeAnimations() {
         observer.observe(el);
     });
 }
-
 // Team card interactions
 function initializeTeamCards() {
     const teamCards = document.querySelectorAll('.team-card');
-    
     teamCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
+        card.addEventListener('mouseenter', function () {
             this.style.transform = 'translateY(-10px) scale(1.02)';
         });
-        
-        card.addEventListener('mouseleave', function() {
+        card.addEventListener('mouseleave', function () {
             this.style.transform = 'translateY(0) scale(1)';
         });
     });
 }
-
 // Smooth scrolling for anchor links
 function smoothScroll(target) {
     const element = document.querySelector(target);
@@ -87,19 +74,18 @@ function smoothScroll(target) {
         });
     }
 }
-
 // Add some interactive effects
-document.addEventListener('scroll', function() {
+document.addEventListener('scroll', function () {
     const header = document.querySelector('header');
     if (window.scrollY > 100) {
         header.style.background = 'rgba(255, 255, 255, 0.98)';
         header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-    } else {
+    }
+    else {
         header.style.background = 'rgba(255, 255, 255, 0.95)';
         header.style.boxShadow = 'none';
     }
 });
-
 // Team member data for easy editing (you can modify this object to update team details)
 const teamMembers = [
     {
@@ -112,7 +98,7 @@ const teamMembers = [
     },
     {
         name: "Aditya",
-        role: "Backend Developer", 
+        role: "Backend Developer",
         email: "aditya@algo.com",
         github: "#",
         linkedin: "#",
@@ -121,7 +107,7 @@ const teamMembers = [
     {
         name: "Nandini",
         role: "Frontend Developer",
-        email: "nandini@algo.com", 
+        email: "nandini@algo.com",
         github: "#",
         linkedin: "#",
         avatar: "https://ui-avatars.com/api/?name=Nandini&background=9F1239&color=fff&size=200"
@@ -130,28 +116,27 @@ const teamMembers = [
         name: "Chandragupt",
         role: "UI/UX Designer",
         email: "chandragupt@algo.com",
-        github: "#", 
+        github: "#",
         linkedin: "#",
         avatar: "https://ui-avatars.com/api/?name=Chandragupt&background=34D399&color=fff&size=200"
     },
     {
-        name: "Himanshu", 
+        name: "Himanshu",
         role: "DevOps Engineer",
         email: "himanshu@algo.com",
         github: "#",
-        linkedin: "#", 
+        linkedin: "#",
         avatar: "https://ui-avatars.com/api/?name=Himanshu&background=F59E0B&color=fff&size=200"
     },
     {
         name: "Ovesh",
-        role: "Product Manager", 
+        role: "Product Manager",
         email: "ovesh@algo.com",
         github: "#",
         linkedin: "#",
         avatar: "https://ui-avatars.com/api/?name=Ovesh&background=EF4444&color=fff&size=200"
     }
 ];
-
 // Function to update team member details (for future editing)
 function updateTeamMember(index, newData) {
     if (index >= 0 && index < teamMembers.length) {
@@ -159,12 +144,11 @@ function updateTeamMember(index, newData) {
         renderTeamMembers();
     }
 }
-
 // Function to render team members (for dynamic updates)
 function renderTeamMembers() {
     const teamGrid = document.querySelector('.team-grid');
-    if (!teamGrid) return;
-    
+    if (!teamGrid)
+        return;
     teamGrid.innerHTML = teamMembers.map(member => `
         <div class="team-card">
             <div class="member-image">
@@ -185,11 +169,9 @@ function renderTeamMembers() {
             </div>
         </div>
     `).join('');
-    
     // Re-initialize animations for new elements
     initializeTeamCards();
 }
-
 // Export team data for external editing
 window.ALGO_TEAM_DATA = teamMembers;
 window.updateTeamMember = updateTeamMember;

@@ -18,104 +18,16 @@ else {
             console.error('No current user ID - user might not be logged in');
             return;
         }
-        
-        // Mobile responsiveness handling
-        initializeMobileHandling();
-        // Initialize Go WebSocket connection
-        console.log('Initializing Go WebSocket connection...');
-        const goSocket = new GoWebSocketClient();
-        
-        // Create Socket.IO compatibility layer
-        const socket = {
-            connected: false,
-            
-            connect: function(userId, username, pfp) {
-                goSocket.connect(userId, username, pfp);
-            },
-            
-            on: function(event, callback) {
-                // Map Socket.IO events to Go WebSocket events
-                if (event === 'connect') {
-                    goSocket.onOpen = function(event) {
-                        socket.connected = true;  // Update connection status
-                        callback(event);
-                    };
-                } else if (event === 'disconnect') {
-                    goSocket.onClose = function(event) {
-                        socket.connected = false;  // Update connection status
-                        callback(event);
-                    };
-                } else if (event === 'connect_error') {
-                    goSocket.onError = callback;
-                } else if (event === 'receive_message') {
-                    goSocket.onMessage = function(data) {
-                        if (data.type === 'new_chat_message') {
-                            callback(data.data);
-                        }
-                    };
-                } else if (event === 'user_typing') {
-                    goSocket.onMessage = function(data) {
-                        if (data.type === 'typing_start') {
-                            callback(data.data);
-                        }
-                    };
-                } else if (event === 'user_stopped_typing') {
-                    goSocket.onMessage = function(data) {
-                        if (data.type === 'typing_stop') {
-                            callback(data.data);
-                        }
-                    };
-                }
-            },
-            
-            emit: function(event, data) {
-                // Update connection status from Go WebSocket if needed
-                if (goSocket.connected !== undefined) {
-                    socket.connected = goSocket.connected;
-                }
-                
-                // Map Socket.IO events to Go WebSocket messages
-                if (event === 'send_message') {
-                    // Ensure content is a string, not an object
-                    const content = typeof data.message === 'string' ? data.message : data.message.content || data.message.text || JSON.stringify(data.message);
-                    goSocket.send('chat_message', {
-                        receiver_id: data.receiver_id,
-                        content: content
-                    });
-                } else if (event === 'typing') {
-                    goSocket.send('typing_start', {
-                        receiver_id: data.receiver_id
-                    });
-                } else if (event === 'stop_typing') {
-                    goSocket.send('typing_stop', {
-                        receiver_id: data.receiver_id
-                    });
-                } else if (event === 'join') {
-                    goSocket.send('join_chat_room', {
-                        room_id: `chat_${Math.min(data.user1, data.user2)}_${Math.max(data.user1, data.user2)}`
-                    });
-                }
-            }
-        };
-        
-        // Connect to Go WebSocket server
-        socket.connect(currentUserId, 'user_' + currentUserId, otherUserPfp);
-        
-        // Update connection status (ensure compatibility layer stays in sync)
-        const originalOnOpen = goSocket.onOpen;
-        const originalOnClose = goSocket.onClose;
-        
-        goSocket.onOpen = function(event) {
-            socket.connected = true;
-            console.log('Go WebSocket connected successfully');
-            if (originalOnOpen) originalOnOpen(event);
-        };
-        
-        goSocket.onClose = function(event) {
-            socket.connected = false;
-            console.log('Go WebSocket disconnected');
-            if (originalOnClose) originalOnClose(event);
-        };
+        // Initialize Socket.IO with proper typing
+        console.log('Initializing Socket.IO connection...');
+        const socket = io({
+            path: '/socket.io',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 8,
+            reconnectionDelay: 500,
+            timeout: 20000,
+        });
         let onlineUsers = new Set();
         let isTyping = false;
         let typingTimeout = null;
@@ -970,67 +882,4 @@ else {
         // Initialize everything
         console.log('✅ Chat TypeScript initialization complete');
     });
-}
-
-// Mobile responsiveness functions
-function initializeMobileHandling() {
-    const sidebar = document.querySelector('.messages-sidebar');
-    const chatArea = document.querySelector('.chat-area');
-    const mobileBackBtn = document.getElementById('mobileBackBtn');
-    
-    // Check if we're on mobile
-    function isMobile() {
-        return window.innerWidth <= 768;
-    }
-    
-    // Show chat area on mobile when a specific user chat is loaded
-    function showChatOnMobile() {
-        if (isMobile() && sidebar && chatArea) {
-            // If we have chat data (specific user), show chat area
-            const chatData = window.chatData || {};
-            if (chatData.otherUserId && chatData.otherUserName) {
-                sidebar.classList.remove('active', 'show-on-mobile');
-                chatArea.style.display = 'flex';
-                console.log('Mobile: Showing chat area for user:', chatData.otherUserName);
-            } else {
-                // No specific chat, show sidebar
-                sidebar.classList.add('show-on-mobile');
-                chatArea.style.display = 'none';
-                console.log('Mobile: Showing sidebar (no specific chat)');
-            }
-        }
-    }
-    
-    // Handle back button click
-    if (mobileBackBtn) {
-        mobileBackBtn.addEventListener('click', function() {
-            if (isMobile()) {
-                // Go back to chat list
-                window.location.href = '/chat';
-            }
-        });
-    }
-    
-    // Handle conversation item clicks on mobile
-    const conversationItems = document.querySelectorAll('.conversation-item');
-    conversationItems.forEach(item => {
-        item.addEventListener('click', function() {
-            if (isMobile()) {
-                // Let the default navigation happen, but ensure proper mobile display
-                setTimeout(() => {
-                    showChatOnMobile();
-                }, 100);
-            }
-        });
-    });
-    
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        showChatOnMobile();
-    });
-    
-    // Initial setup
-    showChatOnMobile();
-    
-    console.log('Mobile handling initialized');
 }

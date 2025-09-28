@@ -1,36 +1,41 @@
 // Limited Dashboard JavaScript
+
 // Mobile Navigation
 const hamburgerLimited = document.querySelector('.hamburger');
 const navLinksLimited = document.querySelector('.nav-links');
 const linksLimited = document.querySelectorAll('.nav-links li');
+
 if (hamburgerLimited) {
     hamburgerLimited.addEventListener('click', () => {
         // Toggle Nav
         navLinksLimited?.classList.toggle('open');
+        
         // Animate Links
         linksLimited.forEach((link, index) => {
-            const element = link;
+            const element = link as HTMLElement;
             if (element.style.animation) {
                 element.style.animation = '';
-            }
-            else {
+            } else {
                 element.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
             }
         });
+        
         // Hamburger Animation
         hamburgerLimited.classList.toggle('toggle');
     });
 }
+
 // Close mobile menu when clicking on a nav link
 linksLimited.forEach(link => {
     link.addEventListener('click', () => {
         navLinksLimited?.classList.remove('open');
         hamburgerLimited?.classList.remove('toggle');
         linksLimited.forEach(link => {
-            link.style.animation = '';
+            (link as HTMLElement).style.animation = '';
         });
     });
 });
+
 // Scroll Header Effect
 window.addEventListener('scroll', () => {
     const header = document.querySelector('header');
@@ -38,20 +43,24 @@ window.addEventListener('scroll', () => {
         header.classList.toggle('scrolled', window.scrollY > 50);
     }
 });
+
 // Feature Card Interactions
 const featureCards = document.querySelectorAll('.feature-card.locked');
+
 featureCards.forEach(card => {
     card.addEventListener('click', () => {
         // Show tooltip or modal about verification requirement
         showVerificationTooltip(card);
     });
 });
+
 function showVerificationTooltip(card) {
     // Remove any existing tooltips
     const existingTooltip = document.querySelector('.verification-tooltip');
     if (existingTooltip) {
         existingTooltip.remove();
     }
+    
     // Create tooltip
     const tooltip = document.createElement('div');
     tooltip.className = 'verification-tooltip';
@@ -61,6 +70,7 @@ function showVerificationTooltip(card) {
             <p>This feature requires verification. <a href="/verification_request">Request verification</a> to unlock.</p>
         </div>
     `;
+    
     // Position tooltip
     const rect = card.getBoundingClientRect();
     tooltip.style.position = 'fixed';
@@ -70,7 +80,9 @@ function showVerificationTooltip(card) {
     tooltip.style.height = rect.height + 'px';
     tooltip.style.pointerEvents = 'none';
     tooltip.style.zIndex = '1000';
+    
     document.body.appendChild(tooltip);
+    
     // Remove tooltip after 3 seconds
     setTimeout(() => {
         if (tooltip.parentNode) {
@@ -78,6 +90,7 @@ function showVerificationTooltip(card) {
         }
     }, 3000);
 }
+
 // Smooth scrolling for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -91,6 +104,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         }
     });
 });
+
 // Add CSS for tooltip
 const tooltipStyle = document.createElement('style');
 tooltipStyle.textContent = `
@@ -163,6 +177,7 @@ tooltipStyle.textContent = `
     }
 `;
 document.head.appendChild(tooltipStyle);
+
 // Add mobile navigation styles
 const mobileStyle = document.createElement('style');
 mobileStyle.textContent = `
