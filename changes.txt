@@ -1,7 +1,19 @@
-#FORMAT
+DATE: 2025-09-28
+NAME: Pranjul
 
-DATE: 
-TIME: 
-NAME: 
 CHANGES: 
-
+- [09:00] Fixed CSS loading issue for forgot_password.html (corrected path from css/login.css to styles/login.css)
+- [09:05] Consolidated forgot_password and reset_password pages into single unified flow with step indicators
+- [09:10] Updated forgot_password page to match ALGO theme with proper styling, fonts, and colors
+- [09:12] Added username support to password reset functionality (users can now use email OR username)
+- [09:15] Fixed admin dashboard routing issue - admins were incorrectly redirected to limited dashboard
+- [09:16] Updated profile completion logic to set admin verification_status to 'verified' instead of 'pending'
+- [09:18] Created .env.example file with SMTP configuration template for email functionality
+- [09:20] Enhanced password reset UI with better centering, margins, and clickable step navigation
+- [09:22] Added proper error handling and user feedback for password reset process
+- [09:25] Fixed database issue: admin users had verification_status='pending' causing incorrect dashboard redirects
+- [09:26] Created and ran database migration to set admin verification_status to 'verified' for existing admin accounts
+- [09:27] Updated 2 admin users in database, specifically fixed lewis.for.the.win account verification status
+- [09:28] Fixed BuildError for missing admin_dashboard route - created admin_dashboard endpoint with proper admin access control
+- [09:29] Added user_roles import to app.py to support admin_required decorator functionality
+- [09:32] Fixed import error in app.py causing 500 internal server error - separated validators from Bcrypt import

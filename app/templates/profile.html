@@ -132,9 +132,7 @@
                 </div>
                 <div class="card-content">
                     <div class="bio-section">
-                        <p id="displayBio">Passionate software developer with expertise in web technologies and a
-                            love for creating innovative solutions. Always eager to learn and collaborate on
-                            exciting projects.</p>
+                        <p id="displayBio">{{ user_bio if user_bio else 'No bio available yet.' }}</p>
                     </div>
                     <div class="info-grid">
                         <div class="info-item">
@@ -202,12 +200,13 @@
                 </div>
                 <div class="card-content">
                     <div class="skills-container" id="skillsContainer">
-                        <span class="skill-tag">JavaScript</span>
-                        <span class="skill-tag">Python</span>
-                        <span class="skill-tag">React</span>
-                        <span class="skill-tag">Node.js</span>
-                        <span class="skill-tag">SQL</span>
-                        <span class="skill-tag">Git</span>
+                        {% if user_skills %}
+                            {% for skill in user_skills %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-data">No skills specified yet.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -219,22 +218,34 @@
                 </div>
                 <div class="card-content">
                     <div class="social-links-grid" id="socialLinksGrid">
-                        <div class="social-link-item">
-                            <i class="fab fa-linkedin"></i>
-                            <span id="displayLinkedIn">linkedin.com/in/johndoe</span>
-                        </div>
-                        <div class="social-link-item">
-                            <i class="fab fa-github"></i>
-                            <span id="displayGitHub">github.com/johndoe</span>
-                        </div>
-                        <div class="social-link-item">
-                            <i class="fab fa-twitter"></i>
-                            <span id="displayTwitter">@johndoe</span>
-                        </div>
-                        <div class="social-link-item">
-                            <i class="fas fa-globe"></i>
-                            <span id="displayWebsite">johndoe.dev</span>
-                        </div>
+                        {% if user_social_links %}
+                            {% if user_social_links.linkedin %}
+                            <div class="social-link-item">
+                                <i class="fab fa-linkedin"></i>
+                                <span id="displayLinkedIn">{{ user_social_links.linkedin }}</span>
+                            </div>
+                            {% endif %}
+                            {% if user_social_links.github %}
+                            <div class="social-link-item">
+                                <i class="fab fa-github"></i>
+                                <span id="displayGitHub">{{ user_social_links.github }}</span>
+                            </div>
+                            {% endif %}
+                            {% if user_social_links.twitter %}
+                            <div class="social-link-item">
+                                <i class="fab fa-twitter"></i>
+                                <span id="displayTwitter">{{ user_social_links.twitter }}</span>
+                            </div>
+                            {% endif %}
+                            {% if user_social_links.website %}
+                            <div class="social-link-item">
+                                <i class="fas fa-globe"></i>
+                                <span id="displayWebsite">{{ user_social_links.website }}</span>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <p class="no-data">No social links added yet.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -354,34 +365,34 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="firstName">First Name</label>
-                                <input type="text" id="firstName" name="firstName" value="John" required>
+                                <input type="text" id="firstName" name="firstName" value="{{ user_data[1] if user_data[1] else '' }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="lastName">Last Name</label>
-                                <input type="text" id="lastName" name="lastName" value="Doe" required>
+                                <input type="text" id="lastName" name="lastName" value="{{ user_data[2] if user_data[2] else '' }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="username">Username</label>
-                                <input type="text" id="username" name="username" value="johndoe" required>
+                                <input type="text" id="username" name="username" value="{{ user_data[4] if user_data[4] else '' }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="email">Email</label>
-                                <input type="email" id="email" name="email" value="john.doe@example.com" required>
+                                <input type="email" id="email" name="email" value="{{ user_data[3] if user_data[3] else '' }}" required>
                             </div>
                             <div class="form-group">
                                 <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" value="+1 (555) 123-4567">
+                                <input type="tel" id="phone" name="phone" value="{{ user_phone if user_phone else '' }}">
                             </div>
                             <div class="form-group">
                                 <label for="currentCity">Current City</label>
-                                <input type="text" id="currentCity" name="currentCity" value="New York, NY" required>
+                                <input type="text" id="currentCity" name="currentCity" value="{{ user_data[10] if user_data[10] else '' }}" required>
                             </div>
                         </div>
 
                         <div class="form-group full-width">
                             <label for="bio">Bio</label>
                             <textarea id="bio" name="bio" rows="4"
-                                placeholder="Tell us about yourself...">Passionate software developer with expertise in web technologies and a love for creating innovative solutions. Always eager to learn and collaborate on exciting projects.</textarea>
+                                placeholder="Tell us about yourself...">{{ user_bio if user_bio else '' }}</textarea>
                         </div>
 
                         <div class="form-group full-width">

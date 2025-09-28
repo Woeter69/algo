@@ -5,9 +5,8 @@ from flask import Flask,render_template,request, session, redirect, url_for,flas
 import connection 
 import secrets, datetime
 from flask_bcrypt import Bcrypt
-import utils, validators
-from connection import get_db_connection
-import user_roles
+import utils
+import validators
 from user_roles import (
     login_required, verified_user_required, admin_required,
     get_user_role_info, get_communities, submit_verification_request,
@@ -111,7 +110,7 @@ def forgot_password():
         email = request.form.get("email", "").strip().lower()
         
         if not email:
-            flash("Please enter your email address.", "error")
+            flash("Please enter your email address or username.", "error")
             return render_template("forgot_password.html")
         
         mydb = None
@@ -121,12 +120,12 @@ def forgot_password():
             mydb = get_db_connection()
             cur = mydb.cursor()
             
-            # Check if user exists
-            cur.execute("SELECT user_id, firstname, lastname FROM users WHERE email = %s", (email,))
+            # Check if user exists by email or username
+            cur.execute("SELECT user_id, firstname, lastname, email FROM users WHERE email = %s OR username = %s", (email, email))
             user = cur.fetchone()
             
             if user:
-                user_id, firstname, lastname = user
+                user_id, firstname, lastname, user_email = user
                 user_name = f"{firstname} {lastname}".strip()
                 
                 # Generate reset token
@@ -137,11 +136,11 @@ def forgot_password():
                 cur.execute("""
                     INSERT INTO password_reset_tokens (user_id, email, token, expiry)
                     VALUES (%s, %s, %s, %s)
-                """, (user_id, email, reset_token, expiry))
+                """, (user_id, user_email, reset_token, expiry))
                 mydb.commit()
                 
                 # Send reset email
-                email_sent = utils.send_password_reset_email(email, reset_token, user_name)
+                email_sent = utils.send_password_reset_email(user_email, reset_token, user_name)
                 
                 if email_sent:
                     flash("Password reset link has been sent to your email address. Please check your inbox.", "success")
@@ -403,14 +402,14 @@ def complete_profile():
                                      error="Employee ID and Department/Position are required for staff role")
 
             # Update users table with basic info and role
-            cur.execute("""
+            cur.execute """
                 UPDATE users SET 
                     firstname=%s, lastname=%s, dob=%s,
                     university_name=%s, college=%s, graduation_year=%s, current_city=%s, 
-                    pfp_path=%s, role=%s, verification_status='pending'
+                    pfp_path=%s, role=%s, verification_status=%s
                 WHERE user_id=%s
             """, (first_name, last_name, dob, uni_name, clg_name, grad_year, city, 
-                  pfp_url, role, user_id))
+                  pfp_url, role, 'verified' if role == 'admin' else 'pending', user_id))
 
             # Insert education details if provided
             if degree or major or gpa:
@@ -465,7 +464,7 @@ def complete_profile():
 
             # Update session with role information
             session['role'] = role
-            session['verification_status'] = 'pending'
+            session['verification_status'] = 'verified' if role == 'admin' else 'pending'
             
             mydb.commit()
             
@@ -644,12 +643,69 @@ def user_dashboard():
 
     username, role, pfp_path, verification_status = row
     
-    # Redirect unverified users to limited dashboard
-    if role == 'unverified' or verification_status == 'pending':
+    # Redirect unverified users to limited dashboard (but not admins)
+    if role == 'unverified' or (role != 'admin' and verification_status == 'pending'):
         return redirect(url_for('limited_dashboard'))
 
     return render_template("user_dashboard.html", username=username,role=role,pfp_path=pfp_path)
 
+
+@app.route("/admin_dashboard", methods=["GET", "POST"])
+@validators.login_required
+@user_roles.admin_required
+def admin_dashboard():
+    """Admin dashboard for managing users and verification requests"""
+    user_id = session['user_id']
+    
+    try:
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Get admin user info
+        cur.execute("SELECT username, role, pfp_path FROM users WHERE user_id = %s", (user_id,))
+        admin_info = cur.fetchone()
+        
+        if not admin_info:
+            flash("Admin information not found", "error")
+            return redirect(url_for('user_dashboard'))
+        
+        username, role, pfp_path = admin_info
+        
+        # Get pending verification requests count
+        cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'pending' AND role != 'unverified'")
+        pending_requests = cur.fetchone()[0]
+        
+        # Get total users count
+        cur.execute("SELECT COUNT(*) FROM users")
+        total_users = cur.fetchone()[0]
+        
+        # Get verified users count
+        cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'verified'")
+        verified_users = cur.fetchone()[0]
+        
+        # Get recent registrations (last 7 days)
+        cur.execute("""
+            SELECT COUNT(*) FROM users 
+            WHERE registration_date >= NOW() - INTERVAL '7 days'
+        """)
+        recent_registrations = cur.fetchone()[0]
+        
+        cur.close()
+        mydb.close()
+        
+        return render_template("admin_dashboard.html", 
+                             username=username,
+                             role=role,
+                             pfp_path=pfp_path,
+                             pending_requests=pending_requests,
+                             total_users=total_users,
+                             verified_users=verified_users,
+                             recent_registrations=recent_registrations)
+        
+    except Exception as e:
+        app.logger.error(f"Error in admin_dashboard: {str(e)}")
+        flash("Error loading admin dashboard", "error")
+        return redirect(url_for('user_dashboard'))
 
 @app.route("/limited_dashboard", methods=["GET"])
 @validators.login_required
@@ -1125,12 +1181,84 @@ def profile(username):
                              work_experience=work_experience,
                              connections_count=connections_count,
                              community_name=community_name,
-                             current_user_info=current_user_info)
+                             current_user_info=current_user_info,
+                             user_bio=None,  # TODO: Add bio field to database
+                             user_skills=[],  # TODO: Add skills field to database
+                             user_social_links=None,  # TODO: Add social links to database
+                             user_phone=None)  # TODO: Add phone field to database
     
     except Exception as e:
         app.logger.error(f"Error fetching profile data: {str(e)}")
         flash("Error loading profile data")
         return redirect(url_for('home'))
+    
+    finally:
+        if cur:
+            cur.close()
+        if mydb:
+            mydb.close()
+
+@app.route('/create_community', methods=['GET', 'POST'])
+@validators.login_required
+def create_community():
+    """Create Community page - only for admin and college_admin roles"""
+    user_id = session['user_id']
+    user_role = session.get('role', 'user')
+    
+    # Check if user has permission to create communities
+    if user_role not in ['admin', 'college_admin']:
+        flash("Access denied. Only administrators can create communities.", 'error')
+        return redirect(url_for('user_dashboard'))
+    
+    mydb = None
+    cur = None
+    
+    try:
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        if request.method == 'POST':
+            # Get form data
+            community_name = request.form.get('community_name', '').strip()
+            college_code = request.form.get('college_code', '').strip().upper()
+            location = request.form.get('location', '').strip()
+            description = request.form.get('description', '').strip()
+            
+            # Validation
+            if not all([community_name, college_code, location]):
+                flash("All required fields must be filled.", 'error')
+                return render_template('create_community.html')
+            
+            # Check if college code already exists
+            cur.execute("SELECT community_id FROM communities WHERE college_code = %s", (college_code,))
+            existing_community = cur.fetchone()
+            
+            if existing_community:
+                flash(f"A community with college code '{college_code}' already exists.", 'error')
+                return render_template('create_community.html')
+            
+            # Insert new community
+            cur.execute("""
+                INSERT INTO communities (name, college_code, location, description, created_by, created_at)
+                VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+            """, (community_name, college_code, location, description, user_id))
+            
+            mydb.commit()
+            
+            flash(f"Community '{community_name}' created successfully!", 'success')
+            return redirect(url_for('admin_dashboard'))
+        
+        # GET request - show the form
+        # Get current user info
+        cur.execute("SELECT firstname, lastname, role, pfp_path FROM users WHERE user_id = %s", (user_id,))
+        current_user = cur.fetchone()
+        
+        return render_template('create_community.html', current_user=current_user)
+        
+    except Exception as e:
+        app.logger.error(f"Error in create_community: {str(e)}")
+        flash("Error creating community. Please try again.", 'error')
+        return redirect(url_for('admin_dashboard'))
     
     finally:
         if cur:
@@ -1334,6 +1462,12 @@ def requests():
             })
         
         connections_count = len(connections)
+        
+        # Debug logging
+        app.logger.info(f"User {user_id} requests data:")
+        app.logger.info(f"  - Pending requests: {len(pending_requests)}")
+        app.logger.info(f"  - Sent requests: {len(sent_requests)}")
+        app.logger.info(f"  - Connections: {connections_count}")
         
         return render_template("requests.html",
                              pending_requests=pending_requests,
@@ -1941,6 +2075,65 @@ def change_password():
         if 'mydb' in locals() and mydb:
             mydb.close()
 
+@app.route("/api/update_profile_picture", methods=["POST"])
+@validators.login_required
+def update_profile_picture():
+    """Update user profile picture using ImgBB API"""
+    try:
+        user_id = session['user_id']
+        
+        # Check if image file is provided
+        if 'profile_picture' not in request.files:
+            return {'success': False, 'message': 'No image file provided'}, 400
+        
+        file = request.files['profile_picture']
+        if file.filename == '':
+            return {'success': False, 'message': 'No file selected'}, 400
+        
+        # Validate file type
+        if not validators.allowed_file(file.filename):
+            return {'success': False, 'message': 'Invalid file type. Please upload an image file.'}, 400
+        
+        # Get ImgBB API key from environment
+        imgbb_api_key = os.getenv("PFP_KEY")
+        if not imgbb_api_key:
+            app.logger.error("PFP_KEY not found in environment variables")
+            return {'success': False, 'message': 'Image upload service not configured'}, 500
+        
+        # Upload to ImgBB
+        try:
+            pfp_url = utils.upload_to_imgbb(file, imgbb_api_key)
+            if not pfp_url:
+                return {'success': False, 'message': 'Failed to upload image'}, 500
+        except Exception as upload_error:
+            app.logger.error(f"ImgBB upload error: {str(upload_error)}")
+            return {'success': False, 'message': 'Failed to upload image to server'}, 500
+        
+        # Update database with new profile picture URL
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        cur.execute("UPDATE users SET pfp_path = %s WHERE user_id = %s", (pfp_url, user_id))
+        mydb.commit()
+        
+        # Update session with new profile picture
+        session['pfp_path'] = pfp_url
+        
+        return {
+            'success': True, 
+            'message': 'Profile picture updated successfully',
+            'pfp_url': pfp_url
+        }
+        
+    except Exception as e:
+        app.logger.error(f"Error updating profile picture: {str(e)}")
+        return {'success': False, 'message': 'Error updating profile picture'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
 
 @app.route("/api/export_data", methods=["POST"])
 @validators.login_required
@@ -2098,6 +2291,55 @@ def logout_all_sessions():
     except Exception as e:
         app.logger.error(f"Error logging out sessions: {str(e)}")
         return {'success': False, 'message': 'Error logging out sessions'}, 500
+
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
+@validators.login_required
+@admin_required
+def admin_dashboard():
+    """Admin dashboard for managing users and verification requests"""
+    try:
+        user_id = session['user_id']
+        
+        # Get admin user info
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        cur.execute("""
+            SELECT firstname, lastname, role, pfp_path 
+            FROM users WHERE user_id = %s
+        """, (user_id,))
+        admin_info = cur.fetchone()
+        
+        # Get basic stats for dashboard
+        cur.execute("SELECT COUNT(*) FROM users")
+        total_users = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'pending'")
+        pending_count = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM users WHERE role IN ('student', 'alumni', 'staff')")
+        total_verified = cur.fetchone()[0]
+        
+        # Get pending verification requests (for now, return empty list since we don't have verification_requests table)
+        pending_requests = []
+        
+        return render_template('admin_dashboard.html',
+                             admin_info=admin_info,
+                             total_users=total_users,
+                             pending_count=pending_count,
+                             total_verified=total_verified,
+                             pending_requests=pending_requests)
+        
+    except Exception as e:
+        app.logger.error(f"Error in admin_dashboard: {str(e)}")
+        flash("Error loading admin dashboard", 'error')
+        return redirect(url_for('user_dashboard'))
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
 
 @app.route("/logout")
 def logout():
