@@ -402,7 +402,7 @@ def complete_profile():
                                      error="Employee ID and Department/Position are required for staff role")
 
             # Update users table with basic info and role
-            cur.execute """
+            cur.execute("""
                 UPDATE users SET 
                     firstname=%s, lastname=%s, dob=%s,
                     university_name=%s, college=%s, graduation_year=%s, current_city=%s, 
