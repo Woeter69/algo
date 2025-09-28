@@ -1,3 +1,23 @@
+// Global variables for chat functionality
+let currentUserId = null;
+let currentUserName = 'User';
+let currentUserPfp = '';
+let otherUserId = null;
+let otherUserName = '';
+let otherUserPfp = '';
+let socket = null;
+let onlineUsers = new Set();
+let isTyping = false;
+let typingTimeout = null;
+
+// UI Elements (will be initialized when DOM is ready)
+let messagesArea = null;
+let messageInput = null;
+let sendBtn = null;
+let voiceCallBtn = null;
+let videoCallBtn = null;
+let currentConversationUserId = null;
+
 // Prevent multiple initializations
 if (window.chatInitialized) {
     console.log('Chat already initialized, skipping...');
@@ -9,12 +29,12 @@ else {
         // Get user data from the template with type safety
         const chatData = window.chatData || {};
         console.log('Chat data:', chatData);
-        const currentUserId = chatData.currentUserId ? Number(chatData.currentUserId) : null;
-        const currentUserName = chatData.currentUserName || 'User';
-        const currentUserPfp = chatData.currentUserPfp || '';
-        const otherUserId = chatData.otherUserId ? Number(chatData.otherUserId) : null;
-        const otherUserName = chatData.otherUserName || '';
-        const otherUserPfp = chatData.otherUserPfp || '';
+        currentUserId = chatData.currentUserId ? Number(chatData.currentUserId) : null;
+        currentUserName = chatData.currentUserName || 'User';
+        currentUserPfp = chatData.currentUserPfp || '';
+        otherUserId = chatData.otherUserId ? Number(chatData.otherUserId) : null;
+        otherUserName = chatData.otherUserName || '';
+        otherUserPfp = chatData.otherUserPfp || '';
         console.log('User IDs:', { currentUserId, otherUserId });
         if (!currentUserId) {
             console.error('No current user ID - user might not be logged in');
@@ -22,12 +42,9 @@ else {
         }
         // Initialize Go WebSocket connection
         console.log('Initializing Go WebSocket connection...');
-        const socket = window.goSocket;
+        socket = window.goSocket;
         // Connect to Go WebSocket server with user info
         socket.connect(currentUserId.toString(), currentUserName, currentUserPfp);
-        let onlineUsers = new Set();
-        let isTyping = false;
-        let typingTimeout = null;
         // Online Status Management
         const chatUserStatus = document.getElementById('chatUserStatus');
         const chatUserOnlineStatus = document.getElementById('chatUserOnlineStatus');
@@ -112,14 +129,11 @@ else {
             onlineUsers.delete(userId);
             updateUserOnlineStatus(userId, false);
         });
-        // DOM Elements with proper type assertions
-        const conversationItems = document.querySelectorAll('.conversation-item');
-        const messagesArea = document.getElementById('messagesArea');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const newMessageBtn = document.getElementById('newMessageBtn');
-        const newMessageModal = document.getElementById('newMessageModal');
-        const closeNewMessageModal = document.getElementById('closeNewMessageModal');
+        
+        // Get DOM elements with type safety
+        messagesArea = document.getElementById('messagesArea');
+        messageInput = document.getElementById('messageInput');
+        sendBtn = document.getElementById('sendBtn');
         const searchInput = document.getElementById('searchInput');
         const userSearchInput = document.getElementById('userSearchInput');
         const typingIndicator = document.getElementById('typingIndicator');
@@ -133,9 +147,12 @@ else {
         const attachmentBtn = document.getElementById('attachmentBtn');
         const fileInput = document.getElementById('fileInput');
         // Call buttons
-        const voiceCallBtn = document.querySelector('.chat-action-btn[title="Voice call"]');
-        const videoCallBtn = document.querySelector('.chat-action-btn[title="Video call"]');
+        voiceCallBtn = document.querySelector('.chat-action-btn[title="Voice call"]');
+        videoCallBtn = document.querySelector('.chat-action-btn[title="Video call"]');
         const moreOptionsBtn = document.querySelector('.chat-action-btn[title="More options"]');
+        
+        // Set current conversation user ID
+        currentConversationUserId = otherUserId;
         console.log('UI elements:', { emojiBtn, emojiPicker, emojiGrid, attachmentBtn, fileInput, voiceCallBtn, videoCallBtn });
         // Debug emoji elements specifically
         if (!emojiBtn)
@@ -144,8 +161,7 @@ else {
             console.error('❌ Emoji picker not found!');
         if (!emojiGrid)
             console.error('❌ Emoji grid not found!');
-        // Current conversation tracking
-        let currentConversationUserId = otherUserId || 0;
+        // Current conversation tracking is already set above
         // Message tracking for deduplication
         const processedMessages = new Set();
         let lastSentMessageTime = 0;
