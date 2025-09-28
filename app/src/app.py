@@ -1335,6 +1335,12 @@ def requests():
         
         connections_count = len(connections)
         
+        # Debug logging
+        app.logger.info(f"User {user_id} requests data:")
+        app.logger.info(f"  - Pending requests: {len(pending_requests)}")
+        app.logger.info(f"  - Sent requests: {len(sent_requests)}")
+        app.logger.info(f"  - Connections: {connections_count}")
+        
         return render_template("requests.html",
                              pending_requests=pending_requests,
                              sent_requests=sent_requests,
@@ -2157,6 +2163,55 @@ def logout_all_sessions():
     except Exception as e:
         app.logger.error(f"Error logging out sessions: {str(e)}")
         return {'success': False, 'message': 'Error logging out sessions'}, 500
+
+@app.route('/admin_dashboard', methods=['GET', 'POST'])
+@validators.login_required
+@admin_required
+def admin_dashboard():
+    """Admin dashboard for managing users and verification requests"""
+    try:
+        user_id = session['user_id']
+        
+        # Get admin user info
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        cur.execute("""
+            SELECT firstname, lastname, role, pfp_path 
+            FROM users WHERE user_id = %s
+        """, (user_id,))
+        admin_info = cur.fetchone()
+        
+        # Get basic stats for dashboard
+        cur.execute("SELECT COUNT(*) FROM users")
+        total_users = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'pending'")
+        pending_count = cur.fetchone()[0]
+        
+        cur.execute("SELECT COUNT(*) FROM users WHERE role IN ('student', 'alumni', 'staff')")
+        total_verified = cur.fetchone()[0]
+        
+        # Get pending verification requests (for now, return empty list since we don't have verification_requests table)
+        pending_requests = []
+        
+        return render_template('admin_dashboard.html',
+                             admin_info=admin_info,
+                             total_users=total_users,
+                             pending_count=pending_count,
+                             total_verified=total_verified,
+                             pending_requests=pending_requests)
+        
+    except Exception as e:
+        app.logger.error(f"Error in admin_dashboard: {str(e)}")
+        flash("Error loading admin dashboard", 'error')
+        return redirect(url_for('user_dashboard'))
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
 
 @app.route("/logout")
 def logout():
