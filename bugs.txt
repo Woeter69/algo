@@ -7,25 +7,26 @@ NOTE: Suggest more features and point out bugs just add your name then type the 
 
 # Aditya
 Clicking on profile not redirecting 
-No Chat redirect buttons anywhere
+No Chat redirect buttons anywhere --fixed by Aditya
 Communities not working 
 No chatbox on phone on /chat
 admin_dashboard not recieving data
-no data being added on work_experience and education_details
+no data being added on work_experience and education_details --fixed Pranjul
 No connections page
-No About us page
+No About us page --fixed Pranjul
 Nothing to suggest to ppl no popup profile
-No pfp showing on /profile 
+No pfp showing on /profile --fixed Aditya
 many buttons not redirecting 
-No jobs board
+No jobs board 
 No fake data/real data
 Home page showing big GLGL instead of ALGO
-Chatbot not updating
+Chatbot not updating --fixed Aditya
 No way for people to make connections with each others 
-No actual db data showing on most of the pages
-sql.schema not updated as per the database
-Header different in different pages
+No actual db data showing on most of the pages --partial fix Aditya
+sql.schema not updated as per the database --working on it Aditya
+Header different in different pages --fixed Chandagupt
+Profile shows extra data that does not exist in the database
 
 
 # DiddyMilton
-1. Add Forgot Password
+1. Add Forgot Password --Added Aditya

@@ -34,6 +34,17 @@ CREATE TABLE verification_tokens (
     expiry TIMESTAMP NOT NULL
 );
 
+CREATE TABLE password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    email TEXT NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    expiry TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 CREATE TABLE interests (
     interest_id SERIAL PRIMARY KEY,
     name TEXT UNIQUE NOT NULL
@@ -81,11 +92,12 @@ CREATE TABLE connections (
 CREATE TABLE education_details (
     detail_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
-    degree_type TEXT CHECK (degree_type IN ('Bachelors','Masters','PHD','Doctorate')) NOT NULL,
+    degree_type TEXT CHECK (degree_type IN ('Bachelors','Masters','PHD','Doctorate','B Tech','M Tech','B.E.','M.E.','B.Sc.','M.Sc.','BCA','MCA','MBA','BBA','Diploma')) NOT NULL,
     university_name TEXT NOT NULL,
     college_name TEXT,
     major TEXT NOT NULL,
     graduation_year INT,
+    gpa DECIMAL(3,2),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 

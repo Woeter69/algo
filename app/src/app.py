@@ -101,6 +101,143 @@ def login():
         if mydb is not None:
             mydb.close()
 
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    """Handle forgot password requests"""
+    if 'user_id' in session:
+        return redirect(url_for('user_dashboard'))
+    
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        
+        if not email:
+            flash("Please enter your email address.", "error")
+            return render_template("forgot_password.html")
+        
+        mydb = None
+        cur = None
+        
+        try:
+            mydb = get_db_connection()
+            cur = mydb.cursor()
+            
+            # Check if user exists
+            cur.execute("SELECT user_id, firstname, lastname FROM users WHERE email = %s", (email,))
+            user = cur.fetchone()
+            
+            if user:
+                user_id, firstname, lastname = user
+                user_name = f"{firstname} {lastname}".strip()
+                
+                # Generate reset token
+                reset_token = secrets.token_urlsafe(32)
+                expiry = datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # 1 hour expiry
+                
+                # Store reset token in database
+                cur.execute("""
+                    INSERT INTO password_reset_tokens (user_id, email, token, expiry)
+                    VALUES (%s, %s, %s, %s)
+                """, (user_id, email, reset_token, expiry))
+                mydb.commit()
+                
+                # Send reset email
+                email_sent = utils.send_password_reset_email(email, reset_token, user_name)
+                
+                if email_sent:
+                    flash("Password reset link has been sent to your email address. Please check your inbox.", "success")
+                else:
+                    flash("Failed to send reset email. Please try again later.", "error")
+            else:
+                # Don't reveal if email exists or not for security
+                flash("If an account with that email exists, a password reset link has been sent.", "success")
+            
+            return render_template("forgot_password.html")
+            
+        except Exception as e:
+            app.logger.error(f"Error in forgot_password: {str(e)}")
+            flash("An error occurred. Please try again later.", "error")
+            return render_template("forgot_password.html")
+        
+        finally:
+            if cur:
+                cur.close()
+            if mydb:
+                mydb.close()
+    
+    return render_template("forgot_password.html")
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    """Handle password reset with token"""
+    if 'user_id' in session:
+        return redirect(url_for('user_dashboard'))
+    
+    mydb = None
+    cur = None
+    
+    try:
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        # Verify token
+        cur.execute("""
+            SELECT prt.user_id, prt.email, u.firstname, u.lastname
+            FROM password_reset_tokens prt
+            JOIN users u ON prt.user_id = u.user_id
+            WHERE prt.token = %s AND prt.expiry > %s AND prt.used = FALSE
+        """, (token, datetime.datetime.utcnow()))
+        
+        token_data = cur.fetchone()
+        
+        if not token_data:
+            flash("Invalid or expired reset link. Please request a new password reset.", "error")
+            return redirect(url_for('forgot_password'))
+        
+        user_id, email, firstname, lastname = token_data
+        user_name = f"{firstname} {lastname}".strip()
+        
+        if request.method == "POST":
+            password = request.form.get("password", "")
+            confirm_password = request.form.get("confirm_password", "")
+            
+            if not password or len(password) < 8:
+                flash("Password must be at least 8 characters long.", "error")
+                return render_template("reset_password.html", token=token)
+            
+            if password != confirm_password:
+                flash("Passwords do not match.", "error")
+                return render_template("reset_password.html", token=token)
+            
+            # Hash new password
+            hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+            
+            # Update password
+            cur.execute("UPDATE users SET password = %s WHERE user_id = %s", (hashed_password, user_id))
+            
+            # Mark token as used
+            cur.execute("UPDATE password_reset_tokens SET used = TRUE WHERE token = %s", (token,))
+            
+            mydb.commit()
+            
+            # Send confirmation email
+            utils.send_password_changed_notification(email, user_name)
+            
+            flash("Your password has been successfully updated. You can now log in with your new password.", "success")
+            return redirect(url_for('login'))
+        
+        return render_template("reset_password.html", token=token)
+        
+    except Exception as e:
+        app.logger.error(f"Error in reset_password: {str(e)}")
+        flash("An error occurred. Please try again later.", "error")
+        return redirect(url_for('forgot_password'))
+    
+    finally:
+        if cur:
+            cur.close()
+        if mydb:
+            mydb.close()
+
 @app.route("/register",methods=["GET","POST"])
 def register():
     
@@ -332,8 +469,8 @@ def complete_profile():
             
             mydb.commit()
             
-            # Redirect to limited dashboard instead of interests
-            return redirect(url_for("limited_dashboard"))
+            # Redirect to interests page to complete profile setup
+            return redirect(url_for("interests"))
         return render_template('complete_profile.html',cities=cities,cutoff_date=cutoff_date)
     except Exception as e:
             app.logger.error(f"Error during register: {str(e)}")
@@ -432,7 +569,7 @@ def interests():
             mydb.commit()
            
 
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("user_dashboard"))
         return render_template("interests.html",db_interests=db_interests)
     
     except Exception as e:
@@ -526,7 +663,7 @@ def limited_dashboard():
     try:
         # Get user information
         cur.execute("""
-            SELECT firstname, lastname, role, verification_status, pfp_path 
+            SELECT firstname, lastname, username, role, verification_status, pfp_path 
             FROM users WHERE user_id = %s
         """, (user_id,))
         user_row = cur.fetchone()
@@ -538,9 +675,10 @@ def limited_dashboard():
         user = {
             'firstname': user_row[0],
             'lastname': user_row[1],
-            'role': user_row[2],
-            'verification_status': user_row[3],
-            'pfp_path': user_row[4]
+            'username': user_row[2],
+            'role': user_row[3],
+            'verification_status': user_row[4],
+            'pfp_path': user_row[5]
         }
         
         # Skip verification request check for now since table doesn't exist
@@ -962,8 +1100,7 @@ def profile(username):
         """, (user_data[0], user_data[0]))
         
         connections_count = cur.fetchone()[0]
-        
-        
+        # Get community name if exists
         community_name = None
         if user_data[15]:  
             cur.execute("SELECT name FROM communities WHERE community_id = %s", (user_data[15],))
@@ -971,13 +1108,24 @@ def profile(username):
             if community_result:
                 community_name = community_result[0]
         
+        # Get current logged-in user's info for the dropdown
+        current_user_info = None
+        if user_id != user_data[0]:  # If viewing someone else's profile
+            cur.execute("""
+                SELECT user_id, firstname, lastname, email, username, pfp_path, role
+                FROM users 
+                WHERE user_id = %s
+            """, (user_id,))
+            current_user_info = cur.fetchone()
+        
         return render_template("profile.html", 
                              user_data=user_data,
                              user_interests=user_interests,
                              education_data=education_data,
                              work_experience=work_experience,
                              connections_count=connections_count,
-                             community_name=community_name)
+                             community_name=community_name,
+                             current_user_info=current_user_info)
     
     except Exception as e:
         app.logger.error(f"Error fetching profile data: {str(e)}")

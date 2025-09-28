@@ -28,13 +28,13 @@
                     <li><a href="{{ url_for('user_dashboard') }}" class="nav-signup">Dashboard</a></li>
                 </ul>
                 <div class="user-profile" id="userprofile">
-                    {% set profile_user_name = (user_data[1] or '') + ' ' + (user_data[2] or '') if user_data else session.get('username', 'User') %}
-                    {% set profile_user_pfp = user_data[11] if user_data else session.get('pfp_path', '') %}
-                    {% set profile_user_role = user_data[13] if user_data else session.get('role', 'user') %}
-                    <img src="{% if profile_user_pfp %}{{ profile_user_pfp }}{% else %}{{ generate_default_avatar(profile_user_name) }}{% endif %}" alt="profile" data-user-name="{{ profile_user_name }}" onerror="this.src='{{ generate_default_avatar(profile_user_name) }}'">
+                    {% set current_user_name = session.get('username', 'User') %}
+                    {% set current_user_pfp = session.get('pfp_path', '') %}
+                    {% set current_user_role = session.get('role', 'user') %}
+                    <img src="{% if current_user_pfp %}{{ current_user_pfp }}{% else %}{{ generate_default_avatar(current_user_name) }}{% endif %}" alt="profile" data-user-name="{{ current_user_name }}" onerror="this.src='{{ generate_default_avatar(current_user_name) }}'">
                     <div class="user-info">
-                        <div class="user-name">{{ profile_user_name.strip() if profile_user_name.strip() else user_data[4] if user_data else session.get('username', 'User') }}</div>
-                        <div class="user-role">{{ profile_user_role.title() if profile_user_role else 'User' }}</div>
+                        <div class="user-name">{{ current_user_name }}</div>
+                        <div class="user-role">{{ current_user_role.title() if current_user_role else 'User' }}</div>
                     </div>
                     <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
                     <div class="user-dropdown" id="userdropdown">
@@ -49,6 +49,10 @@
                         <div class="dropdown-item">
                             <i class="fas fa-cog"></i>
                             <span>settings</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-key"></i>
+                            <span>change password</span>
                         </div>
                         <div class="dropdown-item">
                             <i class="fas fa-bell"></i>
@@ -69,23 +73,23 @@
         </div>
     </header>
 
-    <!-- PROFILE SECTION -->
     <section class="profile-section">
         <div class="container">
             <!-- Profile Header -->
             <div class="profile-header">
                 <div class="profile-cover">
-                    <div class="profile-avatar has-placeholder" id="profileAvatarContainer">
+                    <div class="profile-avatar {% if not user_data[11] %}has-placeholder{% endif %}" id="profileAvatarContainer" style="cursor: pointer;" title="Click to change profile picture">
                         <img alt="Profile Picture" id="profilePicture" 
                              src="{% if user_data[11] %}{{ user_data[11] }}{% else %}{{ generate_default_avatar((user_data[1] or '') + ' ' + (user_data[2] or '')) }}{% endif %}" 
-                             onerror="this.src='{{ generate_default_avatar((user_data[1] or '') + ' ' + (user_data[2] or '')) }}'" 
-                             style="display: block;">
-                        <div class="avatar-placeholder" id="avatarPlaceholder" style="display: none;">
+                             onerror="handleImageError(this)" 
+                             style="display: {% if user_data[11] %}block{% else %}none{% endif %};">
+                        <div class="avatar-placeholder" id="avatarPlaceholder" style="display: {% if user_data[11] %}none{% else %}block{% endif %};">
                             <i class="fas fa-user"></i>
-                            <span>Upload a profile picture</span>
+                            <span>Click to upload profile picture</span>
                         </div>
                         <div class="avatar-overlay">
                             <i class="fas fa-camera"></i>
+                            <span>Change Photo</span>
                         </div>
                     </div>
                 </div>
@@ -579,7 +583,13 @@
         </div>
     </footer>
 
-    <script src="../static/js/profile.js"></script>
+    <script src="{{ url_for('static', filename='js/profile.js') }}" type="module"></script>
+    <script>
+        function handleImageError(img) {
+            img.onerror = null; // Prevent infinite loop
+            img.src = '{{ generate_default_avatar("Profile User") }}';
+        }
+    </script>
     
     <!-- User Dropdown Styles -->
     <style>
@@ -620,13 +630,13 @@
         .user-name {
             font-weight: 600;
             font-size: 0.9rem;
-            color: white;
+            color: #1f2937;
             line-height: 1.2;
         }
 
         .user-role {
             font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.8);
+            color: #6b7280;
             text-transform: capitalize;
             line-height: 1.2;
         }
@@ -658,7 +668,7 @@
             margin-top: 0.5rem;
         }
 
-        .user-dropdown.active {
+        .user-dropdown.show {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
@@ -693,21 +703,28 @@
         @media (max-width: 768px) {
             .user-profile {
                 margin-left: 0;
-                padding: 0.5rem;
+                padding: 0.4rem 0.8rem;
+                gap: 0.5rem;
             }
             
             .user-info {
-                display: none;
+                display: flex;
+            }
+            
+            .user-name {
+                font-size: 0.8rem;
+            }
+            
+            .user-role {
+                font-size: 0.7rem;
             }
             
             .user-dropdown {
-                right: -50px;
-                min-width: 180px;
+                right: -1rem;
             }
         }
     </style>
-    
-    <!-- User Dropdown JavaScript -->
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize user dropdown
