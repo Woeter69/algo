@@ -1125,12 +1125,84 @@ def profile(username):
                              work_experience=work_experience,
                              connections_count=connections_count,
                              community_name=community_name,
-                             current_user_info=current_user_info)
+                             current_user_info=current_user_info,
+                             user_bio=None,  # TODO: Add bio field to database
+                             user_skills=[],  # TODO: Add skills field to database
+                             user_social_links=None,  # TODO: Add social links to database
+                             user_phone=None)  # TODO: Add phone field to database
     
     except Exception as e:
         app.logger.error(f"Error fetching profile data: {str(e)}")
         flash("Error loading profile data")
         return redirect(url_for('home'))
+    
+    finally:
+        if cur:
+            cur.close()
+        if mydb:
+            mydb.close()
+
+@app.route('/create_community', methods=['GET', 'POST'])
+@validators.login_required
+def create_community():
+    """Create Community page - only for admin and college_admin roles"""
+    user_id = session['user_id']
+    user_role = session.get('role', 'user')
+    
+    # Check if user has permission to create communities
+    if user_role not in ['admin', 'college_admin']:
+        flash("Access denied. Only administrators can create communities.", 'error')
+        return redirect(url_for('user_dashboard'))
+    
+    mydb = None
+    cur = None
+    
+    try:
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        if request.method == 'POST':
+            # Get form data
+            community_name = request.form.get('community_name', '').strip()
+            college_code = request.form.get('college_code', '').strip().upper()
+            location = request.form.get('location', '').strip()
+            description = request.form.get('description', '').strip()
+            
+            # Validation
+            if not all([community_name, college_code, location]):
+                flash("All required fields must be filled.", 'error')
+                return render_template('create_community.html')
+            
+            # Check if college code already exists
+            cur.execute("SELECT community_id FROM communities WHERE college_code = %s", (college_code,))
+            existing_community = cur.fetchone()
+            
+            if existing_community:
+                flash(f"A community with college code '{college_code}' already exists.", 'error')
+                return render_template('create_community.html')
+            
+            # Insert new community
+            cur.execute("""
+                INSERT INTO communities (name, college_code, location, description, created_by, created_at)
+                VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+            """, (community_name, college_code, location, description, user_id))
+            
+            mydb.commit()
+            
+            flash(f"Community '{community_name}' created successfully!", 'success')
+            return redirect(url_for('admin_dashboard'))
+        
+        # GET request - show the form
+        # Get current user info
+        cur.execute("SELECT firstname, lastname, role, pfp_path FROM users WHERE user_id = %s", (user_id,))
+        current_user = cur.fetchone()
+        
+        return render_template('create_community.html', current_user=current_user)
+        
+    except Exception as e:
+        app.logger.error(f"Error in create_community: {str(e)}")
+        flash("Error creating community. Please try again.", 'error')
+        return redirect(url_for('admin_dashboard'))
     
     finally:
         if cur:
