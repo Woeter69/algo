@@ -41,6 +41,7 @@ COPY app/ ./app/
 
 # Copy Go binary from builder stage
 COPY --from=go-builder /app/websocket-server ./app/src/
+RUN chmod +x ./app/src/websocket-server
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
