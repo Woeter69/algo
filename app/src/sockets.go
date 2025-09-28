@@ -207,12 +207,22 @@ func (h *Hub) handleBroadcast(message WSMessage) {
 	switch message.Type {
 	case NewMessage:
 		h.broadcastToChannel(message)
+	case ChatMessage:
+		h.handleChatMessage(message)
 	case UserTyping:
 		h.handleTyping(message)
 	case JoinChannel:
 		h.handleJoinChannel(message)
 	case LeaveChannel:
 		h.handleLeaveChannel(message)
+	case "typing_start":
+		h.handleDirectTyping(message, true)
+	case "typing_stop":
+		h.handleDirectTyping(message, false)
+	case "join_chat_room":
+		h.handleJoinChatRoom(message)
+	default:
+		log.Printf("🔍 Unknown message type: %s", message.Type)
 	}
 }
 
@@ -335,6 +345,92 @@ func (h *Hub) handleTyping(message WSMessage) {
 	
 	// Broadcast typing status
 	h.broadcastToChannel(message)
+}
+
+// Handle direct chat messages
+func (h *Hub) handleChatMessage(message WSMessage) {
+	log.Printf("💬 Chat message from %s to %d: %s", message.Username, message.ReceiverID, message.Content)
+	
+	// Save message to database
+	if h.DB != nil {
+		h.saveChatMessage(message)
+	}
+	
+	// Send to receiver if online
+	if receiverClient, exists := h.Clients[message.ReceiverID]; exists {
+		response := WSMessage{
+			Type:       NewChatMessage,
+			UserID:     message.UserID,
+			Username:   message.Username,
+			Content:    message.Content,
+			ReceiverID: message.ReceiverID,
+			PfpPath:    message.PfpPath,
+			Timestamp:  message.Timestamp,
+		}
+		
+		select {
+		case receiverClient.Send <- response:
+			log.Printf("✅ Message delivered to user %d", message.ReceiverID)
+		default:
+			log.Printf("❌ Failed to deliver message to user %d", message.ReceiverID)
+		}
+	} else {
+		log.Printf("📴 User %d is offline, message saved for later", message.ReceiverID)
+	}
+}
+
+// Handle direct chat typing indicators
+func (h *Hub) handleDirectTyping(message WSMessage, isTyping bool) {
+	if receiverClient, exists := h.Clients[message.ReceiverID]; exists {
+		typingType := "typing_start"
+		if !isTyping {
+			typingType = "typing_stop"
+		}
+		
+		response := WSMessage{
+			Type:       MessageType(typingType),
+			UserID:     message.UserID,
+			Username:   message.Username,
+			ReceiverID: message.ReceiverID,
+			Timestamp:  message.Timestamp,
+		}
+		
+		select {
+		case receiverClient.Send <- response:
+			log.Printf("👀 Typing indicator sent to user %d", message.ReceiverID)
+		default:
+			log.Printf("❌ Failed to send typing indicator to user %d", message.ReceiverID)
+		}
+	}
+}
+
+// Handle joining chat rooms
+func (h *Hub) handleJoinChatRoom(message WSMessage) {
+	log.Printf("🚪 User %s joining chat room", message.Username)
+	// Chat rooms are handled implicitly through direct messaging
+	// No specific room management needed for 1-on-1 chats
+}
+
+// Save chat message to database
+func (h *Hub) saveChatMessage(message WSMessage) {
+	if h.DB == nil {
+		log.Printf("⚠️ No database connection, message not saved")
+		return
+	}
+	
+	query := `
+		INSERT INTO messages (sender_id, receiver_id, content, created_at)
+		VALUES ($1, $2, $3, $4)
+	`
+	
+	_, err := h.DB.Exec(query, message.UserID, message.ReceiverID, message.Content, message.Timestamp)
+	if err != nil {
+		log.Printf("❌ Failed to save message to database: %v", err)
+		log.Printf("🔍 Query: %s", query)
+		log.Printf("🔍 Values: sender_id=%d, receiver_id=%d, content=%s", message.UserID, message.ReceiverID, message.Content)
+	} else {
+		log.Printf("✅ Message saved to database: %s -> %d", message.Username, message.ReceiverID)
+	}
 }
 
 // Broadcast user online/offline status
@@ -591,15 +687,35 @@ func main() {
 	// WebSocket endpoint
 	http.HandleFunc("/ws", hub.handleWebSocket)
 	
-	// Health check endpoint
+	// Health check endpoint with CORS
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		// Add CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		
 		log.Println("🏥 Health check requested")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Go WebSocket Server OK"))
 	})
 	
-	// Simple test endpoint
+	// Simple test endpoint with CORS
 	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		// Add CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		
 		log.Println("🧪 Test endpoint requested")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Go server is running!"))

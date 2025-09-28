@@ -47,9 +47,17 @@ if [ $? -eq 0 ]; then
     echo "   - Can handle more users"
     echo ""
     
-    # Start the server (move to parent directory to run)
+    # Start the server from the correct location
+    echo "🚀 Starting Go WebSocket server from: $(pwd)/../websocket-server"
     cd ..
-    ./websocket-server
+    if [ -f "./websocket-server" ]; then
+        ./websocket-server
+    else
+        echo "❌ WebSocket server binary not found at: $(pwd)/websocket-server"
+        echo "🔍 Looking for binary..."
+        find . -name "websocket-server" -type f 2>/dev/null || echo "No websocket-server binary found"
+        exit 1
+    fi
 else
     echo "❌ Build failed!"
     echo "🔍 Check the error messages above"
