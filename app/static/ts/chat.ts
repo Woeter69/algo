@@ -15,6 +15,8 @@ if ((window as any).chatInitialized) {
     console.log('Chat data:', chatData);
     
     const currentUserId: number | null = chatData.currentUserId ? Number(chatData.currentUserId) : null;
+    const currentUserName: string = chatData.currentUserName || 'User';
+    const currentUserPfp: string = chatData.currentUserPfp || '';
     const otherUserId: number | null = chatData.otherUserId ? Number(chatData.otherUserId) : null;
     const otherUserName: string = chatData.otherUserName || '';
     const otherUserPfp: string = chatData.otherUserPfp || '';
@@ -26,16 +28,12 @@ if ((window as any).chatInitialized) {
         return;
     }
 
-    // Initialize Socket.IO with proper typing
-    console.log('Initializing Socket.IO connection...');
-    const socket: any = io({
-        path: '/socket.io',
-        transports: ['websocket', 'polling'], 
-        reconnection: true,
-        reconnectionAttempts: 8,
-        reconnectionDelay: 500,
-        timeout: 20000,
-    });
+    // Initialize Go WebSocket connection
+    console.log('Initializing Go WebSocket connection...');
+    const socket: any = (window as any).goSocket;
+    
+    // Connect to Go WebSocket server with user info
+    socket.connect(currentUserId.toString(), currentUserName, currentUserPfp);
 
     let onlineUsers = new Set<number>();
     let isTyping = false;
@@ -98,42 +96,40 @@ if ((window as any).chatInitialized) {
     fetchOnlineStatus();
     setInterval(fetchOnlineStatus, 30000);
 
-    // Socket event handlers with proper typing
-    socket.on('connect_error', (err: any) => {
-        console.error('Socket connect_error:', err?.message || err);
-    });
-    
-    // Note: reconnect_error is not in the standard Socket.IO events, using connect_error instead
-    socket.on('connect_error', (err: any) => {
-        console.error('Socket reconnect_error:', err?.message || err);
+    // Go WebSocket event handlers
+    socket.on('error', (err: any) => {
+        console.error('WebSocket error:', err?.message || err);
     });
     
     socket.on('disconnect', (reason: string) => {
-        console.warn('Socket disconnected:', reason);
+        console.warn('WebSocket disconnected:', reason);
     });
 
     socket.on('connect', () => {
-        console.log('Socket.IO connected successfully');
-        if (currentUserId) {
-            console.log('Emitting user_online for user:', currentUserId);
-            socket.emit('user_online', { user_id: currentUserId });
-        }
+        console.log('Go WebSocket connected successfully');
         if (currentUserId && otherUserId) {
-            console.log('Joining room for users:', currentUserId, otherUserId);
-            socket.emit('join', { user1: currentUserId, user2: otherUserId });
+            console.log('Joining chat room for users:', currentUserId, otherUserId);
+            // Join direct chat room
+            socket.send('join_chat_room', {
+                sender_id: currentUserId,
+                receiver_id: otherUserId
+            });
         }
         loadOnlineStatus();
     });
 
-    socket.on('user_status_changed', (data: any) => {
-        console.log('User status changed:', data);
-        const { user_id, is_online } = data;
-        if (is_online) {
-            onlineUsers.add(user_id);
-        } else {
-            onlineUsers.delete(user_id);
-        }
-        updateUserOnlineStatus(user_id, is_online);
+    socket.on('user_online', (data: any) => {
+        console.log('User came online:', data);
+        const userId = data.user_id || data.userID;
+        onlineUsers.add(userId);
+        updateUserOnlineStatus(userId, true);
+    });
+    
+    socket.on('user_offline', (data: any) => {
+        console.log('User went offline:', data);
+        const userId = data.user_id || data.userID;
+        onlineUsers.delete(userId);
+        updateUserOnlineStatus(userId, false);
     });
 
     // DOM Elements with proper type assertions
@@ -178,11 +174,11 @@ if ((window as any).chatInitialized) {
     const processedMessages = new Set<string>();
     let lastSentMessageTime = 0;
 
-    // Socket message handlers with deduplication
-    socket.on('receive_message', (data: any) => {
+    // Go WebSocket message handlers with deduplication
+    socket.on('new_chat_message', (data: any) => {
         console.log('📨 Message received:', data);
         
-        const senderId = Number(data.sender_id);
+        const senderId = Number(data.userID || data.user_id);
         const receiverId = Number(data.receiver_id);
         const content = data.content || data.message || '';
         
@@ -232,13 +228,13 @@ if ((window as any).chatInitialized) {
     });
 
     // Typing indicators
-    socket.on('user_typing', (data: { user_id: number }) => {
+    socket.on('typing_start', (data: { user_id: number }) => {
         if (String(data.user_id) === String(currentConversationUserId)) {
             showTypingIndicator();
         }
     });
 
-    socket.on('user_stopped_typing', (data: { user_id: number }) => {
+    socket.on('typing_stop', (data: { user_id: number }) => {
         if (String(data.user_id) === String(currentConversationUserId)) {
             hideTypingIndicator();
         }
@@ -277,10 +273,7 @@ if ((window as any).chatInitialized) {
                 scrollToBottom();
             }
 
-            socket.emit('send_message', {
-                sender_id: currentUserId!,
-                receiver_id: otherUserId,
-                message: message,
+            socket.sendMessage(message, otherUserId!);
                 client_message_id: `${currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`
             });
 
@@ -312,14 +305,20 @@ if ((window as any).chatInitialized) {
 
             if (!isTyping && currentConversationUserId) {
                 isTyping = true;
-                socket.emit('typing', { user_id: currentUserId!, receiver_id: currentConversationUserId });
+                socket.send('typing_start', {
+                    sender_id: currentUserId!,
+                    receiver_id: currentConversationUserId
+                });
             }
 
             if (typingTimer) clearTimeout(typingTimer);
             typingTimer = setTimeout(() => {
                 if (isTyping && currentConversationUserId) {
                     isTyping = false;
-                    socket.emit('stop_typing', { user_id: currentUserId!, receiver_id: currentConversationUserId });
+                    socket.send('typing_stop', {
+                        sender_id: currentUserId!,
+                        receiver_id: currentConversationUserId
+                    });
                 }
             }, 1000);
         });

@@ -1,60 +1,15 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 document.addEventListener('DOMContentLoaded', function () {
     // Get real data from Flask template
-    var windowWithData = window;
-    var connectData = windowWithData.connectData || {
+    const windowWithData = window;
+    const connectData = windowWithData.connectData || {
         people: [],
         universities: [],
         graduationYears: [],
         locations: []
     };
-    var allPeople = connectData.people || [];
+    const allPeople = connectData.people || [];
     // Process people data to match expected format
-    var processedPeople = allPeople.map(function (person) { return ({
+    const processedPeople = allPeople.map((person) => ({
         id: person.id,
         name: person.name,
         title: person.title,
@@ -68,23 +23,23 @@ document.addEventListener('DOMContentLoaded', function () {
         connectionStatus: person.connection_status || person.connectionStatus || "none",
         connection_id: person.connection_id || null,
         isRecommended: Math.random() > 0.7 // Random recommendation for demo
-    }); });
-    var currentPeople = __spreadArray([], processedPeople, true);
-    var displayedCount = 0;
-    var itemsPerLoad = 6;
-    var searchTimeout;
+    }));
+    let currentPeople = [...processedPeople];
+    let displayedCount = 0;
+    const itemsPerLoad = 6;
+    let searchTimeout;
     // Generate default avatar function
     function generateDefaultAvatar(name) {
         if (!name)
             return 'https://i.ibb.co/QDy827D/default-avatar.png';
         // Clean the name and get initials
-        var cleanName = name.trim();
-        var initials = cleanName.split(' ')
-            .map(function (word) { return word.charAt(0).toUpperCase(); })
+        const cleanName = name.trim();
+        const initials = cleanName.split(' ')
+            .map(word => word.charAt(0).toUpperCase())
             .join('')
             .substring(0, 2);
         // Generate a consistent color based on name
-        var colors = [
+        const colors = [
             '6D28D9', // Purple
             '3B82F6', // Blue  
             '10B981', // Green
@@ -97,18 +52,18 @@ document.addEventListener('DOMContentLoaded', function () {
             '84CC16' // Lime
         ];
         // Simple hash function to get consistent color for same name
-        var hash = 0;
-        for (var i = 0; i < cleanName.length; i++) {
+        let hash = 0;
+        for (let i = 0; i < cleanName.length; i++) {
             hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
         }
-        var colorIndex = Math.abs(hash) % colors.length;
-        var backgroundColor = colors[colorIndex];
+        const colorIndex = Math.abs(hash) % colors.length;
+        const backgroundColor = colors[colorIndex];
         // Return UI Avatars URL with custom styling
-        return "https://ui-avatars.com/api/?name=".concat(encodeURIComponent(initials), "&background=").concat(backgroundColor, "&color=fff&size=80&font-size=0.6&bold=true");
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${backgroundColor}&color=fff&size=80&font-size=0.6&bold=true`;
     }
     // Mobile navigation
-    var hamburger = document.querySelector('.hamburger');
-    var navLinks = document.querySelector('.nav-links');
+    const hamburger = document.querySelector('.hamburger');
+    const navLinks = document.querySelector('.nav-links');
     if (hamburger && navLinks) {
         hamburger.addEventListener('click', function () {
             hamburger.classList.toggle('toggle');
@@ -118,10 +73,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize user dropdown
     initializeUserDropdown();
     function initializeUserDropdown() {
-        var userProfile = document.getElementById('userprofile');
-        var dropdownArrow = document.getElementById('dropdownarrow');
-        var userDropdown = document.getElementById('userdropdown');
-        var logoutBtn = document.getElementById('logoutBtn');
+        const userProfile = document.getElementById('userprofile');
+        const dropdownArrow = document.getElementById('dropdownarrow');
+        const userDropdown = document.getElementById('userdropdown');
+        const logoutBtn = document.getElementById('logoutBtn');
         if (userProfile && dropdownArrow && userDropdown) {
             // Toggle dropdown on click
             userProfile.addEventListener('click', function (e) {
@@ -137,12 +92,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
             // Handle dropdown item clicks
-            var dropdownItems = userDropdown.querySelectorAll('.dropdown-item');
-            dropdownItems.forEach(function (item) {
+            const dropdownItems = userDropdown.querySelectorAll('.dropdown-item');
+            dropdownItems.forEach(item => {
                 item.addEventListener('click', function (e) {
-                    var _a;
                     e.stopPropagation();
-                    var text = (_a = this.textContent) === null || _a === void 0 ? void 0 : _a.trim().toLowerCase();
+                    const text = this.textContent?.trim().toLowerCase();
                     switch (text) {
                         case 'view profile':
                             window.location.href = '/profile';
@@ -181,10 +135,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     // Filter functionality
-    var filterBtn = document.getElementById('filterBtn');
-    var filtersSection = document.getElementById('filtersSection');
-    var clearFiltersBtn = document.getElementById('clearFilters');
-    var applyFiltersBtn = document.getElementById('applyFilters');
+    const filterBtn = document.getElementById('filterBtn');
+    const filtersSection = document.getElementById('filtersSection');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+    const applyFiltersBtn = document.getElementById('applyFilters');
     if (filterBtn && filtersSection) {
         filterBtn.addEventListener('click', function () {
             filtersSection.classList.toggle('active');
@@ -193,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', function () {
             // Reset all filter dropdowns
-            document.querySelectorAll('.filters-section select').forEach(function (select) {
+            document.querySelectorAll('.filters-section select').forEach(select => {
                 select.value = '';
             });
             // Reset search input
@@ -207,8 +161,8 @@ document.addEventListener('DOMContentLoaded', function () {
         applyFiltersBtn.addEventListener('click', applyFilters);
     }
     // Enhanced Search functionality with debouncing and real-time search
-    var searchInput = document.getElementById('searchInput');
-    var searchBtn = document.getElementById('searchBtn');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
     if (searchBtn) {
         searchBtn.addEventListener('click', performSearch);
     }
@@ -216,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Real-time search with debouncing
         searchInput.addEventListener('input', function () {
             clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(function () {
+            searchTimeout = setTimeout(() => {
                 performSearch();
                 showSearchResults();
             }, 300); // 300ms debounce
@@ -239,52 +193,59 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     function performSearch() {
-        var query = (searchInput === null || searchInput === void 0 ? void 0 : searchInput.value.toLowerCase().trim()) || '';
+        const query = searchInput?.value.toLowerCase().trim() || '';
         if (query) {
-            currentPeople = processedPeople.filter(function (person) {
+            currentPeople = processedPeople.filter(person => {
                 // Enhanced multi-field search
-                var searchableFields = __spreadArray([
+                const searchableFields = [
                     person.name.toLowerCase(),
                     person.company.toLowerCase(),
                     person.title.toLowerCase(),
                     person.university.toLowerCase(),
                     person.location.toLowerCase(),
-                    person.role.toLowerCase()
-                ], person.skills.map(function (skill) { return skill.toLowerCase(); }), true);
+                    person.role.toLowerCase(),
+                    ...person.skills.map(skill => skill.toLowerCase())
+                ];
                 // Support for multi-word search
-                var searchWords = query.split(' ').filter(function (word) { return word.length > 0; });
-                return searchWords.every(function (word) {
-                    return searchableFields.some(function (field) { return field.includes(word); });
-                });
+                const searchWords = query.split(' ').filter(word => word.length > 0);
+                return searchWords.every(word => searchableFields.some(field => field.includes(word)));
             });
         }
         else {
-            currentPeople = __spreadArray([], processedPeople, true);
+            currentPeople = [...processedPeople];
         }
         displayedCount = 0;
         renderPeople();
     }
     // Show search results info
     function showSearchResults() {
-        var query = (searchInput === null || searchInput === void 0 ? void 0 : searchInput.value.trim()) || '';
+        const query = searchInput?.value.trim() || '';
         if (!query)
             return;
-        var resultsDiv = document.getElementById('searchResults');
+        let resultsDiv = document.getElementById('searchResults');
         if (!resultsDiv) {
             resultsDiv = document.createElement('div');
             resultsDiv.id = 'searchResults';
             resultsDiv.className = 'search-results-info';
             // Insert directly after the search container
-            var searchContainer = document.querySelector('.search-container');
+            const searchContainer = document.querySelector('.search-container');
             if (searchContainer && searchContainer.parentNode) {
                 searchContainer.parentNode.insertBefore(resultsDiv, searchContainer.nextSibling);
             }
         }
-        var count = currentPeople.length;
-        resultsDiv.innerHTML = "\n            <div class=\"search-results-content\">\n                <i class=\"fas fa-search\"></i>\n                <span>Found <strong>".concat(count, "</strong> result").concat(count !== 1 ? 's' : '', " for \"<em>").concat(escapeHtml(query), "</em>\"</span>\n                <button class=\"clear-search-btn\" onclick=\"clearSearch()\">\n                    <i class=\"fas fa-times\"></i> Clear\n                </button>\n            </div>\n        ");
+        const count = currentPeople.length;
+        resultsDiv.innerHTML = `
+            <div class="search-results-content">
+                <i class="fas fa-search"></i>
+                <span>Found <strong>${count}</strong> result${count !== 1 ? 's' : ''} for "<em>${escapeHtml(query)}</em>"</span>
+                <button class="clear-search-btn" onclick="clearSearch()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+        `;
         resultsDiv.style.display = 'block';
         // Auto-scroll to show search results
-        setTimeout(function () {
+        setTimeout(() => {
             resultsDiv.scrollIntoView({
                 behavior: 'smooth',
                 block: 'nearest',
@@ -294,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     // Hide search results info
     function hideSearchResults() {
-        var resultsDiv = document.getElementById('searchResults');
+        const resultsDiv = document.getElementById('searchResults');
         if (resultsDiv) {
             resultsDiv.style.display = 'none';
         }
@@ -309,27 +270,26 @@ document.addEventListener('DOMContentLoaded', function () {
     };
     // Utility function to escape HTML
     function escapeHtml(text) {
-        var div = document.createElement('div');
+        const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
     function applyFilters() {
-        var _a, _b, _c, _d;
-        var university = ((_a = document.getElementById('universityFilter')) === null || _a === void 0 ? void 0 : _a.value) || '';
-        var year = ((_b = document.getElementById('yearFilter')) === null || _b === void 0 ? void 0 : _b.value) || '';
-        var role = ((_c = document.getElementById('roleFilter')) === null || _c === void 0 ? void 0 : _c.value) || '';
-        var location = ((_d = document.getElementById('locationFilter')) === null || _d === void 0 ? void 0 : _d.value) || '';
-        var searchQuery = (searchInput === null || searchInput === void 0 ? void 0 : searchInput.value.toLowerCase().trim()) || '';
-        currentPeople = processedPeople.filter(function (person) {
-            var matchesUniversity = !university || person.university.toLowerCase().includes(university.toLowerCase());
-            var matchesYear = !year || person.graduationYear.toString() === year;
-            var matchesRole = !role || person.role.toLowerCase() === role.toLowerCase();
-            var matchesLocation = !location || person.location.toLowerCase().includes(location.toLowerCase());
-            var matchesSearch = !searchQuery ||
+        const university = document.getElementById('universityFilter')?.value || '';
+        const year = document.getElementById('yearFilter')?.value || '';
+        const role = document.getElementById('roleFilter')?.value || '';
+        const location = document.getElementById('locationFilter')?.value || '';
+        const searchQuery = searchInput?.value.toLowerCase().trim() || '';
+        currentPeople = processedPeople.filter(person => {
+            const matchesUniversity = !university || person.university.toLowerCase().includes(university.toLowerCase());
+            const matchesYear = !year || person.graduationYear.toString() === year;
+            const matchesRole = !role || person.role.toLowerCase() === role.toLowerCase();
+            const matchesLocation = !location || person.location.toLowerCase().includes(location.toLowerCase());
+            const matchesSearch = !searchQuery ||
                 person.name.toLowerCase().includes(searchQuery) ||
                 person.company.toLowerCase().includes(searchQuery) ||
                 person.title.toLowerCase().includes(searchQuery) ||
-                person.skills.some(function (skill) { return skill.toLowerCase().includes(searchQuery); });
+                person.skills.some(skill => skill.toLowerCase().includes(searchQuery));
             return matchesUniversity && matchesYear && matchesRole && matchesLocation && matchesSearch;
         });
         displayedCount = 0;
@@ -337,27 +297,60 @@ document.addEventListener('DOMContentLoaded', function () {
         filtersSection.classList.remove('active');
     }
     // Modal functionality
-    var connectionModal = document.getElementById('connectionModal');
-    var profileModal = document.getElementById('profileModal');
-    var closeConnectionModal = document.getElementById('closeConnectionModal');
-    var closeProfileModal = document.getElementById('closeProfileModal');
-    var cancelConnection = document.getElementById('cancelConnection');
-    var closePreview = document.getElementById('closePreview');
-    var connectionForm = document.getElementById('connectionForm');
-    var selectedPerson = null;
+    const connectionModal = document.getElementById('connectionModal');
+    const profileModal = document.getElementById('profileModal');
+    const closeConnectionModal = document.getElementById('closeConnectionModal');
+    const closeProfileModal = document.getElementById('closeProfileModal');
+    const cancelConnection = document.getElementById('cancelConnection');
+    const closePreview = document.getElementById('closePreview');
+    const connectionForm = document.getElementById('connectionForm');
+    let selectedPerson = null;
     function openConnectionModal(person) {
         selectedPerson = person;
-        var personPreview = document.getElementById('personPreview');
-        personPreview.innerHTML = "\n            <div class=\"person-avatar\">\n                <img src=\"".concat(person.avatar, "\" alt=\"").concat(person.name, "\">\n            </div>\n            <div class=\"person-info\">\n                <h3>").concat(person.name, "</h3>\n                <div class=\"title\">").concat(person.title, "</div>\n                <div class=\"company\">").concat(person.company, "</div>\n            </div>\n        ");
+        const personPreview = document.getElementById('personPreview');
+        personPreview.innerHTML = `
+            <div class="person-avatar">
+                <img src="${person.avatar}" alt="${person.name}">
+            </div>
+            <div class="person-info">
+                <h3>${person.name}</h3>
+                <div class="title">${person.title}</div>
+                <div class="company">${person.company}</div>
+            </div>
+        `;
         connectionModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
     function openProfileModal(person) {
         selectedPerson = person;
-        var profilePreview = document.getElementById('profilePreview');
-        profilePreview.innerHTML = "\n            <div class=\"person-avatar\">\n                <img src=\"".concat(person.avatar, "\" alt=\"").concat(person.name, "\">\n            </div>\n            <h3>").concat(person.name, "</h3>\n            <div class=\"title\">").concat(person.title, " at ").concat(person.company, "</div>\n            <div class=\"detail-item\">\n                <i class=\"fas fa-graduation-cap\"></i>\n                <span>").concat(person.university, ", Class of ").concat(person.graduationYear, "</span>\n            </div>\n            <div class=\"detail-item\">\n                <i class=\"fas fa-map-marker-alt\"></i>\n                <span>").concat(person.location, "</span>\n            </div>\n            <div class=\"detail-item\">\n                <i class=\"fas fa-briefcase\"></i>\n                <span>").concat(person.industry, "</span>\n            </div>\n            <div class=\"person-skills\">\n                <h4>Skills</h4>\n                <div class=\"skills-container\">\n                    ").concat(person.skills.map(function (skill) { return "<span class=\"skill-tag\">".concat(skill, "</span>"); }).join(''), "\n                </div>\n            </div>\n        ");
-        var connectBtn = document.getElementById('connectFromPreview');
-        connectBtn.onclick = function () {
+        const profilePreview = document.getElementById('profilePreview');
+        profilePreview.innerHTML = `
+            <div class="person-avatar">
+                <img src="${person.avatar}" alt="${person.name}">
+            </div>
+            <h3>${person.name}</h3>
+            <div class="title">${person.title} at ${person.company}</div>
+            <div class="detail-item">
+                <i class="fas fa-graduation-cap"></i>
+                <span>${person.university}, Class of ${person.graduationYear}</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>${person.location}</span>
+            </div>
+            <div class="detail-item">
+                <i class="fas fa-briefcase"></i>
+                <span>${person.industry}</span>
+            </div>
+            <div class="person-skills">
+                <h4>Skills</h4>
+                <div class="skills-container">
+                    ${person.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                </div>
+            </div>
+        `;
+        const connectBtn = document.getElementById('connectFromPreview');
+        connectBtn.onclick = () => {
             profileModal.classList.remove('active');
             openConnectionModal(person);
         };
@@ -380,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (closePreview)
         closePreview.addEventListener('click', closeModal);
     // Close modal when clicking outside
-    [connectionModal, profileModal].forEach(function (modal) {
+    [connectionModal, profileModal].forEach(modal => {
         if (modal) {
             modal.addEventListener('click', function (e) {
                 if (e.target === modal) {
@@ -391,232 +384,252 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     // Connection form submission
     if (connectionForm) {
-        connectionForm.addEventListener('submit', function (e) {
-            return __awaiter(this, void 0, void 0, function () {
-                var message, response, result, error_1;
-                var _a;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
-                        case 0:
-                            e.preventDefault();
-                            if (!selectedPerson) return [3 /*break*/, 5];
-                            message = ((_a = document.getElementById('connectionMessage')) === null || _a === void 0 ? void 0 : _a.value) || '';
-                            _b.label = 1;
-                        case 1:
-                            _b.trys.push([1, 4, , 5]);
-                            return [4 /*yield*/, fetch('/api/send_connection_request', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                        user_id: selectedPerson.id,
-                                        message: message
-                                    })
-                                })];
-                        case 2:
-                            response = _b.sent();
-                            return [4 /*yield*/, response.json()];
-                        case 3:
-                            result = _b.sent();
-                            if (result.success) {
-                                // Update person's connection status
-                                selectedPerson.connectionStatus = 'pending';
-                                // Show success message
-                                showNotification(result.message, 'success');
-                                // Re-render people to update button states
-                                renderPeople();
-                                // Close modal
-                                closeModal();
-                            }
-                            else {
-                                showNotification(result.message || 'Failed to send connection request', 'error');
-                            }
-                            return [3 /*break*/, 5];
-                        case 4:
-                            error_1 = _b.sent();
-                            console.error('Error sending connection request:', error_1);
-                            showNotification('Network error. Please try again.', 'error');
-                            return [3 /*break*/, 5];
-                        case 5: return [2 /*return*/];
+        connectionForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (selectedPerson) {
+                const message = document.getElementById('connectionMessage')?.value || '';
+                try {
+                    const response = await fetch('/api/send_connection_request', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_id: selectedPerson.id,
+                            message: message
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        // Update person's connection status
+                        selectedPerson.connectionStatus = 'pending';
+                        // Show success message
+                        showNotification(result.message, 'success');
+                        // Re-render people to update button states
+                        renderPeople();
+                        // Close modal
+                        closeModal();
                     }
-                });
-            });
+                    else {
+                        showNotification(result.message || 'Failed to send connection request', 'error');
+                    }
+                }
+                catch (error) {
+                    console.error('Error sending connection request:', error);
+                    showNotification('Network error. Please try again.', 'error');
+                }
+            }
         });
     }
     // Render people function
     function renderPeople() {
-        var recommendedContainer = document.getElementById('recommendedPeople');
-        var allPeopleContainer = document.getElementById('allPeople');
+        const recommendedContainer = document.getElementById('recommendedPeople');
+        const allPeopleContainer = document.getElementById('allPeople');
         // Clear containers
         recommendedContainer.innerHTML = '';
         allPeopleContainer.innerHTML = '';
         // Separate recommended and all people
-        var recommendedPeople = currentPeople.filter(function (person) { return person.isRecommended; });
-        var allPeople = currentPeople.filter(function (person) { return !person.isRecommended; });
+        const recommendedPeople = currentPeople.filter(person => person.isRecommended);
+        const allPeople = currentPeople.filter(person => !person.isRecommended);
         // Render recommended people
-        recommendedPeople.forEach(function (person) {
+        recommendedPeople.forEach(person => {
             recommendedContainer.appendChild(createPersonCard(person));
         });
         // Render all people (with pagination)
-        var peopleToShow = allPeople.slice(0, displayedCount + itemsPerLoad);
-        peopleToShow.forEach(function (person) {
+        const peopleToShow = allPeople.slice(0, displayedCount + itemsPerLoad);
+        peopleToShow.forEach(person => {
             allPeopleContainer.appendChild(createPersonCard(person));
         });
         displayedCount = peopleToShow.length;
         // Show/hide load more button
-        var loadMoreBtn = document.getElementById('loadMoreBtn');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
         if (loadMoreBtn) {
             loadMoreBtn.style.display = displayedCount < allPeople.length ? 'inline-block' : 'none';
         }
     }
     function createPersonCard(person) {
-        var card = document.createElement('div');
+        const card = document.createElement('div');
         card.className = 'person-card';
-        var actionButtons = '';
+        let actionButtons = '';
         if (person.connectionStatus === 'accepted' || person.connectionStatus === 'connected') {
-            actionButtons = "\n                <button class=\"btn-small btn-connected\">Connected</button>\n                <button class=\"btn-small btn-view\" onclick=\"viewProfile(".concat(person.id, ")\">View Profile</button>\n            ");
+            actionButtons = `
+                <button class="btn-small btn-connected">Connected</button>
+                <button class="btn-small btn-view" onclick="viewProfile(${person.id})">View Profile</button>
+            `;
         }
         else if (person.connectionStatus === 'pending') {
-            actionButtons = "\n                <button class=\"btn-small btn-pending\">Request Sent</button>\n                <button class=\"btn-small btn-view\" onclick=\"viewProfile(".concat(person.id, ")\">View Profile</button>\n            ");
+            actionButtons = `
+                <button class="btn-small btn-pending">Request Sent</button>
+                <button class="btn-small btn-view" onclick="viewProfile(${person.id})">View Profile</button>
+            `;
         }
         else if (person.connectionStatus === 'received_request') {
-            actionButtons = "\n                <button class=\"btn-small btn-accept\" onclick=\"acceptConnection(".concat(person.connection_id || person.id, ")\">Accept</button>\n                <button class=\"btn-small btn-decline\" onclick=\"declineConnection(").concat(person.connection_id || person.id, ")\">Decline</button>\n                <button class=\"btn-small btn-view\" onclick=\"viewProfile(").concat(person.id, ")\">View Profile</button>\n            ");
+            actionButtons = `
+                <button class="btn-small btn-accept" onclick="acceptConnection(${person.connection_id || person.id})">Accept</button>
+                <button class="btn-small btn-decline" onclick="declineConnection(${person.connection_id || person.id})">Decline</button>
+                <button class="btn-small btn-view" onclick="viewProfile(${person.id})">View Profile</button>
+            `;
         }
         else {
-            actionButtons = "\n                <button class=\"btn-small btn-connect\" onclick=\"connectWithPerson(".concat(person.id, ")\">Connect</button>\n                <button class=\"btn-small btn-view\" onclick=\"viewProfile(").concat(person.id, ")\">View Profile</button>\n            ");
+            actionButtons = `
+                <button class="btn-small btn-connect" onclick="connectWithPerson(${person.id})">Connect</button>
+                <button class="btn-small btn-view" onclick="viewProfile(${person.id})">View Profile</button>
+            `;
         }
-        card.innerHTML = "\n            <div class=\"person-header\">\n                <div class=\"person-avatar\">\n                    <img src=\"".concat(person.avatar, "\" alt=\"").concat(person.name, "\">\n                </div>\n                <div class=\"person-info\">\n                    <h3>").concat(person.name, "</h3>\n                    <div class=\"title\">").concat(person.title, "</div>\n                    <div class=\"company\">").concat(person.company, "</div>\n                </div>\n            </div>\n            <div class=\"person-details\">\n                <div class=\"detail-item\">\n                    <i class=\"fas fa-graduation-cap\"></i>\n                    <span>").concat(person.university, ", ").concat(person.graduationYear, "</span>\n                </div>\n                <div class=\"detail-item\">\n                    <i class=\"fas fa-map-marker-alt\"></i>\n                    <span>").concat(person.location, "</span>\n                </div>\n                <div class=\"detail-item\">\n                    <i class=\"fas fa-briefcase\"></i>\n                    <span>").concat(person.industry, "</span>\n                </div>\n            </div>\n            <div class=\"person-skills\">\n                <div class=\"skills-container\">\n                    ").concat(person.skills.map(function (skill) { return "<span class=\"skill-tag\">".concat(skill, "</span>"); }).join(''), "\n                </div>\n            </div>\n            <div class=\"person-actions\">\n                ").concat(actionButtons, "\n            </div>\n        ");
+        card.innerHTML = `
+            <div class="person-header">
+                <div class="person-avatar">
+                    <img src="${person.avatar}" alt="${person.name}">
+                </div>
+                <div class="person-info">
+                    <h3>${person.name}</h3>
+                    <div class="title">${person.title}</div>
+                    <div class="company">${person.company}</div>
+                </div>
+            </div>
+            <div class="person-details">
+                <div class="detail-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>${person.university}, ${person.graduationYear}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${person.location}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-briefcase"></i>
+                    <span>${person.industry}</span>
+                </div>
+            </div>
+            <div class="person-skills">
+                <div class="skills-container">
+                    ${person.skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                </div>
+            </div>
+            <div class="person-actions">
+                ${actionButtons}
+            </div>
+        `;
         return card;
     }
     // Global functions for button clicks
     window.connectWithPerson = function (personId) {
-        var person = currentPeople.find(function (p) { return p.id === personId; });
+        const person = currentPeople.find(p => p.id === personId);
         if (person) {
             openConnectionModal(person);
         }
     };
     window.viewProfile = function (personId) {
-        var person = currentPeople.find(function (p) { return p.id === personId; });
+        const person = currentPeople.find(p => p.id === personId);
         if (person) {
             openProfileModal(person);
         }
     };
-    window.acceptConnection = function (personId) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response, result, person, error_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, fetch('/api/respond_connection_request', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    connection_id: personId, // This should be connection_id, not user_id
-                                    action: 'accept'
-                                })
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        return [4 /*yield*/, response.json()];
-                    case 2:
-                        result = _a.sent();
-                        if (result.success) {
-                            person = currentPeople.find(function (p) { return p.id === personId; });
-                            if (person) {
-                                person.connectionStatus = 'connected';
-                            }
-                            showNotification('Connection request accepted!', 'success');
-                            renderPeople();
-                        }
-                        else {
-                            showNotification(result.message || 'Failed to accept connection', 'error');
-                        }
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_2 = _a.sent();
-                        console.error('Error accepting connection:', error_2);
-                        showNotification('Network error. Please try again.', 'error');
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
+    window.acceptConnection = async function (personId) {
+        try {
+            const response = await fetch('/api/respond_connection_request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    connection_id: personId, // This should be connection_id, not user_id
+                    action: 'accept'
+                })
             });
-        });
+            const result = await response.json();
+            if (result.success) {
+                // Update person's connection status
+                const person = currentPeople.find(p => p.id === personId);
+                if (person) {
+                    person.connectionStatus = 'connected';
+                }
+                showNotification('Connection request accepted!', 'success');
+                renderPeople();
+            }
+            else {
+                showNotification(result.message || 'Failed to accept connection', 'error');
+            }
+        }
+        catch (error) {
+            console.error('Error accepting connection:', error);
+            showNotification('Network error. Please try again.', 'error');
+        }
     };
-    window.declineConnection = function (personId) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response, result, person, error_3;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, fetch('/api/respond_connection_request', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    connection_id: personId, // This should be connection_id, not user_id
-                                    action: 'reject'
-                                })
-                            })];
-                    case 1:
-                        response = _a.sent();
-                        return [4 /*yield*/, response.json()];
-                    case 2:
-                        result = _a.sent();
-                        if (result.success) {
-                            person = currentPeople.find(function (p) { return p.id === personId; });
-                            if (person) {
-                                person.connectionStatus = 'none';
-                            }
-                            showNotification('Connection request declined', 'info');
-                            renderPeople();
-                        }
-                        else {
-                            showNotification(result.message || 'Failed to decline connection', 'error');
-                        }
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_3 = _a.sent();
-                        console.error('Error declining connection:', error_3);
-                        showNotification('Network error. Please try again.', 'error');
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
+    window.declineConnection = async function (personId) {
+        try {
+            const response = await fetch('/api/respond_connection_request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    connection_id: personId, // This should be connection_id, not user_id
+                    action: 'reject'
+                })
             });
-        });
+            const result = await response.json();
+            if (result.success) {
+                // Update person's connection status
+                const person = currentPeople.find(p => p.id === personId);
+                if (person) {
+                    person.connectionStatus = 'none';
+                }
+                showNotification('Connection request declined', 'info');
+                renderPeople();
+            }
+            else {
+                showNotification(result.message || 'Failed to decline connection', 'error');
+            }
+        }
+        catch (error) {
+            console.error('Error declining connection:', error);
+            showNotification('Network error. Please try again.', 'error');
+        }
     };
     // Load more functionality
-    var loadMoreBtn = document.getElementById('loadMoreBtn');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', function () {
             renderPeople();
         });
     }
     // Notification function
-    function showNotification(message, type) {
-        if (type === void 0) { type = 'info'; }
-        var notification = document.createElement('div');
-        notification.className = "notification notification-".concat(type);
-        notification.innerHTML = "\n            <div class=\"notification-content\">\n                <i class=\"fas fa-check-circle\"></i>\n                <span>".concat(message, "</span>\n            </div>\n        ");
-        var colors = {
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-check-circle"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        const colors = {
             success: '#10b981',
             error: '#ef4444',
             info: '#6D28D9',
             warning: '#f59e0b'
         };
-        notification.style.cssText = "\n            position: fixed;\n            top: 20px;\n            right: 20px;\n            background: ".concat(colors[type] || colors.info, ";\n            color: white;\n            padding: 1rem 1.5rem;\n            border-radius: 8px;\n            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n            z-index: 3000;\n            transform: translateX(100%);\n            transition: all 0.3s ease;\n        ");
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${colors[type] || colors.info};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 3000;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        `;
         document.body.appendChild(notification);
-        setTimeout(function () {
+        setTimeout(() => {
             notification.style.transform = 'translateX(0)';
         }, 100);
-        setTimeout(function () {
+        setTimeout(() => {
             notification.style.transform = 'translateX(100%)';
-            setTimeout(function () {
+            setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                 }
@@ -624,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     }
     // Header scroll effect
-    var header = document.querySelector('header');
+    const header = document.querySelector('header');
     if (header) {
         window.addEventListener('scroll', function () {
             if (window.scrollY > 100) {
@@ -636,11 +649,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     // Navigation links
-    var navLinksElements = document.querySelectorAll('.nav-links a[data-section]');
-    navLinksElements.forEach(function (link) {
+    const navLinksElements = document.querySelectorAll('.nav-links a[data-section]');
+    navLinksElements.forEach(link => {
         link.addEventListener('click', function (e) {
             e.preventDefault();
-            var section = this.getAttribute('data-section');
+            const section = this.getAttribute('data-section');
             console.log('Navigate to:', section);
             if (navLinks && navLinks.classList.contains('open')) {
                 hamburger.classList.remove('toggle');

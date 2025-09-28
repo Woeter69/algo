@@ -12,7 +12,7 @@ function initializeAdminDashboard() {
     initializeModal();
     
     // Initialize responsive navigation
-    initializeNavigation();
+    initializeAdminNavigation();
 }
 
 // Filter functionality
@@ -144,7 +144,7 @@ function closeReviewModal(): void {
 }
 
 // Navigation functionality
-function initializeNavigation(): void {
+function initializeAdminNavigation(): void {
     const hamburger = document.querySelector('.hamburger') as HTMLElement;
     const navLinks = document.querySelector('.nav-links') as HTMLElement;
     
