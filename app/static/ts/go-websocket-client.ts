@@ -37,8 +37,15 @@ class GoWebSocketClient {
     }
 
     startWebSocketConnection(userId: string, username: string, pfpPath: string) {
-        // Determine WebSocket URL based on environment
-        let wsUrl;
+        // Try multiple WebSocket URLs in order of preference
+        const wsUrls = this.getWebSocketUrls(userId, username, pfpPath);
+        this.tryConnectWithFallback(wsUrls, 0);
+    }
+
+    getWebSocketUrls(userId: string, username: string, pfpPath: string): string[] {
+        const params = `user_id=${userId}&username=${encodeURIComponent(username)}&pfp_path=${encodeURIComponent(pfpPath)}`;
+        const urls: string[] = [];
+        
         if (window.location.hostname === 'localhost' || 
             window.location.hostname === '127.0.0.1' || 
             window.location.hostname.startsWith('192.168.') ||
@@ -46,23 +53,48 @@ class GoWebSocketClient {
             window.location.hostname.startsWith('172.')) {
             // Local development - Go server on port 8080
             const host = window.location.hostname;
-            wsUrl = `ws://${host}:8080/ws?user_id=${userId}&username=${encodeURIComponent(username)}&pfp_path=${encodeURIComponent(pfpPath)}`;
+            urls.push(`ws://${host}:8080/ws?${params}`);
         } else {
-            // Production on Render - Integrated deployment with nginx proxy
+            // Production - Using Dockerfile with nginx proxy
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            wsUrl = `${protocol}//${window.location.host}/ws?user_id=${userId}&username=${encodeURIComponent(username)}&pfp_path=${encodeURIComponent(pfpPath)}`;
+            // 1. Primary: Same domain with /ws endpoint (nginx proxies to Go server)
+            urls.push(`${protocol}//${window.location.host}/ws?${params}`);
+            // 2. Fallback: Try dedicated subdomain (if deployed separately)
+            urls.push(`wss://algo-websocket-server.onrender.com/ws?${params}`);
         }
         
-        console.log('🚀 Connecting to Go WebSocket server...');
+        return urls;
+    }
+
+    tryConnectWithFallback(urls: string[], index: number) {
+        if (index >= urls.length) {
+            console.error('❌ All WebSocket connection attempts failed');
+            this.showConnectionError();
+            return;
+        }
+        
+        const wsUrl = urls[index];
+        console.log(`🚀 Attempting connection ${index + 1}/${urls.length}`);
         console.log('📡 URL:', wsUrl);
         
         this.ws = new WebSocket(wsUrl);
         
+        // Set a connection timeout
+        const connectionTimeout = setTimeout(() => {
+            if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
+                console.log('⏰ Connection timeout, trying next URL...');
+                this.ws.close();
+                this.tryConnectWithFallback(urls, index + 1);
+            }
+        }, 5000); // 5 second timeout
+        
         this.ws.onopen = (event) => {
-            console.log('✅ Connected to Go WebSocket server!');
+            clearTimeout(connectionTimeout);
+            console.log(`✅ Connected to Go WebSocket server! (URL: ${wsUrl})`);
             console.log('⚡ Go server is much faster than Socket.IO');
             this.connected = true;
             this.reconnectAttempts = 0;
+            this.hideConnectionError();
             this.emit('connect', event);
         };
         
@@ -84,8 +116,14 @@ class GoWebSocketClient {
         };
         
         this.ws.onerror = (error) => {
-            console.error('❌ WebSocket error:', error);
+            clearTimeout(connectionTimeout);
+            console.error(`❌ WebSocket error for ${wsUrl}:`, error);
             this.emit('error', error);
+            
+            // Try next URL after a short delay
+            setTimeout(() => {
+                this.tryConnectWithFallback(urls, index + 1);
+            }, 1000);
         };
     }
 
@@ -229,6 +267,43 @@ class GoWebSocketClient {
     // Check if connected
     isConnected() {
         return this.connected && this.ws && this.ws.readyState === WebSocket.OPEN;
+    }
+
+    // Show connection error to user
+    showConnectionError() {
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'websocket-error';
+        errorDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4444;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 14px;
+            max-width: 400px;
+        `;
+        errorDiv.innerHTML = `
+            <strong>⚠️ Connection Failed</strong><br>
+            Unable to connect to chat server. Some features may not work properly.<br>
+            <small>Trying to reconnect...</small>
+        `;
+        
+        // Remove existing error if present
+        this.hideConnectionError();
+        document.body.appendChild(errorDiv);
+    }
+
+    // Hide connection error
+    hideConnectionError() {
+        const existingError = document.getElementById('websocket-error');
+        if (existingError) {
+            existingError.remove();
+        }
     }
 }
 
