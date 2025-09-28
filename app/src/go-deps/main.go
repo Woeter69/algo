@@ -722,8 +722,12 @@ func main() {
 	})
 	
 	log.Printf("🚀 WebSocket server starting on port %s", port)
+	log.Printf("🌐 Binding to: 0.0.0.0:%s (all interfaces)", port)
 	log.Printf("🌐 WebSocket endpoint: ws://localhost:%s/ws", port)
+	log.Printf("🌐 WebSocket endpoint: ws://127.0.0.1:%s/ws", port)
+	log.Printf("🌐 WebSocket endpoint: ws://192.168.56.131:%s/ws", port)
 	log.Printf("❤️  Health check: http://localhost:%s/health", port)
+	log.Printf("❤️  Health check: http://127.0.0.1:%s/health", port)
 	log.Printf("🧪 Test endpoint: http://localhost:%s/test", port)
 	
 	if err := http.ListenAndServe(":"+port, nil); err != nil {

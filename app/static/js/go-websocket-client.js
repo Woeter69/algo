@@ -21,25 +21,8 @@ class GoWebSocketClient {
         this.username = username;
         this.pfpPath = pfpPath;
 
-        // Check if Go server is available first (use same host as current page)
-        const host = window.location.hostname;
-        console.log(`🔍 Checking Go server health at: http://${host}:8080/health`);
-        fetch(`http://${host}:8080/health`)
-            .then(response => {
-                if (response.ok) {
-                    this.startWebSocketConnection(userId, username, pfpPath);
-                } else {
-                    throw new Error('Go server not responding');
-                }
-            })
-            .catch(error => {
-                console.warn('🚨 Go WebSocket server not available:', error.message);
-                console.warn('💡 Please start the Go server: ./start-all.sh');
-                console.warn('📖 See SETUP.md for installation instructions');
-                this.connected = false;
-                // Emit connect event anyway so UI doesn't break
-                setTimeout(() => this.emit('connect', {}), 100);
-            });
+        // Connect directly to WebSocket - faster startup
+        this.startWebSocketConnection(userId, username, pfpPath);
     }
 
     startWebSocketConnection(userId, username, pfpPath) {
