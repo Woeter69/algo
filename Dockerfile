@@ -3,14 +3,26 @@ FROM golang:1.21-alpine AS go-builder
 
 # Build Go WebSocket server
 WORKDIR /app
-COPY app/src/go-deps/go.mod app/src/go-deps/go.sum ./
+
+# Copy Go module files
+COPY app/src/go-deps/go.mod ./go.mod
+COPY app/src/go-deps/go.sum ./go.sum
+
+# Download dependencies
 RUN go mod download
 
-COPY app/src/sockets.go ./
+# Copy Go source code
+COPY app/src/sockets.go ./sockets.go
+
+# Build the Go binary
 RUN go build -o websocket-server sockets.go
 
 # Final stage with Python + Go + Nginx
 FROM python:3.11-slim
+
+# Set environment variables to avoid debconf warnings
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
