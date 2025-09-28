@@ -2,7 +2,7 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask import Flask,render_template,request, session, redirect, url_for,flash
-import connection 
+from connection import get_db_connection 
 import secrets, datetime
 from flask_bcrypt import Bcrypt
 import utils
@@ -33,6 +33,32 @@ user_channels = {}
 
 # Import generate_default_avatar from utils
 from .utils import generate_default_avatar
+from urllib.parse import urlparse, urljoin
+
+def is_safe_url(target):
+    """
+    Check if the target URL is safe for redirecting.
+    Prevents open redirect vulnerabilities by ensuring the URL is relative
+    or belongs to the same host.
+    """
+    if not target:
+        return False
+    
+    # Parse the target URL
+    parsed = urlparse(target)
+    
+    # Allow relative URLs (no scheme or netloc)
+    if not parsed.netloc and not parsed.scheme:
+        return True
+    
+    # Allow URLs from the same host
+    try:
+        ref_url = urlparse(request.host_url)
+        return parsed.netloc == ref_url.netloc and parsed.scheme in ('http', 'https')
+    except RuntimeError:
+        # If we're outside of request context, only allow relative URLs
+        return not parsed.netloc and not parsed.scheme
+
 @app.context_processor
 def inject_time_functions():
     return {
@@ -92,10 +118,21 @@ def login():
                     )
                     mydb.commit()
 
+                    # Check for saved redirect URL
+                    next_url = session.pop('next_url', None)
+                    
                     if login_count == 0:
+                        # First time login - must complete profile first
+                        # Save the next_url for after profile completion
+                        if next_url:
+                            session['post_profile_redirect'] = next_url
                         return redirect(url_for("complete_profile"))  
                     else:
-                        return redirect(url_for("user_dashboard"))
+                        # Regular login - redirect to intended page or dashboard
+                        if next_url and is_safe_url(next_url):
+                            return redirect(next_url)
+                        else:
+                            return redirect(url_for("user_dashboard"))
 
             return render_template("login.html", error="Invalid Credentials")
 
@@ -263,7 +300,7 @@ def register():
             username = request.form["username"]
             password = request.form["password"]
             
-            mydb = connection.get_db_connection()
+            mydb = get_db_connection()
             cur = mydb.cursor()
             
             # Check if email already exists
@@ -510,7 +547,7 @@ def verify(token):
     mydb = None
     cur = None
     try:
-        mydb = connection.get_db_connection()
+        mydb = get_db_connection()
         cur = mydb.cursor()
 
         cur.execute("SELECT * FROM verification_tokens where token=%s",(token,))
@@ -579,8 +616,12 @@ def interests():
                 cur.execute("INSERT INTO user_interests (user_id,interest_id) VALUES (%s,%s) ",(user_id,interest_id))
             mydb.commit()
            
-
-            return redirect(url_for("user_dashboard"))
+            # Check for saved redirect URL after profile completion
+            post_profile_redirect = session.pop('post_profile_redirect', None)
+            if post_profile_redirect and is_safe_url(post_profile_redirect):
+                return redirect(post_profile_redirect)
+            else:
+                return redirect(url_for("user_dashboard"))
         return render_template("interests.html",db_interests=db_interests)
     
     except Exception as e:
@@ -663,8 +704,8 @@ def user_dashboard():
 
 
 @app.route("/admin_dashboard", methods=["GET", "POST"])
-@validators.login_required
-@user_roles.admin_required
+@login_required
+@admin_required
 def admin_dashboard():
     """Admin dashboard for managing users and verification requests"""
     user_id = session['user_id']
@@ -1260,7 +1301,7 @@ def profile(username):
             mydb.close()
 
 @app.route('/create_community', methods=['GET', 'POST'])
-@validators.login_required
+@login_required
 def create_community():
     """Create Community page - only for admin and college_admin roles"""
     user_id = session['user_id']
@@ -2353,54 +2394,6 @@ def logout_all_sessions():
         app.logger.error(f"Error logging out sessions: {str(e)}")
         return {'success': False, 'message': 'Error logging out sessions'}, 500
 
-@app.route('/admin_dashboard', methods=['GET', 'POST'])
-@validators.login_required
-@admin_required
-def admin_dashboard():
-    """Admin dashboard for managing users and verification requests"""
-    try:
-        user_id = session['user_id']
-        
-        # Get admin user info
-        mydb = get_db_connection()
-        cur = mydb.cursor()
-        
-        cur.execute("""
-            SELECT firstname, lastname, role, pfp_path 
-            FROM users WHERE user_id = %s
-        """, (user_id,))
-        admin_info = cur.fetchone()
-        
-        # Get basic stats for dashboard
-        cur.execute("SELECT COUNT(*) FROM users")
-        total_users = cur.fetchone()[0]
-        
-        cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'pending'")
-        pending_count = cur.fetchone()[0]
-        
-        cur.execute("SELECT COUNT(*) FROM users WHERE role IN ('student', 'alumni', 'staff')")
-        total_verified = cur.fetchone()[0]
-        
-        # Get pending verification requests (for now, return empty list since we don't have verification_requests table)
-        pending_requests = []
-        
-        return render_template('admin_dashboard.html',
-                             admin_info=admin_info,
-                             total_users=total_users,
-                             pending_count=pending_count,
-                             total_verified=total_verified,
-                             pending_requests=pending_requests)
-        
-    except Exception as e:
-        app.logger.error(f"Error in admin_dashboard: {str(e)}")
-        flash("Error loading admin dashboard", 'error')
-        return redirect(url_for('user_dashboard'))
-    
-    finally:
-        if 'cur' in locals() and cur:
-            cur.close()
-        if 'mydb' in locals() and mydb:
-            mydb.close()
 
 @app.route("/logout")
 def logout():

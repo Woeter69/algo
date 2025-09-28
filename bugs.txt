@@ -21,9 +21,9 @@ No jobs board
 No fake data/real data 
 Home page showing big GLGL instead of ALGO --fixed Aditya
 Chatbot not updating --fixed Aditya
-No way for people to make connections with each others 
-No actual db data showing on most of the pages --partial fix Aditya
-sql.schema not updated as per the database --working on it Aditya
+No way for people to make connections with each others --fixed Himanshu
+No actual db data showing on most of the pages --fixed Aditya
+sql.schema not updated as per the database --fixed Aditya
 Header different in different pages --fixed Chandagupt
 Profile shows extra data that does not exist in the database --fixed Aditya
 

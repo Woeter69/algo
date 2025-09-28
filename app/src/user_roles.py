@@ -435,7 +435,8 @@ def login_required(f):
     Decorator to require user authentication for route access.
     
     This decorator checks if a user is logged in by verifying the presence
-    of 'user_id' in the Flask session. If not authenticated, redirects to login.
+    of 'user_id' in the Flask session. If not authenticated, saves the intended
+    URL and redirects to login page.
     
     Args:
         f: The Flask route function to be decorated
@@ -451,12 +452,16 @@ def login_required(f):
         
     Note:
         - Checks for 'user_id' key in Flask session
+        - Saves intended URL in session for post-login redirect
         - Redirects to 'login' route if not authenticated
         - Displays error flash message for user feedback
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
+            # Save the intended URL for redirect after login
+            from flask import request
+            session['next_url'] = request.url
             flash('Please log in to access this page.', 'error')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
