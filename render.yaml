@@ -5,14 +5,28 @@ services:
     dockerfilePath: ./Dockerfile
     plan: starter
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: alumnigo-database
-          property: connectionString
+      - key: DB_HOST
+        sync: false  # Set manually in Render dashboard
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        sync: false  # Set manually in Render dashboard
+      - key: DB_USER
+        sync: false  # Set manually in Render dashboard
+      - key: DB_PASSWORD
+        sync: false  # Set manually in Render dashboard - NEVER commit this!
       - key: SECRET_KEY
-        generateValue: true
+        generateValue: true  # Auto-generate secure key
+      - key: EMAIL_USER
+        sync: false  # Set manually in Render dashboard
+      - key: EMAIL_PASS
+        sync: false  # Set manually in Render dashboard - NEVER commit this!
+      - key: PFP_API
+        sync: false  # Set manually in Render dashboard - NEVER commit this!
       - key: DEBUG
         value: "False"
       - key: PORT
         value: "5000"
+      - key: APP_URL
+        value: "https://alumnigo.onrender.com"
     healthCheckPath: /
