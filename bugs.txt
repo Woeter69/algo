@@ -6,13 +6,13 @@ NOTE: Suggest more features and point out bugs just add your name then type the 
 <FEATURE2>
 
 # Aditya
-Clicking on profile not redirecting 
+Clicking on profile not redirecting --fixed Aditya
 No Chat redirect buttons anywhere --fixed by Aditya
-Communities not working 
+Communities not working --working on it Aditya
 No chatbox on phone on /chat
-admin_dashboard not recieving data
+admin_dashboard not recieving data --fixed Aditya
 no data being added on work_experience and education_details --fixed Pranjul
-No connections page
+No connections page --fixed Himanshu
 No About us page --fixed Pranjul
 Nothing to suggest to ppl no popup profile
 No pfp showing on /profile --fixed Aditya
@@ -22,10 +22,10 @@ No fake data/real data
 Home page showing big GLGL instead of ALGO
 Chatbot not updating --fixed Aditya
 No way for people to make connections with each others 
-No actual db data showing on most of the pages --partial fix Aditya
-sql.schema not updated as per the database --working on it Aditya
+No actual db data showing on most of the pages --fixed Aditya
+sql.schema not updated as per the database --fixed Aditya
 Header different in different pages --fixed Chandagupt
-Profile shows extra data that does not exist in the database
+Profile shows extra data that does not exist in the database --fixed Aditya
 
 
 # DiddyMilton

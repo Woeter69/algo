@@ -65,11 +65,13 @@ def allowed_file(filename):
 # Then ['photo', 'png'][1].lower() = png   which is then checked if it is in  ALLOWED_EXTENSIONS
 
 def login_required(f):
-    @wraps(f)                                   #Standard Shit we use to let flask know that login_required can be used as a decorator for other function. & Keeps the original function’s (f) name, docstring, and metadata intact.
+    @wraps(f)                                   #Standard Shit we use to let flask know that login_required can be used as a decorator for other function. & Keeps the original function's (f) name, docstring, and metadata intact.
     def decorated_function(*args, **kwargs):    #*args	Collects all positional arguments into a tuple.
                                                  #**kwargs	Collects all keyword arguments into a dictionary.
                                                   # decorator login_required can now control any function 'f' under it when we initialize it. f is called the 'decorated function'.
         if 'user_id' not in session:               # If the user is not logged in
+            # Save the intended URL for redirect after login
+            session['next_url'] = request.url
             flash("Please log in to access this page.") # say that they need to login
             return redirect(url_for('login'))            # redirect then to the login page.
         return f(*args, **kwargs)                       # else if they are indeed logged in call the function 'f'
