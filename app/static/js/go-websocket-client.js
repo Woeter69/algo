@@ -77,19 +77,19 @@ class GoWebSocketClient {
             clearTimeout(connectionTimeout);
             console.log(`✅ Connected to Go WebSocket server! (URL: ${wsUrl})`);
             console.log('⚡ Go server is much faster than Socket.IO');
-            this.connected = true;
+            this.connected = true;  // Set connected flag
             this.reconnectAttempts = 0;
             this.hideConnectionError();
             this.emit('connect', event);
         };
         this.ws.onmessage = (event) => {
+            console.log('📨 Raw WebSocket message received:', event.data);
             try {
-                const message = JSON.parse(event.data);
-                console.log('📨 Received message:', message);
-                this.handleMessage(message);
-            }
-            catch (error) {
-                console.error('❌ Failed to parse message:', error);
+                const data = JSON.parse(event.data);
+                console.log('📨 Parsed WebSocket message:', data);
+                this.handleMessage(data);
+            } catch (error) {
+                console.error('❌ Error parsing WebSocket message:', error, 'Raw data:', event.data);
             }
         };
         this.ws.onclose = (event) => {
@@ -115,8 +115,18 @@ class GoWebSocketClient {
             case 'new_message':
                 this.emit('new_message', data);
                 break;
+            case 'new_chat_message':
+                console.log('📨 Emitting new_chat_message event:', data);
+                this.emit('new_chat_message', data);
+                break;
             case 'user_typing':
                 this.emit('user_typing', data);
+                break;
+            case 'typing_start':
+                this.emit('typing_start', data);
+                break;
+            case 'typing_stop':
+                this.emit('typing_stop', data);
                 break;
             case 'user_joined':
                 this.emit('user_joined', data);
@@ -134,19 +144,28 @@ class GoWebSocketClient {
                 console.log('📨 Unknown message type:', type, data);
         }
     }
-    // Send message to Go server
+    // Send a message to the WebSocket server
     send(type, data = {}) {
-        if (!this.connected || !this.ws) {
-            console.error('❌ WebSocket not connected');
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+            console.error('❌ WebSocket not connected, readyState:', this.ws?.readyState);
+            console.error('❌ WebSocket states: CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3');
             return false;
         }
-        const message = Object.assign({ type: type, user_id: parseInt(this.userId), username: this.username, timestamp: new Date().toISOString() }, data);
+        
+        const message = {
+            type: type,
+            user_id: parseInt(this.userId),
+            username: this.username,
+            timestamp: new Date().toISOString(),
+            ...data
+        };
+        
+        console.log('📤 Sending message to WebSocket:', message);
         try {
             this.ws.send(JSON.stringify(message));
-            console.log('📤 Sent message:', message);
+            console.log('✅ Message sent successfully');
             return true;
-        }
-        catch (error) {
+        } catch (error) {
             console.error('❌ Failed to send message:', error);
             return false;
         }

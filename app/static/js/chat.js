@@ -16,6 +16,7 @@ let messageInput = null;
 let sendBtn = null;
 let voiceCallBtn = null;
 let videoCallBtn = null;
+let moreOptionsBtn = null;
 let currentConversationUserId = null;
 
 // Prevent multiple initializations
@@ -106,7 +107,12 @@ else {
             console.warn('WebSocket disconnected:', reason);
         });
         socket.on('connect', () => {
-            console.log('Go WebSocket connected successfully');
+            console.log('🟢 Go WebSocket connected successfully');
+            console.log('🔍 Socket details:', {
+                connected: socket.connected,
+                url: socket.ws?.url,
+                readyState: socket.ws?.readyState
+            });
             if (currentUserId && otherUserId) {
                 console.log('Joining chat room for users:', currentUserId, otherUserId);
                 // Join direct chat room
@@ -115,6 +121,8 @@ else {
                     receiver_id: otherUserId
                 });
             }
+            // Set up call event handlers after socket is connected
+            setupCallEventHandlers();
             loadOnlineStatus();
         });
         socket.on('user_online', (data) => {
@@ -149,11 +157,11 @@ else {
         // Call buttons
         voiceCallBtn = document.querySelector('.chat-action-btn[title="Voice call"]');
         videoCallBtn = document.querySelector('.chat-action-btn[title="Video call"]');
-        const moreOptionsBtn = document.querySelector('.chat-action-btn[title="More options"]');
+        moreOptionsBtn = document.querySelector('.chat-action-btn[title="More options"]');
         
         // Set current conversation user ID
         currentConversationUserId = otherUserId;
-        console.log('UI elements:', { emojiBtn, emojiPicker, emojiGrid, attachmentBtn, fileInput, voiceCallBtn, videoCallBtn });
+        console.log('UI elements:', { emojiBtn, emojiPicker, emojiGrid, attachmentBtn, fileInput, voiceCallBtn, videoCallBtn, moreOptionsBtn });
         // Debug emoji elements specifically
         if (!emojiBtn)
             console.error('❌ Emoji button not found!');
@@ -175,6 +183,15 @@ else {
                 console.warn('⚠️ Received empty message, ignoring');
                 return;
             }
+            
+            console.log('🔍 Debug info:', {
+                senderId,
+                receiverId,
+                currentUserId,
+                otherUserId,
+                content: content.substring(0, 50) + '...'
+            });
+            
             // Create unique message identifier for deduplication
             const messageKey = `${senderId}-${receiverId}-${content}-${data.message_id || Date.now()}`;
             if (processedMessages.has(messageKey)) {
@@ -182,20 +199,33 @@ else {
                 return;
             }
             processedMessages.add(messageKey);
+            
             // Only show messages for current conversation
+            console.log('🔍 Checking if message is for current conversation:', {
+                otherUserId,
+                condition1: senderId === otherUserId,
+                condition2: receiverId === otherUserId,
+                shouldShow: otherUserId && (senderId === otherUserId || receiverId === otherUserId)
+            });
+            
             if (otherUserId && (senderId === otherUserId || receiverId === otherUserId)) {
                 const isSent = senderId === currentUserId;
-                console.log('💬 Displaying message:', { content, isSent, senderId, receiverId });
+                console.log('💬 Message matches current conversation:', { content, isSent, senderId, receiverId });
+                
                 // Prevent showing our own sent messages twice (optimistic UI already showed it)
-                if (isSent && (Date.now() - lastSentMessageTime < 2000)) {
-                    console.log('🚫 Skipping own recent message to prevent duplicate');
+                if (isSent && (Date.now() - lastSentMessageTime < 3000)) {
+                    console.log('🚫 Skipping own recent message to prevent duplicate (lastSentMessageTime:', lastSentMessageTime, 'now:', Date.now(), ')');
                     return;
                 }
+                
+                console.log('✅ Will display message in UI');
                 const messageElement = createMessageElement(content, isSent, {
                     senderUsername: data.sender_username,
-                    senderPfp: data.sender_pfp
+                    senderPfp: data.sender_pfp,
+                    timestamp: data.timestamp || new Date().toISOString()
                 });
                 if (messagesArea) {
+                    // Always append to end for chronological order
                     messagesArea.appendChild(messageElement);
                     scrollToBottom();
                 }
@@ -207,6 +237,8 @@ else {
                     ensureConversationItem(otherId, name, avatar);
                 }
                 updateConversationLastMessage(otherId, content);
+            } else {
+                console.log('❌ Message not for current conversation, ignoring');
             }
         });
         // Typing indicators
@@ -234,108 +266,99 @@ else {
             // Clear input immediately for better UX
             messageInput.value = '';
             messageInput.style.height = 'auto';
+            console.log('🔍 Connection check:', {
+                socketConnected: socket.connected,
+                wsReadyState: socket.ws?.readyState,
+                wsStates: 'CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3'
+            });
+            
             if (!socket.connected) {
+                console.error('❌ Socket not connected according to client');
                 showNotification('Not connected to server. Please refresh the page.', 'error');
                 isSending = false;
                 return;
             }
             try {
                 // Create optimistic message element (show immediately)
-                const messageElement = createMessageElement(message, true);
+                const messageElement = createMessageElement(message, true, {
+                    timestamp: new Date().toISOString(),
+                    optimistic: true
+                });
                 if (messagesArea) {
                     messagesArea.appendChild(messageElement);
                     scrollToBottom();
                 }
+                console.log('📤 Sending message via WebSocket:', {
+                    message,
+                    otherUserId,
+                    currentUserId,
+                    socketConnected: socket.connected
+                });
                 socket.sendDirectMessage(message, otherUserId);
-                client_message_id: `${currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                console.log('📤 Message sent to WebSocket server');
+                
+                // Update conversation list
+                if (typeof otherUserId !== 'undefined') {
+                    updateConversationLastMessage(otherUserId, message);
+                }
+            } finally {
+                isSending = false;
             }
-            finally // Update conversation list
-             { }
         }
+        
+        // Event listeners with null checks (moved inside DOMContentLoaded)
+        if (sendBtn) {
+            sendBtn.addEventListener('click', sendMessage);
+            console.log('✅ Send button event listener attached');
+        } else {
+            console.error('❌ Send button not found!');
+        }
+        
+        if (messageInput) {
+            // Enter key to send message
+            messageInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            console.log('✅ Message input event listeners attached');
+        } else {
+            console.error('❌ Message input not found!');
+        }
+        
+        // Set up typing indicators
+        setupTypingIndicators();
     });
-    // Update conversation list
-    if (typeof otherUserId !== 'undefined') {
-        updateConversationLastMessage(otherUserId, message);
-    }
-}
-// Send message function (moved to global scope)
-let isSending = false;
-async function sendMessage() {
-    if (!messageInput) return;
-    
-    const message = messageInput.value.trim();
-    if (!message || !otherUserId || isSending) {
-        return;
-    }
-    
-    isSending = true;
-    
-    try {
-        // Clear input immediately for better UX
-        messageInput.value = '';
-        messageInput.style.height = 'auto';
-        
-        // Create optimistic message element (show immediately)
-        const messageElement = createMessageElement(message, true);
-        if (messagesArea) {
-            messagesArea.appendChild(messageElement);
-            scrollToBottom();
-        }
-        
-        // Send message through WebSocket
-        if (socket && socket.sendDirectMessage) {
-            socket.sendDirectMessage(message, otherUserId);
-        }
-        
-        // Update conversation list
-        if (typeof otherUserId !== 'undefined') {
-            updateConversationLastMessage(otherUserId, message);
-        }
-        
-    } catch (error) {
-        console.error('Error sending message:', error);
-        showNotification('Failed to send message. Please try again.', 'error');
-        // Restore message to input on error
-        messageInput.value = message;
-    } finally {
-        isSending = false;
-    }
 }
 
-// Event listeners with null checks
-if (sendBtn) {
-    sendBtn.addEventListener('click', sendMessage);
-}
-if (messageInput) {
-    let typingTimer = null;
-    messageInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        if (!isTyping && currentConversationUserId) {
-            isTyping = true;
-            socket.send('typing_start', {
-                sender_id: currentUserId,
-                receiver_id: currentConversationUserId
-            });
-        }
-        if (typingTimer)
-            clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-            if (isTyping && currentConversationUserId) {
-                isTyping = false;
-                socket.send('typing_stop', {
+// Typing indicator functionality (moved inside DOMContentLoaded where it belongs)
+function setupTypingIndicators() {
+    if (messageInput) {
+        let typingTimer = null;
+        messageInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            if (!isTyping && currentConversationUserId) {
+                isTyping = true;
+                socket.send('typing_start', {
                     sender_id: currentUserId,
                     receiver_id: currentConversationUserId
                 });
             }
-        }, 1000);
-    });
-    messageInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
+            if (typingTimer)
+                clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                if (isTyping && currentConversationUserId) {
+                    isTyping = false;
+                    socket.send('typing_stop', {
+                        sender_id: currentUserId,
+                        receiver_id: currentConversationUserId
+                    });
+                }
+            }, 1000);
+        });
+    }
 }
 // Utility functions with proper typing
 function escapeHtml(text) {
@@ -343,9 +366,31 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-function createMessageElement(text, isSent = false, options) {
+
+// Function to ensure messages are in chronological order
+function ensureMessageOrder() {
+    if (!messagesArea) return;
+    
+    const messages = Array.from(messagesArea.children);
+    const sortedMessages = messages.sort((a, b) => {
+        const timeA = a.getAttribute('data-timestamp') || '0';
+        const timeB = b.getAttribute('data-timestamp') || '0';
+        return new Date(timeA) - new Date(timeB);
+    });
+    
+    // Clear and re-append in correct order
+    messagesArea.innerHTML = '';
+    sortedMessages.forEach(msg => messagesArea.appendChild(msg));
+    scrollToBottom();
+}
+function createMessageElement(text, isSent = false, options = {}) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+    
+    // Add timestamp for ordering
+    const timestamp = options.timestamp || new Date().toISOString();
+    messageDiv.setAttribute('data-timestamp', timestamp);
+    
     const currentTime = new Date().toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit'
@@ -854,19 +899,23 @@ function reportUser() {
         showNotification('User reported successfully', 'success');
     }
 }
-// Socket event handlers for calls
-socket.on('incoming_call', (data) => {
-    console.log('📞 Incoming call:', data);
-    showIncomingCallModal(data);
-});
-socket.on('call_ended', (data) => {
-    console.log('📞 Call ended:', data);
-    const callModal = document.querySelector('.call-modal-overlay');
-    if (callModal) {
-        callModal.remove();
+// Socket event handlers for calls (will be set up after socket is initialized)
+function setupCallEventHandlers() {
+    if (socket) {
+        socket.on('incoming_call', (data) => {
+            console.log('📞 Incoming call:', data);
+            showIncomingCallModal(data);
+        });
+        socket.on('call_ended', (data) => {
+            console.log('📞 Call ended:', data);
+            const callModal = document.querySelector('.call-modal-overlay');
+            if (callModal) {
+                callModal.remove();
+            }
+            showNotification('Call ended', 'info');
+        });
     }
-    showNotification('Call ended', 'info');
-});
+}
 // Show incoming call modal
 function showIncomingCallModal(callData) {
     const modal = document.createElement('div');
