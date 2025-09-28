@@ -10,10 +10,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -57,7 +55,12 @@ func NewGoogleOAuth(db *sql.DB) *GoogleOAuth {
 	clientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
 	
 	if clientID == "" || clientSecret == "" {
-		log.Fatal("❌ Google OAuth credentials not found in environment variables")
+		log.Println("⚠️  Google OAuth credentials not found in environment variables")
+		log.Println("📝 Please set the following environment variables:")
+		log.Println("   GOOGLE_CLIENT_ID=your_google_client_id")
+		log.Println("   GOOGLE_CLIENT_SECRET=your_google_client_secret")
+		log.Println("🔄 Continuing without OAuth (WebSocket will still work)")
+		return nil
 	}
 
 	config := &oauth2.Config{
@@ -458,6 +461,6 @@ func (oauth *GoogleOAuth) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 func setCORSHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }

@@ -264,5 +264,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Export for use in other scripts
+// Make available globally
 window.goOAuth = goOAuth;

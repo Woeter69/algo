@@ -371,6 +371,8 @@ footer {
 }
 
 .social-links a:hover {
+    background-color: var(--primary);
+    transform: translateY(-2px);
 }
 
 .logout-btn {
@@ -386,6 +388,65 @@ footer {
 
 .logout-btn:hover {
     background: #c82333;
+}
+
+/* ===== OAUTH STYLES ===== */
+.oauth-section {
+    margin: 2rem 0;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.divider span {
+    padding: 0 1rem;
+    background: white;
+}
+
+.google-auth-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    background: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.google-auth-button:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.google-auth-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.google-auth-button svg {
+    flex-shrink: 0;
 }
 
 /* Error and success messages */

@@ -38,16 +38,17 @@ cleanup() {
 # Set up signal handlers
 trap cleanup SIGINT SIGTERM
 
-echo "1️⃣ Starting Go WebSocket Server..."
+echo "1️⃣ Starting Go WebSocket + OAuth Server..."
 echo "   📡 Port: 8080"
 echo "   🚀 Real-time messaging, typing, presence"
+echo "   🔐 Google OAuth authentication"
 echo ""
 
-# Start Go server in background
-cd app/src/go-deps
-./start-sockets.sh &
+# Start Go server with WebSocket + OAuth support
+cd app/src
+./start-go-server.sh &
 GO_PID=$!
-cd ../../..
+cd ../..
 
 # Wait a moment for Go server to start
 sleep 3
@@ -59,8 +60,20 @@ echo "   🐍 Web pages, API endpoints, authentication"
 echo ""
 
 # Start Python server in background
-# Try python3 first, then python
+# Activate virtual environment and start Flask
 cd app/src
+
+# Check if virtual environment exists
+if [ -d "../../venv" ]; then
+    echo "🐍 Activating virtual environment..."
+    source ../../venv/bin/activate
+    echo "✅ Virtual environment activated"
+else
+    echo "⚠️  Virtual environment not found at ../../venv"
+    echo "📝 Please create a virtual environment or adjust the path"
+fi
+
+# Start Flask server
 if command -v python3 &> /dev/null; then
     python3 app.py &
     PYTHON_PID=$!
@@ -80,6 +93,8 @@ echo "✅ Both servers are running!"
 echo "======================================="
 echo "🌐 Flask App:     http://localhost:5000"
 echo "🔌 WebSocket:     ws://localhost:8080/ws"
+echo "🔐 OAuth Login:   http://localhost:8080/auth/google"
+echo "👤 User Info:     http://localhost:8080/auth/user"
 echo "📊 Health Check:  http://localhost:8080/health"
 echo ""
 echo "💡 Press Ctrl+C to stop both servers"
