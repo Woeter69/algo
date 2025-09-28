@@ -13,7 +13,6 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     verified BOOLEAN DEFAULT FALSE,
-
     dob DATE,
     graduation_year INT,
     university_name TEXT,
@@ -21,11 +20,35 @@ CREATE TABLE users (
     college TEXT,
     current_city TEXT,
     pfp_path TEXT,
-    role TEXT DEFAULT 'unverified',
+    role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'alumni', 'staff', 'admin')),
+    enrollment_number TEXT UNIQUE,
     community_id INT,
     last_login TIMESTAMP,
-    login_count INT DEFAULT 0
+    login_count INT DEFAULT 0,
+    verified_by INT,
+    verified_at TIMESTAMP,
+    verification_status TEXT DEFAULT 'pending',
+    phone VARCHAR(20),
+    bio TEXT,
+    linkedin VARCHAR(300),
+    github VARCHAR(300),
+    twitter VARCHAR(300),
+    website VARCHAR(300),
+    profile_visibility VARCHAR(20) DEFAULT 'public',
+    email_notifications VARCHAR(20) DEFAULT 'enabled',
+    job_alerts VARCHAR(20) DEFAULT 'enabled',
+    student_id TEXT,
+    alumni_id TEXT,
+    employee_id TEXT,
+    department_role TEXT,
+    FOREIGN KEY (community_id) REFERENCES communities(community_id) ON DELETE SET NULL,
+    FOREIGN KEY (verified_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
+
+-- Create indexes for users table
+CREATE INDEX idx_users_community ON users(community_id);
+CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_verification_status ON users(verification_status);
 
 CREATE TABLE verification_tokens (
     id SERIAL PRIMARY KEY,
@@ -84,7 +107,6 @@ CREATE TABLE connections (
     con_user_id INT NOT NULL,
     request TEXT,
     status TEXT CHECK (status IN ('pending','accepted','denied')) DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (con_user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
@@ -97,7 +119,7 @@ CREATE TABLE education_details (
     college_name TEXT,
     major TEXT NOT NULL,
     graduation_year INT,
-    gpa DECIMAL(3,2),
+    gpa NUMERIC(4,2) CHECK (gpa >= 0.00 AND gpa <= 10.00),
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -130,3 +152,65 @@ CREATE TABLE messages (
     FOREIGN KEY (sender_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (receiver_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+-- Communities table (referenced by admin_permissions)
+CREATE TABLE communities (
+    community_id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    college_code VARCHAR(10),
+    location VARCHAR(255),
+    established_year INT,
+    website VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Admin permissions table
+CREATE TABLE admin_permissions (
+    permission_id SERIAL PRIMARY KEY,
+    admin_user_id INT NOT NULL,
+    community_id INT,
+    can_verify_students BOOLEAN DEFAULT TRUE,
+    can_verify_alumni BOOLEAN DEFAULT TRUE,
+    can_manage_admins BOOLEAN DEFAULT FALSE,
+    granted_by INT,
+    granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    UNIQUE(admin_user_id, community_id),
+    FOREIGN KEY (admin_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (community_id) REFERENCES communities(community_id) ON DELETE SET NULL,
+    FOREIGN KEY (granted_by) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+-- Create indexes for admin_permissions table
+CREATE INDEX idx_admin_permissions_admin ON admin_permissions(admin_user_id);
+CREATE INDEX idx_admin_permissions_community ON admin_permissions(community_id);
+
+-- Verification requests table (referenced by communities)
+CREATE TABLE verification_requests (
+    request_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    community_id INT,
+    requested_role TEXT NOT NULL DEFAULT 'student',
+    student_id TEXT,
+    graduation_year INT,
+    department TEXT,
+    university_name TEXT,
+    college TEXT,
+    request_message TEXT,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    reviewed_by INT,
+    reviewed_at TIMESTAMP,
+    review_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (community_id) REFERENCES communities(community_id) ON DELETE SET NULL,
+    FOREIGN KEY (reviewed_by) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+-- Create indexes for verification_requests table
+CREATE INDEX idx_verification_requests_user_id ON verification_requests(user_id);
+CREATE INDEX idx_verification_requests_community ON verification_requests(community_id);
+CREATE INDEX idx_verification_requests_community_id ON verification_requests(community_id);
+CREATE INDEX idx_verification_requests_status ON verification_requests(status);
