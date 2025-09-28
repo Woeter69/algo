@@ -24,12 +24,12 @@ class GoWebSocketClient {
         // Determine WebSocket URL based on environment
         let wsUrl;
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            // Local development
+            // Local development - Go server on port 8080
             wsUrl = `ws://localhost:8080/ws?user_id=${userId}&username=${encodeURIComponent(username)}&pfp_path=${encodeURIComponent(pfpPath)}`;
         } else {
-            // Production on Render - replace with your actual Render WebSocket service URL
+            // Production on Render - Integrated deployment with nginx proxy
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            wsUrl = `${protocol}//algo-websocket.onrender.com/ws?user_id=${userId}&username=${encodeURIComponent(username)}&pfp_path=${encodeURIComponent(pfpPath)}`;
+            wsUrl = `${protocol}//${window.location.host}/ws?user_id=${userId}&username=${encodeURIComponent(username)}&pfp_path=${encodeURIComponent(pfpPath)}`;
         }
         
         console.log('🚀 Connecting to Go WebSocket server...');

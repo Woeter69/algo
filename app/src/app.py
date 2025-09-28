@@ -22,6 +22,8 @@ bcrypt = Bcrypt(app)
 # Register blueprints
 app.register_blueprint(channels_bp, url_prefix='/api')
 
+# Note: WebSocket /ws route is handled by nginx proxy to Go server
+
 # ====================== ARCHITECTURE CHANGE ======================
 # 🐍 Python Flask: Handles web pages, API endpoints, authentication
 # 🚀 Go WebSocket: Handles real-time messaging, typing, presence
