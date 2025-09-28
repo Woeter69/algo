@@ -59,8 +59,6 @@ class GoWebSocketClient {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             // 1. Primary: Same domain with /ws endpoint (nginx proxies to Go server)
             urls.push(`${protocol}//${window.location.host}/ws?${params}`);
-            // 2. Fallback: Try dedicated subdomain (if deployed separately)
-            urls.push(`wss://algo-websocket-server.onrender.com/ws?${params}`);
         }
         
         return urls;

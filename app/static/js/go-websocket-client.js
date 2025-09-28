@@ -1,5 +1,16 @@
 // Go WebSocket Client - Replaces Socket.IO
 // This connects to our high-performance Go WebSocket server
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 class GoWebSocketClient {
     constructor() {
         this.ws = null;
@@ -32,19 +43,15 @@ class GoWebSocketClient {
         if (window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1' ||
             window.location.hostname.startsWith('192.168.') ||
-            window.location.hostname.startsWith('10.') ||
             window.location.hostname.startsWith('172.')) {
             // Local development - Go server on port 8080
             const host = window.location.hostname;
             urls.push(`ws://${host}:8080/ws?${params}`);
-        }
-        else {
+        } else {
             // Production - Using Dockerfile with nginx proxy
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             // 1. Primary: Same domain with /ws endpoint (nginx proxies to Go server)
             urls.push(`${protocol}//${window.location.host}/ws?${params}`);
-            // 2. Fallback: Try dedicated subdomain (if deployed separately)
-            urls.push(`wss://algo-websocket-server.onrender.com/ws?${params}`);
         }
         return urls;
     }
@@ -103,7 +110,7 @@ class GoWebSocketClient {
     }
     // Handle incoming messages from Go server
     handleMessage(message) {
-        const { type, ...data } = message;
+        const { type } = message, data = __rest(message, ["type"]);
         switch (type) {
             case 'new_message':
                 this.emit('new_message', data);
@@ -133,13 +140,7 @@ class GoWebSocketClient {
             console.error('❌ WebSocket not connected');
             return false;
         }
-        const message = {
-            type: type,
-            user_id: this.userId,
-            username: this.username,
-            timestamp: new Date().toISOString(),
-            ...data
-        };
+        const message = Object.assign({ type: type, user_id: this.userId, username: this.username, timestamp: new Date().toISOString() }, data);
         try {
             this.ws.send(JSON.stringify(message));
             console.log('📤 Sent message:', message);
