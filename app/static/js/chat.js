@@ -21,16 +21,83 @@ else {
         
         // Mobile responsiveness handling
         initializeMobileHandling();
-        // Initialize Socket.IO with proper typing
-        console.log('Initializing Socket.IO connection...');
-        const socket = io({
-            path: '/socket.io',
-            transports: ['websocket', 'polling'],
-            reconnection: true,
-            reconnectionAttempts: 8,
-            reconnectionDelay: 500,
-            timeout: 20000,
-        });
+        // Initialize Go WebSocket connection
+        console.log('Initializing Go WebSocket connection...');
+        const goSocket = new GoWebSocketClient();
+        
+        // Create Socket.IO compatibility layer
+        const socket = {
+            connected: false,
+            
+            connect: function(userId, username, pfp) {
+                goSocket.connect(userId, username, pfp);
+            },
+            
+            on: function(event, callback) {
+                // Map Socket.IO events to Go WebSocket events
+                if (event === 'connect') {
+                    goSocket.onOpen = callback;
+                } else if (event === 'disconnect') {
+                    goSocket.onClose = callback;
+                } else if (event === 'connect_error') {
+                    goSocket.onError = callback;
+                } else if (event === 'receive_message') {
+                    goSocket.onMessage = function(data) {
+                        if (data.type === 'new_chat_message') {
+                            callback(data.data);
+                        }
+                    };
+                } else if (event === 'user_typing') {
+                    goSocket.onMessage = function(data) {
+                        if (data.type === 'typing_start') {
+                            callback(data.data);
+                        }
+                    };
+                } else if (event === 'user_stopped_typing') {
+                    goSocket.onMessage = function(data) {
+                        if (data.type === 'typing_stop') {
+                            callback(data.data);
+                        }
+                    };
+                }
+            },
+            
+            emit: function(event, data) {
+                // Map Socket.IO events to Go WebSocket messages
+                if (event === 'send_message') {
+                    goSocket.sendMessage('chat_message', {
+                        receiver_id: data.receiver_id,
+                        message: data.message
+                    });
+                } else if (event === 'typing') {
+                    goSocket.sendMessage('typing_start', {
+                        receiver_id: data.receiver_id
+                    });
+                } else if (event === 'stop_typing') {
+                    goSocket.sendMessage('typing_stop', {
+                        receiver_id: data.receiver_id
+                    });
+                } else if (event === 'join') {
+                    goSocket.sendMessage('join_chat_room', {
+                        room_id: `chat_${Math.min(data.user1, data.user2)}_${Math.max(data.user1, data.user2)}`
+                    });
+                }
+            }
+        };
+        
+        // Connect to Go WebSocket server
+        socket.connect(currentUserId, 'user_' + currentUserId, otherUserPfp);
+        
+        // Update connection status
+        goSocket.onOpen = function() {
+            socket.connected = true;
+            console.log('Go WebSocket connected successfully');
+        };
+        
+        goSocket.onClose = function() {
+            socket.connected = false;
+            console.log('Go WebSocket disconnected');
+        };
         let onlineUsers = new Set();
         let isTyping = false;
         let typingTimeout = null;

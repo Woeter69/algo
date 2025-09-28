@@ -62,8 +62,8 @@ function initializeSocket() {
         console.log('✅ Connected to Go WebSocket server!');
         console.log('⚡ Go server is much faster than Socket.IO');
         
-        // Update socket reference for compatibility
-        socket = window.goSocket;
+        // Update socket reference for compatibility with Socket.IO API
+        socket = window.io();
     });
     
     window.goSocket.on('new_message', function(data) {
@@ -118,7 +118,7 @@ function initializeSocket() {
     });
     
     // Set socket reference for compatibility with existing code
-    socket = window.goSocket;
+    socket = window.io();
 }
 
 // Tab switching functionality
