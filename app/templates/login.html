@@ -50,6 +50,23 @@
                 </div>
                 <button type="submit" class="auth-button">Sign In</button>
             </form>
+            
+            <!-- Google OAuth Section -->
+            <div class="oauth-section">
+                <div class="divider">
+                    <span>or</span>
+                </div>
+                <button id="google-login-btn" class="google-auth-button">
+                    <svg width="18" height="18" viewBox="0 0 18 18">
+                        <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+                        <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.04a4.8 4.8 0 0 1-2.7.75 4.8 4.8 0 0 1-4.52-3.36H1.83v2.07A8 8 0 0 0 8.98 17z"/>
+                        <path fill="#FBBC05" d="M4.46 10.41a4.8 4.8 0 0 1-.25-1.41 4.8 4.8 0 0 1 .25-1.41V5.52H1.83a8 8 0 0 0 0 7.18l2.63-2.29z"/>
+                        <path fill="#EA4335" d="M8.98 3.58c1.32 0 2.5.45 3.44 1.35l2.54-2.54A8 8 0 0 0 8.98 1a8 8 0 0 0-7.15 4.48l2.63 2.29c.61-1.83 2.35-3.19 4.52-3.19z"/>
+                    </svg>
+                    Continue with Google
+                </button>
+            </div>
+            
             <div class="auth-footer">
                 <p><a href="{{ url_for('forgot_password') }}">Forgot your password?</a></p>
                 <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
@@ -104,5 +121,9 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/go-oauth.js') }}"></script>
+    
+    <!-- User info display (hidden by default) -->
+    <div id="user-info" style="display: none;"></div>
 </body>
 </html>
