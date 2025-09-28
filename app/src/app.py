@@ -202,11 +202,11 @@ def reset_password(token):
             
             if not password or len(password) < 8:
                 flash("Password must be at least 8 characters long.", "error")
-                return render_template("reset_password.html", token=token)
+                return render_template("forgot_password.html", token=token)
             
             if password != confirm_password:
                 flash("Passwords do not match.", "error")
-                return render_template("reset_password.html", token=token)
+                return render_template("forgot_password.html", token=token)
             
             # Hash new password
             hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
