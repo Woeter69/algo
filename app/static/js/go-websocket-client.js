@@ -23,6 +23,7 @@ class GoWebSocketClient {
 
         // Check if Go server is available first (use same host as current page)
         const host = window.location.hostname;
+        console.log(`🔍 Checking Go server health at: http://${host}:8080/health`);
         fetch(`http://${host}:8080/health`)
             .then(response => {
                 if (response.ok) {
