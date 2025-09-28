@@ -187,7 +187,7 @@ else {
                 const otherId = isSent ? receiverId : senderId;
                 if (!getConversationItem(otherId)) {
                     const name = isSent ? (chatUserName?.textContent || `User ${otherId}`) : (data.sender_username || `User ${otherId}`);
-                    const avatar = isSent ? (chatUserAvatar?.getAttribute('src') || otherUserPfp) : (data.sender_pfp || 'https://via.placeholder.com/50');
+                    const avatar = isSent ? (chatUserAvatar?.getAttribute('src') || otherUserPfp) : (data.sender_pfp || 'https://ui-avatars.com/api/?name=User&background=6D28D9&color=fff&size=50');
                     ensureConversationItem(otherId, name, avatar);
                 }
                 updateConversationLastMessage(otherId, content);
@@ -242,16 +242,50 @@ else {
         updateConversationLastMessage(otherUserId, message);
     }
 }
-try { }
-catch (error) {
-    console.error('Error sending message:', error);
-    showNotification('Failed to send message. Please try again.', 'error');
-    // Restore message to input on error
-    messageInput.value = message;
+// Send message function (moved to global scope)
+let isSending = false;
+async function sendMessage() {
+    if (!messageInput) return;
+    
+    const message = messageInput.value.trim();
+    if (!message || !otherUserId || isSending) {
+        return;
+    }
+    
+    isSending = true;
+    
+    try {
+        // Clear input immediately for better UX
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        
+        // Create optimistic message element (show immediately)
+        const messageElement = createMessageElement(message, true);
+        if (messagesArea) {
+            messagesArea.appendChild(messageElement);
+            scrollToBottom();
+        }
+        
+        // Send message through WebSocket
+        if (socket && socket.sendDirectMessage) {
+            socket.sendDirectMessage(message, otherUserId);
+        }
+        
+        // Update conversation list
+        if (typeof otherUserId !== 'undefined') {
+            updateConversationLastMessage(otherUserId, message);
+        }
+        
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showNotification('Failed to send message. Please try again.', 'error');
+        // Restore message to input on error
+        messageInput.value = message;
+    } finally {
+        isSending = false;
+    }
 }
-finally {
-    isSending = false;
-}
+
 // Event listeners with null checks
 if (sendBtn) {
     sendBtn.addEventListener('click', sendMessage);
@@ -311,7 +345,7 @@ function createMessageElement(text, isSent = false, options) {
             `;
     }
     else {
-        const avatarSrc = otherUserPfp || 'https://via.placeholder.com/50';
+        const avatarSrc = otherUserPfp || 'https://ui-avatars.com/api/?name=User&background=6D28D9&color=fff&size=50';
         messageDiv.innerHTML = `
                 <div class="message-avatar">
                     <img src="${escapeHtml(avatarSrc)}" alt="">
@@ -368,7 +402,7 @@ function ensureConversationItem(userId, name, avatarUrl) {
     wrapper.setAttribute('data-user-id', String(userId));
     wrapper.innerHTML = `
             <div class="conversation-avatar">
-                <img src="${escapeHtml(avatarUrl || 'https://via.placeholder.com/50')}" alt="">
+                <img src="${escapeHtml(avatarUrl || 'https://ui-avatars.com/api/?name=User&background=6D28D9&color=fff&size=50')}" alt="">
                 <div class="online-status"></div>
             </div>
             <div class="conversation-info">
@@ -662,7 +696,7 @@ function showCallModal(callType, userName) {
                 </div>
                 <div class="call-content">
                     <div class="call-avatar">
-                        <img src="${otherUserPfp || 'https://via.placeholder.com/100'}" alt="${userName}">
+                        <img src="${otherUserPfp || 'https://ui-avatars.com/api/?name=User&background=6D28D9&color=fff&size=100'}" alt="${userName}">
                     </div>
                     <h4>${userName}</h4>
                     <p>Calling...</p>
@@ -828,7 +862,7 @@ function showIncomingCallModal(callData) {
                 </div>
                 <div class="call-content">
                     <div class="call-avatar">
-                        <img src="${callData.caller_avatar || 'https://via.placeholder.com/100'}" alt="${callData.caller_name}">
+                        <img src="${callData.caller_avatar || 'https://ui-avatars.com/api/?name=User&background=6D28D9&color=fff&size=100'}" alt="${callData.caller_name}">
                     </div>
                     <h4>${callData.caller_name}</h4>
                     <p>Incoming call...</p>
