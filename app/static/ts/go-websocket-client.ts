@@ -59,8 +59,6 @@ class GoWebSocketClient {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             // 1. Primary: Same domain with /ws endpoint (nginx proxies to Go server)
             urls.push(`${protocol}//${window.location.host}/ws?${params}`);
-            // 2. Fallback: Try dedicated subdomain (if deployed separately)
-            urls.push(`wss://algo-websocket-server.onrender.com/ws?${params}`);
         }
         
         return urls;
@@ -156,23 +154,15 @@ class GoWebSocketClient {
     }
 
     // Send message to Go server
-    send(type, data = {}) {
         if (!this.connected || !this.ws) {
             console.error('❌ WebSocket not connected');
             return false;
         }
 
-        const message = {
-            type: type,
-            user_id: this.userId,
-            username: this.username,
-            timestamp: new Date().toISOString(),
-            ...data
-        };
+        const message = Object.assign({ type: type, user_id: parseInt(this.userId), username: this.username, timestamp: new Date().toISOString() }, data);
 
         try {
             this.ws.send(JSON.stringify(message));
-            console.log('📤 Sent message:', message);
             return true;
         } catch (error) {
             console.error('❌ Failed to send message:', error);

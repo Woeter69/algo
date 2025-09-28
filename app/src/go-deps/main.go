@@ -676,12 +676,21 @@ func main() {
 	hub = NewHub(db)
 	go hub.Run()
 
+<<<<<<< HEAD
 	// Initialize OAuth handler
 	oauth := NewGoogleOAuth(db)
 	if oauth != nil {
 		oauth.setupOAuthRoutes()
 	}
 
+=======
+	// Initialize Google OAuth (optional - only if needed)
+	if os.Getenv("GOOGLE_CLIENT_ID") != "" {
+		oauth := NewGoogleOAuth(db)
+		oauth.setupOAuthRoutes()
+	}
+	
+>>>>>>> c87db82e044d274aa1bdd634b2b4929853825792
 	// Initialize WebSocket upgrader
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
