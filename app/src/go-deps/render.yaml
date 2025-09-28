@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: algo-websocket-server
+    env: go
+    rootDir: app/src/go-deps
+    buildCommand: go build -o ../websocket-server ../sockets.go
+    startCommand: cd .. && ./websocket-server
+    plan: starter
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: algo-database
+          property: connectionString
+      - key: GO_VERSION
+        value: "1.21"
+      - key: PORT
+        value: "8080"
+    healthCheckPath: /health

@@ -39,49 +39,86 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Initialize Socket.IO connection
+// Initialize Go WebSocket connection (replaces Socket.IO)
 function initializeSocket() {
-    if (typeof io !== 'undefined') {
-        socket = io();
-        
-        socket.on('connect', function() {
-            console.log('Connected to server');
-        });
-        
-        socket.on('new_message', function(data) {
-            if (data.channel_id == currentChannelId) {
-                addMessageToChat(data);
-            }
-        });
-        
-        socket.on('user_joined', function(data) {
-            console.log('User joined:', data);
-        });
-        
-        socket.on('user_left', function(data) {
-            console.log('User left:', data);
-        });
-        
-        socket.on('user_joined_channel', function(data) {
-            console.log('User joined channel:', data);
-            // You can show a notification that someone joined
-        });
-        
-        socket.on('user_left_channel', function(data) {
-            console.log('User left channel:', data);
-        });
-        
-        socket.on('user_typing', function(data) {
-            if (data.channel_id == currentChannelId) {
-                showTypingIndicator(data);
-            }
-        });
-        
-        socket.on('error', function(data) {
-            console.error('Socket error:', data.message);
-            alert('Chat error: ' + data.message);
-        });
+    // Get user data
+    const userId = window.currentUserId;
+    const username = window.currentUsername || 'User';
+    const pfpPath = window.currentUserPfp || '';
+    
+    if (!userId) {
+        console.error('❌ No user ID found - user not logged in');
+        return;
     }
+    
+    console.log('🚀 Initializing Go WebSocket connection...');
+    console.log('👤 User:', username, 'ID:', userId);
+    
+    // Connect to Go WebSocket server
+    window.goSocket.connect(userId, username, pfpPath);
+    
+    // Set up event handlers (same as Socket.IO)
+    window.goSocket.on('connect', function() {
+        console.log('✅ Connected to Go WebSocket server!');
+        console.log('⚡ Go server is much faster than Socket.IO');
+        
+        // Update socket reference for compatibility
+        socket = window.goSocket;
+    });
+    
+    window.goSocket.on('new_message', function(data) {
+        console.log('📨 New message received:', data);
+        if (data.channel_id == currentChannelId) {
+            addMessageToChat(data);
+        }
+    });
+    
+    window.goSocket.on('user_joined', function(data) {
+        console.log('👋 User joined:', data);
+    });
+    
+    window.goSocket.on('user_left', function(data) {
+        console.log('👋 User left:', data);
+    });
+    
+    window.goSocket.on('user_joined_channel', function(data) {
+        console.log('👥 User joined channel:', data);
+        // You can show a notification that someone joined
+    });
+    
+    window.goSocket.on('user_left_channel', function(data) {
+        console.log('👥 User left channel:', data);
+    });
+    
+    window.goSocket.on('user_typing', function(data) {
+        console.log('⌨️ User typing:', data);
+        if (data.channel_id == currentChannelId) {
+            showTypingIndicator(data);
+        }
+    });
+    
+    window.goSocket.on('user_online', function(data) {
+        console.log('🟢 User online:', data);
+        // Update user status in UI
+    });
+    
+    window.goSocket.on('user_offline', function(data) {
+        console.log('🔴 User offline:', data);
+        // Update user status in UI
+    });
+    
+    window.goSocket.on('error', function(error) {
+        console.error('❌ WebSocket error:', error);
+        alert('Chat connection error. Please refresh the page.');
+    });
+    
+    window.goSocket.on('disconnect', function() {
+        console.log('❌ Disconnected from Go WebSocket server');
+        // The client will automatically try to reconnect
+    });
+    
+    // Set socket reference for compatibility with existing code
+    socket = window.goSocket;
 }
 
 // Tab switching functionality

@@ -12,15 +12,11 @@ logger = logging.getLogger(__name__)
 
 channels_bp = Blueprint('channels', __name__)
 
-# Database connection
+# Import database connection from connection module
+import connection
+
 def get_db_connection():
-    return psycopg2.connect(
-        host=os.getenv('DB_HOST', 'dpg-d32qu6juibrs73a3u200-a.oregon-postgres.render.com'),
-        database=os.getenv('DB_NAME', 'algo_database'),
-        user=os.getenv('DB_USER', 'algo_database_user'),
-        password=os.getenv('DB_PASSWORD', 'XyB825sj3CoiUZpEsDyYz4zASy16Gg1o'),
-        port=os.getenv('DB_PORT', '5432')
-    )
+    return connection.get_db_connection()
 
 def require_auth(f):
     """Decorator to require authentication"""

@@ -216,7 +216,8 @@
         window.currentUserPfp = {{ session.pfp_path|tojson if session.pfp_path else '""' }};
         window.currentUserId = {{ session.user_id|tojson if session.user_id else 'null' }};
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <!-- Go WebSocket Client (replaces Socket.IO) -->
+    <script src="{{ url_for('static', filename='js/go-websocket-client.js') }}"></script>
     <script src="{{ url_for('static', filename='js/channels.js') }}"></script>
 </body>
 
