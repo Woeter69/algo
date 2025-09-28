@@ -4,6 +4,41 @@ let socket = null;
 let currentCommunityId = null;
 let channelsData = window.channelsData || {};
 
+// Simple notification system
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 10001;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white; padding: 1rem 1.5rem; border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex;
+        align-items: center; gap: 0.5rem; font-weight: 500;
+        max-width: 400px; transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+        notification.style.transform = 'translateX(0)';
+    });
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 // Initialize Socket.IO connection
 function initializeSocket() {
     if (typeof io !== 'undefined') {
@@ -165,6 +200,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (currentCommunityId) {
         loadCommunityMembers(currentCommunityId);
     }
+    
+    // Initialize profile modal functionality
+    initializeProfileModal();
 
     // Send message functionality
     const messageInput = document.getElementById('messageInput');
@@ -173,7 +211,36 @@ document.addEventListener('DOMContentLoaded', function() {
     function sendMessage() {
         const message = messageInput.value.trim();
         if (message && currentChannelId) {
-            // Send message via API
+            // Clear input immediately for better UX
+            messageInput.value = '';
+            
+            // Create optimistic message object for instant display
+            const optimisticMessage = {
+                message_id: 'temp_' + Date.now(),
+                content: message,
+                username: window.currentUsername || 'You',
+                pfp_path: window.currentUserPfp || '',
+                created_at: new Date().toISOString(),
+                message_type: 'text',
+                reactions: [],
+                isOptimistic: true // Flag to identify optimistic messages
+            };
+            
+            // Add message to chat immediately (optimistic UI)
+            addMessageToChat(optimisticMessage);
+            
+            // Send via Socket.IO for real-time delivery (faster)
+            if (socket) {
+                socket.emit('send_message', {
+                    channel_id: currentChannelId,
+                    message: {
+                        content: message,
+                        message_type: 'text'
+                    }
+                });
+            }
+            
+            // Also send via API for persistence (async, non-blocking)
             fetch(`/api/channels/${currentChannelId}/messages`, {
                 method: 'POST',
                 headers: {
@@ -187,27 +254,20 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.message === 'Message sent successfully') {
-                    // Clear input
-                    messageInput.value = '';
-                    
-                    // Add message to chat immediately
-                    addMessageToChat(data.data);
-                    
-                    // Emit to socket for real-time updates to other users
-                    if (socket) {
-                        socket.emit('send_message', {
-                            channel_id: currentChannelId,
-                            message: data.data
-                        });
-                    }
+                    // Replace optimistic message with real message
+                    replaceOptimisticMessage(optimisticMessage.message_id, data.data);
                 } else {
+                    // Remove optimistic message and show error
+                    removeOptimisticMessage(optimisticMessage.message_id);
                     console.error('Error sending message:', data.error);
-                    alert('Failed to send message: ' + (data.error || 'Unknown error'));
+                    showMessageError('Failed to send message: ' + (data.error || 'Unknown error'));
                 }
             })
             .catch(error => {
+                // Remove optimistic message and show error
+                removeOptimisticMessage(optimisticMessage.message_id);
                 console.error('Error:', error);
-                alert('Failed to send message. Please try again.');
+                showMessageError('Failed to send message. Please try again.');
             });
         }
     }
@@ -317,6 +377,11 @@ function addMessageToChat(message) {
     messageElement.className = 'message';
     messageElement.setAttribute('data-message-id', message.message_id);
     
+    // Add optimistic styling for pending messages
+    if (message.isOptimistic) {
+        messageElement.classList.add('optimistic-message');
+    }
+    
     // Create avatar
     const avatar = message.pfp_path ? 
         `<img src="${message.pfp_path}" alt="${message.username}">` :
@@ -355,7 +420,7 @@ function addMessageToChat(message) {
     }
     
     messageElement.innerHTML = `
-        <div class="message-avatar">${avatar}</div>
+        <div class="message-avatar" data-user-id="${message.user_id || ''}" data-username="${message.username || ''}">${avatar}</div>
         <div class="message-content">
             ${replyHtml}
             <div class="message-header">
@@ -367,6 +432,24 @@ function addMessageToChat(message) {
             ${reactionsHtml}
         </div>
     `;
+    
+    // Add click event to avatar
+    const avatarElement = messageElement.querySelector('.message-avatar');
+    if (avatarElement && message.user_id) {
+        avatarElement.addEventListener('click', function() {
+            // Create user data object from message
+            const userData = {
+                user_id: message.user_id,
+                username: message.username,
+                firstname: message.firstname || message.username,
+                lastname: message.lastname || '',
+                pfp_path: message.pfp_path,
+                role: message.role || 'Member',
+                is_online: message.is_online
+            };
+            showProfileModal(userData);
+        });
+    }
     
     // Add message to chat
     chatMessages.appendChild(messageElement);
@@ -486,7 +569,7 @@ function displayMembers(members) {
         else if (member.role === 'moderator') roleColor = '#f59e0b'; // orange
         
         memberElement.innerHTML = `
-            <div class="connection-avatar-circle" style="background: linear-gradient(135deg, ${roleColor} 0%, ${roleColor}dd 100%);">
+            <div class="connection-avatar-circle" data-user-id="${member.user_id}" style="background: linear-gradient(135deg, ${roleColor} 0%, ${roleColor}dd 100%);">
                 ${avatar}
             </div>
             <div class="connection-info">
@@ -495,6 +578,14 @@ function displayMembers(members) {
             </div>
             <div class="connection-status ${member.is_online ? 'online' : 'offline'}"></div>
         `;
+        
+        // Add click event to avatar
+        const avatarElement = memberElement.querySelector('.connection-avatar-circle');
+        if (avatarElement && member.user_id) {
+            avatarElement.addEventListener('click', function() {
+                showProfileModal(member);
+            });
+        }
         
         membersList.appendChild(memberElement);
     });
@@ -559,6 +650,54 @@ function updateTypingIndicator() {
     }
 }
 
+// Optimistic UI helper functions
+function replaceOptimisticMessage(tempId, realMessage) {
+    const messageElement = document.querySelector(`[data-message-id="${tempId}"]`);
+    if (messageElement) {
+        messageElement.setAttribute('data-message-id', realMessage.message_id);
+        messageElement.classList.remove('optimistic-message');
+        // Update any other necessary data
+    }
+}
+
+function removeOptimisticMessage(tempId) {
+    const messageElement = document.querySelector(`[data-message-id="${tempId}"]`);
+    if (messageElement) {
+        messageElement.remove();
+    }
+}
+
+function showMessageError(errorMessage) {
+    // Create a temporary error notification
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'message-error-notification';
+    errorDiv.innerHTML = `
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>${errorMessage}</span>
+    `;
+    errorDiv.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        background: #ef4444; color: white; padding: 1rem 1.5rem;
+        border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex; align-items: center; gap: 0.5rem;
+        font-weight: 500; max-width: 400px;
+        transform: translateX(100%); transition: transform 0.3s ease;
+    `;
+    
+    document.body.appendChild(errorDiv);
+    
+    // Animate in
+    requestAnimationFrame(() => {
+        errorDiv.style.transform = 'translateX(0)';
+    });
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        errorDiv.style.transform = 'translateX(100%)';
+        setTimeout(() => errorDiv.remove(), 300);
+    }, 4000);
+}
+
 // Enhanced channel switching with proper cleanup
 function switchToChannel(channelId, channelName) {
     // Leave current channel if any
@@ -580,4 +719,215 @@ function switchToChannel(channelId, channelName) {
     
     // Load messages
     loadChannelMessages(channelId);
+}
+
+// Profile Modal Functions
+function initializeProfileModal() {
+    const profileModal = document.getElementById('profileModal');
+    const closeProfileModal = document.getElementById('closeProfileModal');
+    const closePreview = document.getElementById('closePreview');
+    
+    // Close modal event listeners
+    if (closeProfileModal) {
+        closeProfileModal.addEventListener('click', closeModal);
+    }
+    
+    if (closePreview) {
+        closePreview.addEventListener('click', closeModal);
+    }
+    
+    // Close modal when clicking overlay
+    if (profileModal) {
+        profileModal.addEventListener('click', function(e) {
+            if (e.target === profileModal) {
+                closeModal();
+            }
+        });
+    }
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && profileModal && profileModal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+    
+    function closeModal() {
+        if (profileModal) {
+            profileModal.classList.remove('active');
+        }
+    }
+}
+
+function showProfileModal(userData) {
+    const profileModal = document.getElementById('profileModal');
+    const profilePreview = document.getElementById('profilePreview');
+    
+    if (!profileModal || !profilePreview) return;
+    
+    // Create avatar
+    const avatarHtml = userData.pfp_path ? 
+        `<img src="${userData.pfp_path}" alt="${userData.firstname} ${userData.lastname}">` :
+        `${(userData.firstname || userData.username || 'U').charAt(0).toUpperCase()}`;
+    
+    // Format join date
+    const joinDate = userData.joined_at ? new Date(userData.joined_at).toLocaleDateString() : 'Unknown';
+    
+    profilePreview.innerHTML = `
+        <div class="profile-avatar">
+            ${avatarHtml}
+        </div>
+        <div class="profile-name">${userData.firstname || ''} ${userData.lastname || ''}</div>
+        <div class="profile-role">${userData.user_role || userData.role || 'Member'}</div>
+        
+        <div class="profile-details">
+            ${userData.username ? `
+                <div class="profile-detail-item">
+                    <i class="fas fa-user"></i>
+                    <span class="detail-label">Username:</span>
+                    <span class="detail-value">@${userData.username}</span>
+                </div>
+            ` : ''}
+            
+            ${userData.department ? `
+                <div class="profile-detail-item">
+                    <i class="fas fa-building"></i>
+                    <span class="detail-label">Department:</span>
+                    <span class="detail-value">${userData.department}</span>
+                </div>
+            ` : ''}
+            
+            ${userData.role ? `
+                <div class="profile-detail-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="detail-label">Community Role:</span>
+                    <span class="detail-value">${userData.role}</span>
+                </div>
+            ` : ''}
+            
+            <div class="profile-detail-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span class="detail-label">Joined:</span>
+                <span class="detail-value">${joinDate}</span>
+            </div>
+            
+            ${userData.is_online !== undefined ? `
+                <div class="profile-detail-item">
+                    <i class="fas fa-circle" style="color: ${userData.is_online ? '#10b981' : '#6b7280'}"></i>
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value">${userData.is_online ? 'Online' : 'Offline'}</span>
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    // Show modal
+    profileModal.classList.add('active');
+    
+    // Show/hide action buttons based on whether it's current user
+    const currentUserId = window.currentUserId || window.channelsData?.userId;
+    const isCurrentUser = userData.user_id && currentUserId && (userData.user_id === currentUserId || userData.user_id == currentUserId);
+    
+    console.log('Profile Modal Debug:', {
+        userData: userData,
+        currentUserId: currentUserId,
+        isCurrentUser: isCurrentUser
+    });
+    
+    const profileBtn = document.getElementById('profileFromPreview');
+    const connectBtn = document.getElementById('connectFromPreview');
+    const messageBtn = document.getElementById('messageFromPreview');
+    
+    // Profile button - always show
+    if (profileBtn) {
+        profileBtn.style.display = 'inline-flex';
+        profileBtn.innerHTML = '<i class="fas fa-user"></i> View Profile';
+        profileBtn.onclick = () => viewProfile(userData.username);
+    }
+    
+    // Connect button - hide for current user
+    if (connectBtn) {
+        connectBtn.style.display = isCurrentUser ? 'none' : 'inline-flex';
+        connectBtn.innerHTML = '<i class="fas fa-user-plus"></i> Connect';
+        connectBtn.onclick = () => sendConnectionRequest(userData.user_id);
+    }
+    
+    // Chat button - hide for current user, always show for others
+    if (messageBtn) {
+        messageBtn.style.display = isCurrentUser ? 'none' : 'inline-flex';
+        messageBtn.innerHTML = '<i class="fas fa-comment"></i> Chat';
+        messageBtn.onclick = () => startChat(userData.username);
+    }
+}
+
+// Helper functions for profile modal actions
+function sendConnectionRequest(userId) {
+    // Show loading state
+    const connectBtn = document.getElementById('connectFromPreview');
+    if (connectBtn) {
+        connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        connectBtn.disabled = true;
+    }
+    
+    fetch('/api/send_connection_request', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            target_user_id: userId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Connection request sent!', 'success');
+            if (connectBtn) {
+                connectBtn.innerHTML = '<i class="fas fa-check"></i> Request Sent';
+                connectBtn.style.background = '#10b981';
+            }
+        } else {
+            showNotification(data.message || 'Failed to send connection request', 'error');
+            if (connectBtn) {
+                connectBtn.innerHTML = '<i class="fas fa-user-plus"></i> Connect';
+                connectBtn.disabled = false;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error sending connection request:', error);
+        showNotification('Error sending connection request', 'error');
+        if (connectBtn) {
+            connectBtn.innerHTML = '<i class="fas fa-user-plus"></i> Connect';
+            connectBtn.disabled = false;
+        }
+    });
+}
+
+function startChat(username) {
+    // Close the modal first
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal) {
+        profileModal.classList.remove('active');
+    }
+    
+    // Show loading notification
+    showNotification('Opening chat...', 'info');
+    
+    // Redirect to chat with user
+    window.location.href = `/chat/${username}`;
+}
+
+function viewProfile(username) {
+    // Close the modal first
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal) {
+        profileModal.classList.remove('active');
+    }
+    
+    // Show loading notification
+    showNotification('Opening profile...', 'info');
+    
+    // Redirect to user profile
+    window.location.href = `/profile/${username}`;
 }

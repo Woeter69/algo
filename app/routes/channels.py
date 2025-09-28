@@ -37,7 +37,13 @@ def require_community_member(f):
         if 'user_id' not in session:
             return jsonify({'error': 'Authentication required'}), 401
         
-        community_id = request.json.get('community_id') or request.args.get('community_id')
+        # Get community_id from URL kwargs, request JSON, or query params
+        community_id = kwargs.get('community_id')
+        if not community_id:
+            community_id = request.json.get('community_id') if request.is_json else None
+        if not community_id:
+            community_id = request.args.get('community_id')
+        
         if not community_id:
             return jsonify({'error': 'Community ID required'}), 400
             

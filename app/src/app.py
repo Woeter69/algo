@@ -1,9 +1,15 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Ensure gevent compatibility
+import gevent
+from gevent import monkey
+monkey.patch_all()
+
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask import Flask,render_template,request, session, redirect, url_for,flash
 from connection import get_db_connection 
-import secrets, datetime
+import secrets, datetime, time
 from flask_bcrypt import Bcrypt
 import utils
 import validators
@@ -22,7 +28,7 @@ from channels import channels_bp
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
 bcrypt = Bcrypt(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 # Register blueprints
 app.register_blueprint(channels_bp, url_prefix='/api')
@@ -823,7 +829,7 @@ def channels():
     user_id = session['user_id']
     
     try:
-        mydb = connection.get_db_connection()
+        mydb = get_db_connection()
         cur = mydb.cursor()
         
         # Get user's communities
@@ -2471,7 +2477,7 @@ def handle_join_channel(data):
     
     # Verify user has access to this channel
     try:
-        mydb = connection.get_db_connection()
+        mydb = get_db_connection()
         cur = mydb.cursor()
         
         # Check if user is member of the community that owns this channel
@@ -2560,7 +2566,7 @@ def handle_send_message(data):
     
     # Verify user has access to this channel
     try:
-        mydb = connection.get_db_connection()
+        mydb = get_db_connection()
         cur = mydb.cursor()
         
         # Check if user is member of the community that owns this channel
@@ -2578,16 +2584,21 @@ def handle_send_message(data):
         
         # Broadcast message to all users in the channel
         room_name = f'channel_{channel_id}'
-        emit('new_message', {
+        
+        # Create message object for broadcasting
+        broadcast_message = {
             'channel_id': channel_id,
-            'message_id': message_data.get('message_id'),
+            'message_id': message_data.get('message_id', f'temp_{user_id}_{int(time.time() * 1000)}'),
             'user_id': user_id,
             'username': username,
             'content': message_data.get('content'),
-            'created_at': message_data.get('created_at'),
+            'created_at': message_data.get('created_at', datetime.datetime.utcnow().isoformat()),
             'pfp_path': session.get('pfp_path'),
-            'message_type': message_data.get('message_type', 'text')
-        }, room=room_name, include_self=False)  # Don't send to sender
+            'message_type': message_data.get('message_type', 'text'),
+            'reactions': []
+        }
+        
+        emit('new_message', broadcast_message, room=room_name, include_self=False)  # Don't send to sender
         
         print(f"Message broadcasted in channel {channel_id} by {username}")
         

@@ -173,6 +173,35 @@
         </div>
     </div>
 
+    <!-- Profile Preview Modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Profile Details</h3>
+                <button type="button" class="modal-close" id="closeProfileModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="profile-preview" id="profilePreview">
+                    <!-- Profile details will be populated -->
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="closePreview">Close</button>
+                    <button type="button" class="btn" id="profileFromPreview" style="display: inline-flex;">
+                        <i class="fas fa-user"></i> View Profile
+                    </button>
+                    <button type="button" class="btn" id="connectFromPreview" style="display: inline-flex;">
+                        <i class="fas fa-user-plus"></i> Connect
+                    </button>
+                    <button type="button" class="btn" id="messageFromPreview" style="display: inline-flex;">
+                        <i class="fas fa-comment"></i> Chat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Pass data to JavaScript -->
     <script>
         window.channelsData = {
@@ -181,6 +210,11 @@
             selectedCommunityId: {{ selected_community_id|tojson if selected_community_id else 'null' }},
             userId: {{ user_id|tojson if user_id else 'null' }}
         };
+        
+        // Current user info for optimistic UI
+        window.currentUsername = {{ session.username|tojson if session.username else '"User"' }};
+        window.currentUserPfp = {{ session.pfp_path|tojson if session.pfp_path else '""' }};
+        window.currentUserId = {{ session.user_id|tojson if session.user_id else 'null' }};
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='js/channels.js') }}"></script>
