@@ -17,7 +17,7 @@ This project is developed as part of the Smart India Hackathon (SIH) 2025 initia
 ├── src/                # Source code files
 ├── db/                 # Database
 ├── static              # Styles and JS
-├── templates/          # Majorly       
+├── templates/          # Majorly HTML      
 ├── README.md           # This file
 ```
 
