@@ -140,7 +140,7 @@ class GoWebSocketClient {
             console.error('❌ WebSocket not connected');
             return false;
         }
-        const message = Object.assign({ type: type, user_id: this.userId, username: this.username, timestamp: new Date().toISOString() }, data);
+        const message = Object.assign({ type: type, user_id: parseInt(this.userId), username: this.username, timestamp: new Date().toISOString() }, data);
         try {
             this.ws.send(JSON.stringify(message));
             console.log('📤 Sent message:', message);
@@ -159,12 +159,23 @@ class GoWebSocketClient {
     leaveChannel(channelId) {
         return this.send('leave_channel', { channel_id: channelId });
     }
-    // Send a chat message
+    // Send a chat message (for channels)
     sendMessage(content, channelId, messageId = null) {
         return this.send('send_message', {
             channel_id: channelId,
             content: content,
             message_id: messageId,
+            created_at: new Date().toISOString(),
+            message_type: 'text'
+        });
+    }
+    // Send a direct chat message
+    sendDirectMessage(content, receiverId, messageId = null) {
+        return this.send('chat_message', {
+            sender_id: parseInt(this.userId),
+            receiver_id: parseInt(receiverId),
+            content: content,
+            message_id: messageId || `${this.userId}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             created_at: new Date().toISOString(),
             message_type: 'text'
         });

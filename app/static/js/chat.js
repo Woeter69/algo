@@ -230,7 +230,7 @@ else {
                     messagesArea.appendChild(messageElement);
                     scrollToBottom();
                 }
-                socket.sendMessage(message, otherUserId);
+                socket.sendDirectMessage(message, otherUserId);
                 client_message_id: `${currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
             }
             finally // Update conversation list

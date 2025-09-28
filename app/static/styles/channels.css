@@ -741,3 +741,89 @@ body {
         justify-content: center;
     }
 }
+
+/* WebSocket Integration Styles */
+.message.sent {
+    margin-left: auto;
+    margin-right: 0;
+    background: var(--primary);
+    color: white;
+    border-radius: 18px 18px 4px 18px;
+}
+
+.message.sent .message-content {
+    background: transparent;
+}
+
+.message.sent .message-author {
+    color: var(--secondary-light);
+}
+
+.message.received {
+    margin-left: 0;
+    margin-right: auto;
+    background: #f1f5f9;
+    border-radius: 18px 18px 18px 4px;
+}
+
+.system-message {
+    text-align: center;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+.typing-indicator {
+    padding: 0.5rem 1rem;
+    background: rgba(156, 163, 175, 0.1);
+    border-radius: 20px;
+    margin: 0.5rem 0;
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-style: italic;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.message-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Connection status indicator */
+.connection-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.connection-status.connected {
+    background: #10b981;
+    color: white;
+}
+
+.connection-status.disconnected {
+    background: #ef4444;
+    color: white;
+}
+
+.connection-status.connecting {
+    background: #f59e0b;
+    color: white;
+}
