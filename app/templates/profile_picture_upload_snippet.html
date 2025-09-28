@@ -1,0 +1,80 @@
+<!-- Profile Picture Upload Section -->
+<!-- Add this to your profile.html template where you want the upload functionality -->
+
+<div class="profile-picture-section">
+    <div class="profile-image-container">
+        <img id="profile-image" 
+             src="{{ user_data[11] if user_data[11] else '/static/images/default-avatar.png' }}" 
+             alt="Profile Picture" 
+             class="profile-image">
+        
+        <!-- Upload button (only show for own profile) -->
+        {% if current_user_info is none or current_user_info[0] == user_data[0] %}
+        <div class="upload-overlay">
+            <button id="upload-pfp-btn" class="btn btn-primary btn-sm upload-btn">
+                <i class="fas fa-camera"></i> Change Photo
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Status messages -->
+    <div id="upload-status" class="mt-2"></div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="pfp-file-input" accept="image/*" style="display: none;">
+
+<!-- CSS Styles -->
+<style>
+.profile-picture-section {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-image-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ddd;
+}
+
+.upload-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    padding: 8px;
+}
+
+.upload-btn {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    padding: 0;
+}
+
+.upload-btn:hover {
+    background-color: #0056b3;
+}
+
+#upload-status .alert {
+    margin-bottom: 0;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+</style>
+
+<!-- Include the JavaScript file -->
+<script src="{{ url_for('static', filename='js/profile-picture-upload.js') }}"></script>

@@ -1941,6 +1941,65 @@ def change_password():
         if 'mydb' in locals() and mydb:
             mydb.close()
 
+@app.route("/api/update_profile_picture", methods=["POST"])
+@validators.login_required
+def update_profile_picture():
+    """Update user profile picture using ImgBB API"""
+    try:
+        user_id = session['user_id']
+        
+        # Check if image file is provided
+        if 'profile_picture' not in request.files:
+            return {'success': False, 'message': 'No image file provided'}, 400
+        
+        file = request.files['profile_picture']
+        if file.filename == '':
+            return {'success': False, 'message': 'No file selected'}, 400
+        
+        # Validate file type
+        if not validators.allowed_file(file.filename):
+            return {'success': False, 'message': 'Invalid file type. Please upload an image file.'}, 400
+        
+        # Get ImgBB API key from environment
+        imgbb_api_key = os.getenv("PFP_KEY")
+        if not imgbb_api_key:
+            app.logger.error("PFP_KEY not found in environment variables")
+            return {'success': False, 'message': 'Image upload service not configured'}, 500
+        
+        # Upload to ImgBB
+        try:
+            pfp_url = utils.upload_to_imgbb(file, imgbb_api_key)
+            if not pfp_url:
+                return {'success': False, 'message': 'Failed to upload image'}, 500
+        except Exception as upload_error:
+            app.logger.error(f"ImgBB upload error: {str(upload_error)}")
+            return {'success': False, 'message': 'Failed to upload image to server'}, 500
+        
+        # Update database with new profile picture URL
+        mydb = get_db_connection()
+        cur = mydb.cursor()
+        
+        cur.execute("UPDATE users SET pfp_path = %s WHERE user_id = %s", (pfp_url, user_id))
+        mydb.commit()
+        
+        # Update session with new profile picture
+        session['pfp_path'] = pfp_url
+        
+        return {
+            'success': True, 
+            'message': 'Profile picture updated successfully',
+            'pfp_url': pfp_url
+        }
+        
+    except Exception as e:
+        app.logger.error(f"Error updating profile picture: {str(e)}")
+        return {'success': False, 'message': 'Error updating profile picture'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
 
 @app.route("/api/export_data", methods=["POST"])
 @validators.login_required
