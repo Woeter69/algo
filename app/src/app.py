@@ -683,7 +683,7 @@ def thanks():
 def user_dashboard():
     user_id = session['user_id']
 
-    mydb = get_db_connection()
+    mydb = connection.get_db_connection()
     cur = mydb.cursor()
     cur.execute("SELECT username, role, pfp_path, verification_status FROM users WHERE user_id = %s", (user_id,))
     row = cur.fetchone()
@@ -762,7 +762,7 @@ def limited_dashboard():
     """Dashboard for unverified users with limited access"""
     user_id = session['user_id']
     
-    mydb = get_db_connection()
+    mydb = connection.get_db_connection()
     cur = mydb.cursor()
     
     try:
@@ -873,7 +873,7 @@ def channels():
 @user_roles.verified_user_required
 def chat_list():
     user_id = session['user_id']
-    mydb = get_db_connection()
+    mydb = connection.get_db_connection()
     cur = mydb.cursor()
     
     try:
@@ -1300,7 +1300,7 @@ def user_role_info():
     """API endpoint to get user role information"""
     try:
         user_id = session['user_id']
-        role_info = get_user_role_info(user_id)
+        role_info = user_roles.get_user_role_info(user_id)
         
         if role_info:
             return {
