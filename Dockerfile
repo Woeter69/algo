@@ -6,15 +6,14 @@ WORKDIR /app
 
 # Initialize Go module and copy dependencies
 COPY app/src/go-deps/go.mod ./go.mod
-COPY app/src/go-deps/go.sum ./go.sum
 
-# Download dependencies first
-RUN go mod download
-
-# Copy Go source code
+# Copy Go source code first
 COPY app/src/sockets.go ./main.go
 
-# Build the Go binary (using main.go as entry point)
+# Download dependencies and update go.sum
+RUN go mod tidy
+
+# Build the Go binary
 RUN go build -o websocket-server .
 
 # Final stage with Python + Go + Nginx
