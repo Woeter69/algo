@@ -672,10 +672,13 @@ func main() {
 		log.Println("⚠️  No database connection (WebSocket will still work)")
 	}
 
+	// Initialize Google OAuth
+	oauth := NewGoogleOAuth(db)
+	oauth.setupOAuthRoutes()
+
 	// Initialize Hub
 	hub = NewHub(db)
-	go hub.Run()
-
+	
 	// Initialize WebSocket upgrader
 	upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
