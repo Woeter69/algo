@@ -18,16 +18,14 @@ else {
             console.error('No current user ID - user might not be logged in');
             return;
         }
-        // Initialize Socket.IO with proper typing
-        console.log('Initializing Socket.IO connection...');
-        const socket = io({
-            path: '/socket.io',
-            transports: ['websocket', 'polling'],
-            reconnection: true,
-            reconnectionAttempts: 8,
-            reconnectionDelay: 500,
-            timeout: 20000,
-        });
+        // Initialize Go WebSocket connection
+        console.log('Initializing Go WebSocket connection...');
+        const socket = window.goSocket;
+        
+        // Connect to Go WebSocket server with user info
+        const currentUserName = chatData.currentUserName || 'User';
+        const currentUserPfp = chatData.currentUserPfp || '';
+        socket.connect(currentUserId.toString(), currentUserName, currentUserPfp);
         let onlineUsers = new Set();
         let isTyping = false;
         let typingTimeout = null;
@@ -84,26 +82,22 @@ else {
         // Update online status every 30 seconds
         fetchOnlineStatus();
         setInterval(fetchOnlineStatus, 30000);
-        // Socket event handlers with proper typing
-        socket.on('connect_error', (err) => {
-            console.error('Socket connect_error:', err?.message || err);
-        });
-        // Note: reconnect_error is not in the standard Socket.IO events, using connect_error instead
-        socket.on('connect_error', (err) => {
-            console.error('Socket reconnect_error:', err?.message || err);
+        // Go WebSocket event handlers
+        socket.on('error', (err) => {
+            console.error('WebSocket error:', err?.message || err);
         });
         socket.on('disconnect', (reason) => {
-            console.warn('Socket disconnected:', reason);
+            console.warn('WebSocket disconnected:', reason);
         });
         socket.on('connect', () => {
-            console.log('Socket.IO connected successfully');
-            if (currentUserId) {
-                console.log('Emitting user_online for user:', currentUserId);
-                socket.emit('user_online', { user_id: currentUserId });
-            }
+            console.log('Go WebSocket connected successfully');
             if (currentUserId && otherUserId) {
-                console.log('Joining room for users:', currentUserId, otherUserId);
-                socket.emit('join', { user1: currentUserId, user2: otherUserId });
+                console.log('Joining chat room for users:', currentUserId, otherUserId);
+                // Join direct chat room
+                socket.send('join_chat_room', {
+                    sender_id: currentUserId,
+                    receiver_id: otherUserId
+                });
             }
             loadOnlineStatus();
         });
@@ -155,10 +149,10 @@ else {
         // Message tracking for deduplication
         const processedMessages = new Set();
         let lastSentMessageTime = 0;
-        // Socket message handlers with deduplication
-        socket.on('receive_message', (data) => {
+        // Go WebSocket message handlers with deduplication
+        socket.on('new_chat_message', (data) => {
             console.log('📨 Message received:', data);
-            const senderId = Number(data.sender_id);
+            const senderId = Number(data.userID || data.user_id);
             const receiverId = Number(data.receiver_id);
             const content = data.content || data.message || '';
             if (!content.trim()) {
