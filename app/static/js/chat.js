@@ -238,7 +238,9 @@ else {
         }
     });
     // Update conversation list
-    updateConversationLastMessage(otherUserId, message);
+    if (typeof otherUserId !== 'undefined') {
+        updateConversationLastMessage(otherUserId, message);
+    }
 }
 try { }
 catch (error) {
