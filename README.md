@@ -1,12 +1,12 @@
-# SIH Project 2025
+# Algo
 
-Welcome to the **SIH Project 2025** repository!
+Welcome to the **algo** repository!
 
 This project is developed as part of the Smart India Hackathon (SIH) 2025 initiative. The goal is to build innovative solutions for real-world challenges, leveraging modern technologies and best practices.
 
 ## 🚀 Project Overview
 
-- **Repository:** [Woeter69/sih-project-2025](https://github.com/Woeter69/sih-project-2025)
+- **Repository:** [Woeter69/algo](https://github.com/Woeter69/algo)
 - **Languages:** *(Add your primary languages here, e.g., Python, JavaScript, etc.)*
 - **Description:** *(Briefly describe what the project does, its main features, or its purpose.)*
 
@@ -27,8 +27,8 @@ This project is developed as part of the Smart India Hackathon (SIH) 2025 initia
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/Woeter69/sih-project-2025.git
-    cd sih-project-2025
+    git clone https://github.com/Woeter69/algo.git
+    cd algo
     ```
 
 2. **(Python projects)** Create and activate a virtual environment:
@@ -57,7 +57,7 @@ This project is developed as part of the Smart India Hackathon (SIH) 2025 initia
 Explain how to run or use the project. For example:
 
 ```bash
-python src/main.py
+gunicorn -k geventwebsocket.gunicorn.workers.GeventWebSocketWorker -w 1 --bind 0.0.0.0 app.src.app:app
 # or
 npm start
 ```
