@@ -4,18 +4,18 @@ FROM golang:1.21-alpine AS go-builder
 # Build Go WebSocket server
 WORKDIR /app
 
-# Copy Go module files
+# Initialize Go module and copy dependencies
 COPY app/src/go-deps/go.mod ./go.mod
 COPY app/src/go-deps/go.sum ./go.sum
 
-# Download dependencies
+# Download dependencies first
 RUN go mod download
 
 # Copy Go source code
-COPY app/src/sockets.go ./sockets.go
+COPY app/src/sockets.go ./main.go
 
-# Build the Go binary
-RUN go build -o websocket-server sockets.go
+# Build the Go binary (using main.go as entry point)
+RUN go build -o websocket-server .
 
 # Final stage with Python + Go + Nginx
 FROM python:3.11-slim
