@@ -61,7 +61,7 @@ const (
 // WebSocket message structure - handles both channels and direct chat
 type WSMessage struct {
 	Type        MessageType `json:"type"`
-	ChannelID   int         `json:"channel_id,omitempty"`   // For /channels
+	ChannelID   interface{} `json:"channel_id,omitempty"`   // For /channels (can be string or int)
 	ChatRoom    string      `json:"chat_room,omitempty"`    // For /chat (e.g., "user_1_user_2")
 	SenderID    int         `json:"sender_id,omitempty"`    // For direct chat
 	ReceiverID  int         `json:"receiver_id,omitempty"`  // For direct chat
@@ -116,33 +116,34 @@ type Hub struct {
 	// Thread safety
 	Mutex sync.RWMutex
 }
-
 // WebSocket upgrader - converts HTTP to WebSocket
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		// Get the origin from the request
-		origin := r.Header.Get("Origin")
-		
-		// Allow localhost for development
-		if origin == "http://localhost:5000" || origin == "http://127.0.0.1:5000" {
-			return true
-		}
-		
-		// Allow your Render Flask app domain
-		if origin == "https://alumnigo.onrender.com" || origin == "https://alumnigo.onrender.com" {
-			return true
-		}
-		
-		// Allow your custom domain if you have one
-		if origin == "https://alumnigo.onrender.com" {
-			return true
-		}
-		
-		log.Printf("⚠️ Blocked origin: %s", origin)
-		return false
+		return true // Allow all origins for development
 	},
+}
+
+// Global variables
+var (
+	db  *sql.DB
+	hub *Hub
+)
+
+// Helper function to convert channel_id from interface{} to int
+func getChannelID(channelID interface{}) int {
+	switch v := channelID.(type) {
+	case int:
+		return v
+	case float64:
+		return int(v)
+	case string:
+		if id, err := strconv.Atoi(v); err == nil {
+			return id
+		}
+	}
+	return 0 // Default fallback
 }
 
 // Create new Hub - handles both channels and direct chat
@@ -215,12 +216,13 @@ func (h *Hub) handleBroadcast(message WSMessage) {
 	}
 }
 
-// Broadcast message to all users in a channel (like Socket.IO rooms)
+// Broadcast message to all clients in a channel
 func (h *Hub) broadcastToChannel(message WSMessage) {
 	h.Mutex.RLock()
 	defer h.Mutex.RUnlock()
 	
-	if channelClients, exists := h.Channels[message.ChannelID]; exists {
+	channelID := getChannelID(message.ChannelID)
+	if channelClients, exists := h.Channels[channelID]; exists {
 		for userID, client := range channelClients {
 			// Don't send back to sender
 			if userID != message.UserID {
@@ -236,7 +238,7 @@ func (h *Hub) broadcastToChannel(message WSMessage) {
 		}
 	}
 	
-	log.Printf("📢 Broadcasted message in channel %d from %s", message.ChannelID, message.Username)
+	log.Printf("📢 Broadcasted message in channel %d from %s", channelID, message.Username)
 }
 
 // Handle user joining a channel
@@ -245,21 +247,20 @@ func (h *Hub) handleJoinChannel(message WSMessage) {
 	defer h.Mutex.Unlock()
 	
 	// Verify user has access to this channel (check database)
-	if !h.verifyChannelAccess(message.UserID, message.ChannelID) {
-		log.Printf("❌ User %d denied access to channel %d", message.UserID, message.ChannelID)
+	channelID := getChannelID(message.ChannelID)
+	if !h.verifyChannelAccess(message.UserID, channelID) {
+		log.Printf("❌ User %d denied access to channel %d", message.UserID, channelID)
 		return
 	}
 	
-	// Add to channel
-	if h.Channels[message.ChannelID] == nil {
-		h.Channels[message.ChannelID] = make(map[int]*Client)
-	}
-	
-	if client, exists := h.Clients[message.UserID]; exists {
-		h.Channels[message.ChannelID][message.UserID] = client
-		client.Channels[message.ChannelID] = true
+	// Add client to channel  
+	if channelID > 0 {
+		if h.Channels[channelID] == nil {
+			h.Channels[channelID] = make(map[int]*Client)
+		}
+		h.Channels[channelID][message.UserID] = h.Clients[message.UserID]
 		
-		log.Printf("👥 User %s joined channel %d", message.Username, message.ChannelID)
+		log.Printf("👥 User %s joined channel %d", message.Username, channelID)
 		
 		// Notify others in channel
 		notification := WSMessage{
@@ -278,7 +279,8 @@ func (h *Hub) handleLeaveChannel(message WSMessage) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
 	
-	h.removeFromChannel(message.UserID, message.ChannelID)
+	channelID := getChannelID(message.ChannelID)
+	h.removeFromChannel(message.UserID, channelID)
 	
 	// Notify others in channel
 	notification := WSMessage{
@@ -315,17 +317,18 @@ func (h *Hub) handleTyping(message WSMessage) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
 	
-	if h.ChannelTyping[message.ChannelID] == nil {
-		h.ChannelTyping[message.ChannelID] = make(map[int]bool)
+	channelID := getChannelID(message.ChannelID)
+	if h.ChannelTyping[channelID] == nil {
+		h.ChannelTyping[channelID] = make(map[int]bool)
 	}
 	
 	// Update typing status
 	if data, ok := message.Data.(map[string]interface{}); ok {
 		if typing, exists := data["typing"].(bool); exists {
 			if typing {
-				h.ChannelTyping[message.ChannelID][message.UserID] = true
+				h.ChannelTyping[channelID][message.UserID] = true
 			} else {
-				delete(h.ChannelTyping[message.ChannelID], message.UserID)
+				delete(h.ChannelTyping[channelID], message.UserID)
 			}
 		}
 	}
@@ -541,38 +544,72 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Main function - starts the Go WebSocket server
 func main() {
-	log.Println("🚀 Starting Go WebSocket Server...")
-	log.Println("📡 This replaces your Python Socket.IO server")
-	log.Println("⚡ Go is much faster and can handle more connections!")
-	
-	// Connect to database
-	db := connectDB()
-	defer db.Close()
-	
-	// Create hub
-	hub := NewHub(db)
-	go hub.Run()
-	
-	// HTTP routes
-	http.HandleFunc("/ws", hub.handleWebSocket)
-	http.HandleFunc("/health", healthCheck)
-	
-	// Serve static files (optional)
-	http.Handle("/", http.FileServer(http.Dir("./static/")))
+	log.Println("🚀 Starting Go WebSocket server...")
 	
 	// Get port from environment variable (Render sets this)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080" // Default for local development
 	}
+	log.Printf("📡 Port: %s", port)
 	
-	log.Printf("🌐 WebSocket server running on port %s", port)
-	log.Printf("📱 Connect from frontend: ws://your-go-service.onrender.com/ws")
-	log.Printf("🔗 Health check: https://your-go-service.onrender.com/health")
+	// Get database URL
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL != "" {
+		log.Printf("🗄️  Database URL: %s", dbURL[:20]+"...") // Log first 20 chars only for security
+	}
 	
-	// Start server
+	// Connect to database
+	db = connectDB()
+	if db != nil {
+		defer db.Close()
+		
+		// Test database connection
+		if err := db.Ping(); err != nil {
+			log.Printf("⚠️  Database connection failed: %v", err)
+			log.Println("🔄 Continuing without database (WebSocket will still work)")
+		} else {
+			log.Println("✅ Database connected successfully!")
+		}
+	} else {
+		log.Println("⚠️  No database connection (WebSocket will still work)")
+	}
+
+	// Initialize Hub
+	hub = NewHub(db)
+	go hub.Run()
+
+	// Initialize WebSocket upgrader
+	upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			// Allow all origins in production (you might want to restrict this)
+			return true
+		},
+	}
+
+	// WebSocket endpoint
+	http.HandleFunc("/ws", hub.handleWebSocket)
+	
+	// Health check endpoint
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("🏥 Health check requested")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Go WebSocket Server OK"))
+	})
+	
+	// Simple test endpoint
+	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("🧪 Test endpoint requested")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Go server is running!"))
+	})
+	
+	log.Printf("🚀 WebSocket server starting on port %s", port)
+	log.Printf("🌐 WebSocket endpoint: ws://localhost:%s/ws", port)
+	log.Printf("❤️  Health check: http://localhost:%s/health", port)
+	log.Printf("🧪 Test endpoint: http://localhost:%s/test", port)
+	
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal("❌ Server failed to start:", err)
 	}

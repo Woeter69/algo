@@ -23,13 +23,17 @@ fi
 
 echo "✅ Go version: $(go version)"
 
+# Copy sockets.go to current directory as main.go (Go module entry point)
+echo "📦 Preparing Go module..."
+cp ../sockets.go ./main.go
+
 # Install dependencies
 echo "📦 Installing Go dependencies..."
 go mod tidy
 
-# Build the application (sockets.go is in parent directory)
+# Build the application
 echo "🔨 Building Go WebSocket server..."
-go build -o ../websocket-server ../sockets.go
+go build -o ../websocket-server .
 
 # Check if build was successful
 if [ $? -eq 0 ]; then

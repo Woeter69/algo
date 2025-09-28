@@ -23,9 +23,14 @@ class GoWebSocketClient {
 
         // Determine WebSocket URL based on environment
         let wsUrl;
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        if (window.location.hostname === 'localhost' || 
+            window.location.hostname === '127.0.0.1' || 
+            window.location.hostname.startsWith('192.168.') ||
+            window.location.hostname.startsWith('10.') ||
+            window.location.hostname.startsWith('172.')) {
             // Local development - Go server on port 8080
-            wsUrl = `ws://localhost:8080/ws?user_id=${userId}&username=${encodeURIComponent(username)}&pfp_path=${encodeURIComponent(pfpPath)}`;
+            const host = window.location.hostname;
+            wsUrl = `ws://${host}:8080/ws?user_id=${userId}&username=${encodeURIComponent(username)}&pfp_path=${encodeURIComponent(pfpPath)}`;
         } else {
             // Production on Render - Integrated deployment with nginx proxy
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

@@ -1,7 +1,7 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from flask import Flask, render_template, request, session, redirect, url_for, flash
+from flask import Flask, render_template, request, session, redirect, url_for, flash, jsonify
 import secrets, datetime, time
 from flask_bcrypt import Bcrypt
 from urllib.parse import urlparse, urljoin
@@ -931,10 +931,10 @@ def chat_list():
 @app.route("/api/online_status")
 @validators.login_required
 def get_online_status():
-    """Return list of currently online user IDs"""
-    online_user_list = list(online_users.keys())
-    print(f"API: Returning online users: {online_user_list}")
-    return {'online_users': online_user_list}
+    """Return list of currently online user IDs - now handled by Go WebSocket server"""
+    # Since we moved to Go WebSocket server, return empty list for now
+    # The Go server handles online status internally
+    return jsonify({"online_users": [], "message": "Online status handled by Go WebSocket server"})
 
 @app.route("/api/upload_image", methods=["POST"])
 @validators.login_required

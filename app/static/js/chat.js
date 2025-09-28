@@ -36,9 +36,15 @@ else {
             on: function(event, callback) {
                 // Map Socket.IO events to Go WebSocket events
                 if (event === 'connect') {
-                    goSocket.onOpen = callback;
+                    goSocket.onOpen = function(event) {
+                        socket.connected = true;  // Update connection status
+                        callback(event);
+                    };
                 } else if (event === 'disconnect') {
-                    goSocket.onClose = callback;
+                    goSocket.onClose = function(event) {
+                        socket.connected = false;  // Update connection status
+                        callback(event);
+                    };
                 } else if (event === 'connect_error') {
                     goSocket.onError = callback;
                 } else if (event === 'receive_message') {
@@ -63,22 +69,29 @@ else {
             },
             
             emit: function(event, data) {
+                // Update connection status from Go WebSocket if needed
+                if (goSocket.connected !== undefined) {
+                    socket.connected = goSocket.connected;
+                }
+                
                 // Map Socket.IO events to Go WebSocket messages
                 if (event === 'send_message') {
-                    goSocket.sendMessage('chat_message', {
+                    // Ensure content is a string, not an object
+                    const content = typeof data.message === 'string' ? data.message : data.message.content || data.message.text || JSON.stringify(data.message);
+                    goSocket.send('chat_message', {
                         receiver_id: data.receiver_id,
-                        message: data.message
+                        content: content
                     });
                 } else if (event === 'typing') {
-                    goSocket.sendMessage('typing_start', {
+                    goSocket.send('typing_start', {
                         receiver_id: data.receiver_id
                     });
                 } else if (event === 'stop_typing') {
-                    goSocket.sendMessage('typing_stop', {
+                    goSocket.send('typing_stop', {
                         receiver_id: data.receiver_id
                     });
                 } else if (event === 'join') {
-                    goSocket.sendMessage('join_chat_room', {
+                    goSocket.send('join_chat_room', {
                         room_id: `chat_${Math.min(data.user1, data.user2)}_${Math.max(data.user1, data.user2)}`
                     });
                 }
@@ -88,15 +101,20 @@ else {
         // Connect to Go WebSocket server
         socket.connect(currentUserId, 'user_' + currentUserId, otherUserPfp);
         
-        // Update connection status
-        goSocket.onOpen = function() {
+        // Update connection status (ensure compatibility layer stays in sync)
+        const originalOnOpen = goSocket.onOpen;
+        const originalOnClose = goSocket.onClose;
+        
+        goSocket.onOpen = function(event) {
             socket.connected = true;
             console.log('Go WebSocket connected successfully');
+            if (originalOnOpen) originalOnOpen(event);
         };
         
-        goSocket.onClose = function() {
+        goSocket.onClose = function(event) {
             socket.connected = false;
             console.log('Go WebSocket disconnected');
+            if (originalOnClose) originalOnClose(event);
         };
         let onlineUsers = new Set();
         let isTyping = false;

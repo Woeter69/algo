@@ -7,7 +7,7 @@ WORKDIR /app
 # Initialize Go module and copy dependencies
 COPY app/src/go-deps/go.mod ./go.mod
 
-# Copy Go source code first
+# Copy Go source code as main.go (module entry point)
 COPY app/src/sockets.go ./main.go
 
 # Download dependencies and update go.sum

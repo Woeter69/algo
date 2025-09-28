@@ -7,18 +7,13 @@ echo "🚀 Starting ALGO Application Stack..."
 echo "======================================="
 echo ""
 
-# Check for port conflicts
+# Check for port conflicts and auto-cleanup if needed
 echo "🔍 Checking for port conflicts..."
-if lsof -ti:8080 >/dev/null 2>&1; then
-    echo "❌ Port 8080 is already in use!"
-    echo "🧹 Run './cleanup.sh' first to free the port"
-    exit 1
-fi
-
-if lsof -ti:5000 >/dev/null 2>&1; then
-    echo "❌ Port 5000 is already in use!"
-    echo "🧹 Run './cleanup.sh' first to free the port"
-    exit 1
+if lsof -ti:8080 >/dev/null 2>&1 || lsof -ti:5000 >/dev/null 2>&1; then
+    echo "🧹 Ports in use - running automatic cleanup..."
+    ./cleanup.sh
+    echo "✅ Cleanup complete - continuing startup..."
+    echo ""
 fi
 
 echo "✅ Ports 8080 and 5000 are available"
