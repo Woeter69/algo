@@ -18,8 +18,14 @@
     <div class="top-nav">
         <div class="logo">ALGO</div>
         <div class="user-info">
-            <div class="user-avatar">JD</div>
-            <div class="user-name">John Doe</div>
+            <div class="user-avatar">
+                {% if session.pfp_path %}
+                    <img src="{{ session.pfp_path }}" alt="Profile">
+                {% else %}
+                    {{ session.username[0] if session.username else 'U' }}
+                {% endif %}
+            </div>
+            <div class="user-name">{{ session.username or 'User' }}</div>
         </div>
     </div>
 
@@ -28,176 +34,138 @@
         <!-- SIDEBAR -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-title">Alumni Channels</div>
-                <div class="sidebar-subtitle">Connect with your network</div>
+                <div class="sidebar-title">
+                    {% if communities %}
+                        {% for community in communities %}
+                            {% if community[0] == selected_community_id %}
+                                {{ community[1] }}
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Cluster Innovation Centre
+                    {% endif %}
+                </div>
+                <div class="sidebar-subtitle">Connect with your community</div>
             </div>
+
+            {% if communities|length > 1 %}
+            <div class="communities-section">
+                <div class="section-title">Communities</div>
+                <ul class="communities-list">
+                    {% for community in communities %}
+                    <li class="community {% if community[0] == selected_community_id %}active{% endif %}">
+                        <a href="?community_id={{ community[0] }}">
+                            <div class="community-name">{{ community[1] }}</div>
+                            <div class="community-role">{{ community[3] }}</div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
 
             <div class="channels-section">
                 <div class="section-title">Channels</div>
                 <ul class="channels-list">
-                    <li class="channel active">
-                        <div class="channel-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="channel-name">general</div>
-                        <div class="channel-count">12</div>
-                    </li>
-                    <li class="channel">
-                        <div class="channel-icon">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <div class="channel-name">jobs</div>
-                        <div class="channel-count">8</div>
-                    </li>
-                    <li class="channel">
-                        <div class="channel-icon">
-                            <i class="fas fa-code"></i>
-                        </div>
-                        <div class="channel-name">tech-talk</div>
-                        <div class="channel-count">15</div>
-                    </li>
-                    <li class="channel">
-                        <div class="channel-icon">
-                            <i class="fas fa-graduation-cap"></i>
-                        </div>
-                        <div class="channel-name">alumni-2020</div>
-                        <div class="channel-count">23</div>
-                    </li>
-                    <li class="channel">
-                        <div class="channel-icon">
-                            <i class="fas fa-rocket"></i>
-                        </div>
-                        <div class="channel-name">startups</div>
-                        <div class="channel-count">5</div>
-                    </li>
+                    {% if channels %}
+                        {% for channel in channels %}
+                        <li class="channel {% if loop.first %}active{% endif %}" data-channel-id="{{ channel[0] }}">
+                            <div class="channel-icon">
+                                {% if channel[3] == 'announcement' %}
+                                    <i class="fas fa-bullhorn"></i>
+                                {% elif 'general' in channel[1] %}
+                                    <i class="fas fa-users"></i>
+                                {% elif 'job' in channel[1] or 'career' in channel[1] %}
+                                    <i class="fas fa-briefcase"></i>
+                                {% elif 'tech' in channel[1] or 'code' in channel[1] %}
+                                    <i class="fas fa-code"></i>
+                                {% elif 'alumni' in channel[1] %}
+                                    <i class="fas fa-graduation-cap"></i>
+                                {% elif 'startup' in channel[1] %}
+                                    <i class="fas fa-rocket"></i>
+                                {% elif 'project' in channel[1] %}
+                                    <i class="fas fa-folder"></i>
+                                {% elif 'event' in channel[1] %}
+                                    <i class="fas fa-calendar"></i>
+                                {% elif 'help' in channel[1] or 'support' in channel[1] %}
+                                    <i class="fas fa-question-circle"></i>
+                                {% elif 'random' in channel[1] %}
+                                    <i class="fas fa-dice"></i>
+                                {% else %}
+                                    <i class="fas fa-hashtag"></i>
+                                {% endif %}
+                            </div>
+                            <div class="channel-name">{{ channel[1] }}</div>
+                            {% if channel[4] %}
+                                <div class="channel-private"><i class="fas fa-lock"></i></div>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="no-channels">
+                            <div class="no-channels-text">No channels available</div>
+                            <div class="no-channels-subtitle">Join a community to see channels</div>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
 
         <!-- CHAT AREA -->
         <div class="chat-area">
+            {% if channels %}
             <div class="chat-header">
                 <div class="current-channel-icon">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-hashtag"></i>
                 </div>
-                <div class="current-channel-name"># general</div>
+                <div class="current-channel-name" id="currentChannelName"># {{ channels[0][1] if channels else 'general' }}</div>
+                <div class="channel-description" id="channelDescription">{{ channels[0][2] if channels and channels[0][2] else '' }}</div>
             </div>
 
             <div class="chat-tabs">
                 <button class="tab-btn active" data-tab="messages">Messages</button>
-                <button class="tab-btn" data-tab="connections">Connections</button>
+                <button class="tab-btn" data-tab="connections">Members</button>
             </div>
 
             <div class="tab-content">
                 <div class="tab-panel active" id="messages-panel">
                     <div class="chat-messages" id="chatMessages">
-                        <div class="message">
-                            <div class="message-avatar">SM</div>
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <span class="message-author">Sarah Miller</span>
-                                    <span class="message-time">2:30 PM</span>
-                                </div>
-                                <div class="message-text">Hey everyone! Just wanted to share that I got promoted to Senior Developer at my company! 🎉</div>
-                            </div>
-                        </div>
-                        <div class="message">
-                            <div class="message-avatar">MJ</div>
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <span class="message-author">Mike Johnson</span>
-                                    <span class="message-time">2:32 PM</span>
-                                </div>
-                                <div class="message-text">Congratulations Sarah! That's amazing news! 🎊</div>
-                            </div>
-                        </div>
-                        <div class="message">
-                            <div class="message-avatar">EW</div>
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <span class="message-author">Emily Wang</span>
-                                    <span class="message-time">2:35 PM</span>
-                                </div>
-                                <div class="message-text">Well deserved! You've been crushing it lately 👏</div>
-                            </div>
-                        </div>
-                        <div class="message">
-                            <div class="message-avatar">AL</div>
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <span class="message-author">Alex Lee</span>
-                                    <span class="message-time">2:38 PM</span>
-                                </div>
-                                <div class="message-text">Any tips for someone looking to move up the ladder? 😊</div>
-                            </div>
-                        </div>
-                        <div class="message">
-                            <div class="message-avatar">SM</div>
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <span class="message-author">Sarah Miller</span>
-                                    <span class="message-time">2:42 PM</span>
-                                </div>
-                                <div class="message-text">Absolutely! I'd say focus on taking initiative, mentoring junior developers, and always be learning new technologies. Also, don't be afraid to speak up in meetings and share your ideas!</div>
-                            </div>
+                        <div class="loading-messages">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Loading messages...</span>
                         </div>
                     </div>
 
                     <div class="chat-input">
                         <div class="input-container">
-                            <input type="text" id="messageInput" class="message-input" placeholder="Message #general">
+                            <input type="text" id="messageInput" class="message-input" placeholder="Message # {{ channels[0][1] if channels else 'general' }}">
                             <button id="sendBtn" class="send-btn">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
                     </div>
                 </div>
+            {% else %}
+            <div class="no-channel-selected">
+                <div class="no-channel-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="no-channel-title">Welcome to Channels!</div>
+                <div class="no-channel-subtitle">
+                    {% if not communities %}
+                        You need to join a community to start chatting.
+                    {% else %}
+                        Select a channel from the sidebar to start chatting.
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
 
                 <div class="tab-panel" id="connections-panel">
-                    <div class="connections-list">
-                        <div class="connection">
-                            <div class="connection-avatar-circle"
-                                style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="connection-info">
-                                <div class="connection-name">Alice Smith</div>
-                                <div class="connection-details">Software Engineer • Class of 2019</div>
-                            </div>
-                            <div class="connection-status online"></div>
-                        </div>
-                        <div class="connection">
-                            <div class="connection-avatar-circle"
-                                style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="connection-info">
-                                <div class="connection-name">Bob Johnson</div>
-                                <div class="connection-details">Product Manager • Class of 2018</div>
-                            </div>
-                            <div class="connection-status offline"></div>
-                        </div>
-                        <div class="connection">
-                            <div class="connection-avatar-circle"
-                                style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="connection-info">
-                                <div class="connection-name">Carol Davis</div>
-                                <div class="connection-details">Data Scientist • Class of 2020</div>
-                            </div>
-                            <div class="connection-status online"></div>
-                        </div>
-                        <div class="connection">
-                            <div class="connection-avatar-circle"
-                                style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <div class="connection-info">
-                                <div class="connection-name">David Wilson</div>
-                                <div class="connection-details">Startup Founder • Class of 2017</div>
-                            </div>
-                            <div class="connection-status online"></div>
+                    <div class="connections-list" id="membersList">
+                        <div class="loading-members">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Loading members...</span>
                         </div>
                     </div>
                 </div>
@@ -205,6 +173,16 @@
         </div>
     </div>
 
+    <!-- Pass data to JavaScript -->
+    <script>
+        window.channelsData = {
+            communities: {{ communities|tojson if communities else '[]' }},
+            channels: {{ channels|tojson if channels else '[]' }},
+            selectedCommunityId: {{ selected_community_id|tojson if selected_community_id else 'null' }},
+            userId: {{ user_id|tojson if user_id else 'null' }}
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='js/channels.js') }}"></script>
 </body>
 

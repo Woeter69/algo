@@ -14,10 +14,22 @@ from user_roles import (
     reject_verification_request, is_admin
 )
 
+# Import channels blueprint
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'routes'))
+from channels import channels_bp
+
 app = Flask(__name__,template_folder="../templates",static_folder="../static")
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
 bcrypt = Bcrypt(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Register blueprints
+app.register_blueprint(channels_bp, url_prefix='/api')
+
+# Store online users and their rooms
+online_users = {}
+user_channels = {}
 
 # Import generate_default_avatar from utils
 from .utils import generate_default_avatar
@@ -807,7 +819,56 @@ def limited_dashboard():
 @validators.login_required
 @verified_user_required
 def channels():
-    return render_template("channels.html")
+    """Main channels page - Discord-like interface"""
+    user_id = session['user_id']
+    
+    try:
+        mydb = connection.get_db_connection()
+        cur = mydb.cursor()
+        
+        # Get user's communities
+        cur.execute("""
+            SELECT c.community_id, c.name, c.description, cm.role
+            FROM communities c
+            JOIN community_members cm ON c.community_id = cm.community_id
+            WHERE cm.user_id = %s AND cm.status = 'active'
+            ORDER BY c.name
+        """, (user_id,))
+        
+        communities = cur.fetchall()
+        
+        # Default to first community or CIC
+        selected_community_id = request.args.get('community_id')
+        if not selected_community_id and communities:
+            # Try to find CIC first, otherwise use first community
+            cic_community = next((c for c in communities if 'cluster innovation centre' in c[1].lower()), None)
+            selected_community_id = cic_community[0] if cic_community else communities[0][0]
+        
+        channels_list = []
+        if selected_community_id:
+            # Get channels for selected community
+            cur.execute("""
+                SELECT channel_id, name, description, channel_type, is_private
+                FROM channels
+                WHERE community_id = %s AND is_active = true
+                ORDER BY position_order, created_at
+            """, (selected_community_id,))
+            
+            channels_list = cur.fetchall()
+        
+        cur.close()
+        mydb.close()
+        
+        return render_template("channels.html", 
+                             communities=communities,
+                             channels=channels_list,
+                             selected_community_id=int(selected_community_id) if selected_community_id else None,
+                             user_id=user_id)
+        
+    except Exception as e:
+        app.logger.error(f"Error in channels route: {str(e)}")
+        flash("Error loading channels", "error")
+        return render_template("channels.html", communities=[], channels=[])
 
 
 @app.route("/chat")
@@ -2340,6 +2401,254 @@ def logout():
     session.clear()
     flash("You have been logged out successfully")
     return redirect(url_for('home'))
+
+# ====================== SOCKET.IO REAL-TIME CHAT HANDLERS ======================
+
+@socketio.on('connect')
+def handle_connect():
+    """Handle user connection"""
+    if 'user_id' not in session:
+        return False  # Reject connection if not authenticated
+    
+    user_id = session['user_id']
+    username = session.get('username', 'Unknown User')
+    
+    # Store user in online users
+    online_users[user_id] = {
+        'username': username,
+        'sid': request.sid,
+        'channels': set()
+    }
+    
+    print(f"User {username} (ID: {user_id}) connected with session ID: {request.sid}")
+    
+    # Emit to all users that someone came online
+    emit('user_joined', {
+        'user_id': user_id,
+        'username': username,
+        'message': f'{username} joined the chat'
+    }, broadcast=True)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle user disconnection"""
+    if 'user_id' not in session:
+        return
+    
+    user_id = session['user_id']
+    username = session.get('username', 'Unknown User')
+    
+    # Remove user from online users
+    if user_id in online_users:
+        # Leave all channels
+        user_data = online_users[user_id]
+        for channel_id in user_data['channels']:
+            leave_room(f'channel_{channel_id}')
+        
+        del online_users[user_id]
+    
+    print(f"User {username} (ID: {user_id}) disconnected")
+    
+    # Emit to all users that someone went offline
+    emit('user_left', {
+        'user_id': user_id,
+        'username': username,
+        'message': f'{username} left the chat'
+    }, broadcast=True)
+
+@socketio.on('join_channel')
+def handle_join_channel(data):
+    """Handle user joining a channel"""
+    if 'user_id' not in session:
+        return
+    
+    user_id = session['user_id']
+    username = session.get('username', 'Unknown User')
+    channel_id = data.get('channel_id')
+    
+    if not channel_id:
+        return
+    
+    # Verify user has access to this channel
+    try:
+        mydb = connection.get_db_connection()
+        cur = mydb.cursor()
+        
+        # Check if user is member of the community that owns this channel
+        cur.execute("""
+            SELECT c.community_id, c.name as channel_name, comm.name as community_name
+            FROM channels c
+            JOIN communities comm ON c.community_id = comm.community_id
+            JOIN community_members cm ON comm.community_id = cm.community_id
+            WHERE c.channel_id = %s AND cm.user_id = %s AND cm.status = 'active'
+        """, (channel_id, user_id))
+        
+        channel_info = cur.fetchone()
+        if not channel_info:
+            emit('error', {'message': 'Access denied to this channel'})
+            return
+        
+        # Join the channel room
+        room_name = f'channel_{channel_id}'
+        join_room(room_name)
+        
+        # Update user's channels
+        if user_id in online_users:
+            online_users[user_id]['channels'].add(channel_id)
+        
+        print(f"User {username} joined channel {channel_info[1]} (ID: {channel_id})")
+        
+        # Notify others in the channel
+        emit('user_joined_channel', {
+            'user_id': user_id,
+            'username': username,
+            'channel_id': channel_id,
+            'channel_name': channel_info[1]
+        }, room=room_name, include_self=False)
+        
+    except Exception as e:
+        print(f"Error joining channel: {e}")
+        emit('error', {'message': 'Failed to join channel'})
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@socketio.on('leave_channel')
+def handle_leave_channel(data):
+    """Handle user leaving a channel"""
+    if 'user_id' not in session:
+        return
+    
+    user_id = session['user_id']
+    username = session.get('username', 'Unknown User')
+    channel_id = data.get('channel_id')
+    
+    if not channel_id:
+        return
+    
+    room_name = f'channel_{channel_id}'
+    leave_room(room_name)
+    
+    # Update user's channels
+    if user_id in online_users and channel_id in online_users[user_id]['channels']:
+        online_users[user_id]['channels'].remove(channel_id)
+    
+    print(f"User {username} left channel {channel_id}")
+    
+    # Notify others in the channel
+    emit('user_left_channel', {
+        'user_id': user_id,
+        'username': username,
+        'channel_id': channel_id
+    }, room=room_name)
+
+@socketio.on('send_message')
+def handle_send_message(data):
+    """Handle real-time message broadcasting"""
+    if 'user_id' not in session:
+        return
+    
+    user_id = session['user_id']
+    username = session.get('username', 'Unknown User')
+    channel_id = data.get('channel_id')
+    message_data = data.get('message')
+    
+    if not channel_id or not message_data:
+        return
+    
+    # Verify user has access to this channel
+    try:
+        mydb = connection.get_db_connection()
+        cur = mydb.cursor()
+        
+        # Check if user is member of the community that owns this channel
+        cur.execute("""
+            SELECT c.community_id
+            FROM channels c
+            JOIN communities comm ON c.community_id = comm.community_id
+            JOIN community_members cm ON comm.community_id = cm.community_id
+            WHERE c.channel_id = %s AND cm.user_id = %s AND cm.status = 'active'
+        """, (channel_id, user_id))
+        
+        if not cur.fetchone():
+            emit('error', {'message': 'Access denied to this channel'})
+            return
+        
+        # Broadcast message to all users in the channel
+        room_name = f'channel_{channel_id}'
+        emit('new_message', {
+            'channel_id': channel_id,
+            'message_id': message_data.get('message_id'),
+            'user_id': user_id,
+            'username': username,
+            'content': message_data.get('content'),
+            'created_at': message_data.get('created_at'),
+            'pfp_path': session.get('pfp_path'),
+            'message_type': message_data.get('message_type', 'text')
+        }, room=room_name, include_self=False)  # Don't send to sender
+        
+        print(f"Message broadcasted in channel {channel_id} by {username}")
+        
+    except Exception as e:
+        print(f"Error broadcasting message: {e}")
+        emit('error', {'message': 'Failed to send message'})
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
+
+@socketio.on('typing_start')
+def handle_typing_start(data):
+    """Handle user started typing"""
+    if 'user_id' not in session:
+        return
+    
+    user_id = session['user_id']
+    username = session.get('username', 'Unknown User')
+    channel_id = data.get('channel_id')
+    
+    if not channel_id:
+        return
+    
+    room_name = f'channel_{channel_id}'
+    emit('user_typing', {
+        'user_id': user_id,
+        'username': username,
+        'channel_id': channel_id,
+        'typing': True
+    }, room=room_name, include_self=False)
+
+@socketio.on('typing_stop')
+def handle_typing_stop(data):
+    """Handle user stopped typing"""
+    if 'user_id' not in session:
+        return
+    
+    user_id = session['user_id']
+    username = session.get('username', 'Unknown User')
+    channel_id = data.get('channel_id')
+    
+    if not channel_id:
+        return
+    
+    room_name = f'channel_{channel_id}'
+    emit('user_typing', {
+        'user_id': user_id,
+        'username': username,
+        'channel_id': channel_id,
+        'typing': False
+    }, room=room_name, include_self=False)
+
+@socketio.on_error_default
+def default_error_handler(e):
+    """Handle Socket.IO errors"""
+    print(f"Socket.IO error: {e}")
+    emit('error', {'message': 'An error occurred'})
+
+# ====================== END SOCKET.IO HANDLERS ======================
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))

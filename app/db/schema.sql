@@ -214,3 +214,130 @@ CREATE INDEX idx_verification_requests_user_id ON verification_requests(user_id)
 CREATE INDEX idx_verification_requests_community ON verification_requests(community_id);
 CREATE INDEX idx_verification_requests_community_id ON verification_requests(community_id);
 CREATE INDEX idx_verification_requests_status ON verification_requests(status);
+
+-- Community members table (users belonging to communities)
+CREATE TABLE community_members (
+    member_id SERIAL PRIMARY KEY,
+    community_id INT NOT NULL,
+    user_id INT NOT NULL,
+    role VARCHAR(20) DEFAULT 'member' CHECK (role IN ('admin', 'moderator', 'member')),
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    invited_by INT,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'banned', 'left')),
+    UNIQUE(community_id, user_id),
+    FOREIGN KEY (community_id) REFERENCES communities(community_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (invited_by) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+-- Community join requests table
+CREATE TABLE community_join_requests (
+    request_id SERIAL PRIMARY KEY,
+    community_id INT NOT NULL,
+    user_id INT NOT NULL,
+    message TEXT,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP,
+    reviewed_by INT,
+    review_notes TEXT,
+    UNIQUE(community_id, user_id),
+    FOREIGN KEY (community_id) REFERENCES communities(community_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+-- Community invitations table
+CREATE TABLE community_invitations (
+    invitation_id SERIAL PRIMARY KEY,
+    community_id INT NOT NULL,
+    invited_user_id INT NOT NULL,
+    invited_by INT NOT NULL,
+    message TEXT,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'expired')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '7 days'),
+    responded_at TIMESTAMP,
+    UNIQUE(community_id, invited_user_id),
+    FOREIGN KEY (community_id) REFERENCES communities(community_id) ON DELETE CASCADE,
+    FOREIGN KEY (invited_user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (invited_by) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Channels table for Discord-like chat
+CREATE TABLE channels (
+    channel_id SERIAL PRIMARY KEY,
+    community_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    channel_type VARCHAR(20) DEFAULT 'text' CHECK (channel_type IN ('text', 'voice', 'announcement')),
+    is_private BOOLEAN DEFAULT FALSE,
+    created_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    position_order INT DEFAULT 0,
+    FOREIGN KEY (community_id) REFERENCES communities(community_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+-- Channel messages table
+CREATE TABLE channel_messages (
+    message_id SERIAL PRIMARY KEY,
+    channel_id INT NOT NULL,
+    user_id INT NOT NULL,
+    content TEXT NOT NULL,
+    message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text', 'image', 'file', 'system')),
+    reply_to_message_id INT,
+    is_edited BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (channel_id) REFERENCES channels(channel_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL,
+    FOREIGN KEY (reply_to_message_id) REFERENCES channel_messages(message_id) ON DELETE SET NULL
+);
+
+-- Channel members table (for private channels)
+CREATE TABLE channel_members (
+    channel_id INT NOT NULL,
+    user_id INT NOT NULL,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    role VARCHAR(20) DEFAULT 'member' CHECK (role IN ('admin', 'moderator', 'member')),
+    can_send_messages BOOLEAN DEFAULT TRUE,
+    PRIMARY KEY (channel_id, user_id),
+    FOREIGN KEY (channel_id) REFERENCES channels(channel_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Message reactions table
+CREATE TABLE message_reactions (
+    reaction_id SERIAL PRIMARY KEY,
+    message_id INT NOT NULL,
+    user_id INT NOT NULL,
+    emoji VARCHAR(10) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(message_id, user_id, emoji),
+    FOREIGN KEY (message_id) REFERENCES channel_messages(message_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Create indexes for community system
+CREATE INDEX idx_community_members_community ON community_members(community_id);
+CREATE INDEX idx_community_members_user ON community_members(user_id);
+CREATE INDEX idx_community_members_role ON community_members(role);
+CREATE INDEX idx_community_join_requests_community ON community_join_requests(community_id);
+CREATE INDEX idx_community_join_requests_user ON community_join_requests(user_id);
+CREATE INDEX idx_community_join_requests_status ON community_join_requests(status);
+CREATE INDEX idx_community_invitations_community ON community_invitations(community_id);
+CREATE INDEX idx_community_invitations_user ON community_invitations(invited_user_id);
+CREATE INDEX idx_community_invitations_status ON community_invitations(status);
+
+-- Create indexes for channels system
+CREATE INDEX idx_channels_community ON channels(community_id);
+CREATE INDEX idx_channels_active ON channels(is_active);
+CREATE INDEX idx_channel_messages_channel ON channel_messages(channel_id);
+CREATE INDEX idx_channel_messages_user ON channel_messages(user_id);
+CREATE INDEX idx_channel_messages_created_at ON channel_messages(created_at);
+CREATE INDEX idx_channel_members_user ON channel_members(user_id);
+CREATE INDEX idx_message_reactions_message ON message_reactions(message_id);
