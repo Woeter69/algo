@@ -600,17 +600,22 @@ func connectDB() *sql.DB {
 	// Get database URL from environment variable (Render sets this automatically)
 	connStr := os.Getenv("DATABASE_URL")
 	if connStr == "" {
-		// Fallback to your existing connection string for local development
-		connStr = "postgresql://algo_database_user:XyB825sj3CoiUZpEsDyYz4zASy16Gg1o@dpg-d32qu6juibrs73a3u200-a.oregon-postgres.render.com/algo_database"
+		log.Println("⚠️  No DATABASE_URL environment variable set")
+		log.Println("🔄 WebSocket server will continue without database")
+		return nil
 	}
 	
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal("❌ Failed to connect to database:", err)
+		log.Printf("❌ Failed to connect to database: %v", err)
+		log.Println("🔄 WebSocket server will continue without database")
+		return nil
 	}
 	
 	if err := db.Ping(); err != nil {
-		log.Fatal("❌ Database ping failed:", err)
+		log.Printf("❌ Database ping failed: %v", err)
+		log.Println("🔄 WebSocket server will continue without database")
+		return nil
 	}
 	
 	log.Println("✅ Connected to PostgreSQL database")
