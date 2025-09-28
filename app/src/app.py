@@ -944,7 +944,7 @@ def upload_image():
 def chat(username):
 
     user_id = session['user_id']
-    mydb = get_db_connection()
+    mydb = connection.get_db_connection()
     cur = mydb.cursor()
     
     

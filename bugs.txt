@@ -9,7 +9,7 @@ NOTE: Suggest more features and point out bugs just add your name then type the 
 Clicking on profile not redirecting --fixed by Aditya
 No Chat redirect buttons anywhere --fixed by Aditya
 Communities not working --fixed by Aditya
-No chatbox on phone on /chat 
+No chatbox on phone on /chat --fixed by Aditya
 admin_dashboard not recieving data --fixed by Aditya
 no data being added on work_experience and education_details --fixed Pranjul
 No connections page --fixed Humanshu

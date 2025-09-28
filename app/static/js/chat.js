@@ -18,6 +18,9 @@ else {
             console.error('No current user ID - user might not be logged in');
             return;
         }
+        
+        // Mobile responsiveness handling
+        initializeMobileHandling();
         // Initialize Socket.IO with proper typing
         console.log('Initializing Socket.IO connection...');
         const socket = io({
@@ -882,4 +885,67 @@ else {
         // Initialize everything
         console.log('✅ Chat TypeScript initialization complete');
     });
+}
+
+// Mobile responsiveness functions
+function initializeMobileHandling() {
+    const sidebar = document.querySelector('.messages-sidebar');
+    const chatArea = document.querySelector('.chat-area');
+    const mobileBackBtn = document.getElementById('mobileBackBtn');
+    
+    // Check if we're on mobile
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
+    
+    // Show chat area on mobile when a specific user chat is loaded
+    function showChatOnMobile() {
+        if (isMobile() && sidebar && chatArea) {
+            // If we have chat data (specific user), show chat area
+            const chatData = window.chatData || {};
+            if (chatData.otherUserId && chatData.otherUserName) {
+                sidebar.classList.remove('active', 'show-on-mobile');
+                chatArea.style.display = 'flex';
+                console.log('Mobile: Showing chat area for user:', chatData.otherUserName);
+            } else {
+                // No specific chat, show sidebar
+                sidebar.classList.add('show-on-mobile');
+                chatArea.style.display = 'none';
+                console.log('Mobile: Showing sidebar (no specific chat)');
+            }
+        }
+    }
+    
+    // Handle back button click
+    if (mobileBackBtn) {
+        mobileBackBtn.addEventListener('click', function() {
+            if (isMobile()) {
+                // Go back to chat list
+                window.location.href = '/chat';
+            }
+        });
+    }
+    
+    // Handle conversation item clicks on mobile
+    const conversationItems = document.querySelectorAll('.conversation-item');
+    conversationItems.forEach(item => {
+        item.addEventListener('click', function() {
+            if (isMobile()) {
+                // Let the default navigation happen, but ensure proper mobile display
+                setTimeout(() => {
+                    showChatOnMobile();
+                }, 100);
+            }
+        });
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        showChatOnMobile();
+    });
+    
+    // Initial setup
+    showChatOnMobile();
+    
+    console.log('Mobile handling initialized');
 }
