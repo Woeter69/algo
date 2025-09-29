@@ -89,20 +89,20 @@ if (userProfile && userDropdown && dropdownArrow) {
             switch (text) {
                 case 'view profile':
                     console.log('View Profile clicked');
-                    // Add your view profile logic here
+                    window.location.href = '/profile';
                     break;
                 case 'edit profile':
                     console.log('Edit Profile clicked');
-                    // Add your edit profile logic here
+                    window.location.href = '/settings';
                     break;
                 case 'settings':
                     console.log('Settings clicked');
                     // Add your settings logic here
                     break;
                 case 'notifications':
-                    console.log('Chat TypeScript initialization complete');
-                    console.log('🎉 TEST: This was added to TypeScript file!');
-                    // Add your notifications logic here
+                    console.log('Notifications clicked');
+                    // For now, show an alert - can be replaced with actual notifications page later
+                    alert('Notifications feature coming soon!');
                     break;
                 case 'logout':
                     // Logout functionality with confirmation
@@ -142,5 +142,35 @@ actionCards.forEach(card => {
         this.style.transform = 'translateY(-10px)';
     });
 });
+
+// Handle data-section buttons (Quick Actions and Footer links)
+document.addEventListener('DOMContentLoaded', function() {
+    const dataSectionButtons = document.querySelectorAll('[data-section]');
+    
+    dataSectionButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const section = this.getAttribute('data-section');
+            
+            switch(section) {
+                case 'browse':
+                    // Redirect to connect page for browsing alumni
+                    window.location.href = '/connect';
+                    break;
+                case 'jobs':
+                    // Show coming soon message for job board
+                    alert('Job Board feature coming soon! Stay tuned for exciting career opportunities.');
+                    break;
+                case 'events':
+                    // Show coming soon message for events
+                    alert('Events feature coming soon! We\'ll notify you about upcoming networking events and workshops.');
+                    break;
+                default:
+                    console.log('Unknown section:', section);
+            }
+        });
+    });
+});
+
 // Export functions for potential external use
 export { showSlide, changeSlide, currentSlide };
