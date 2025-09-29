@@ -138,7 +138,7 @@ nav {
 .admin-btn {
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     color: white !important;
-    padding: 8px 20px;
+    padding: 12px 15px !important;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 600;
