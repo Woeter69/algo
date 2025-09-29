@@ -111,11 +111,15 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // Handle typing indicators
     socket.on('user_typing', (data) => {
+        console.log('⌨️ Received typing indicator:', data);
         if (data.channel_id == currentChannelId && data.user_id !== currentUserId) {
-            if (data.typing || (data.data && data.data.typing)) {
-                showTypingIndicator(data.username || data.Username);
+            const username = data.username || data.Username;
+            const isTyping = data.typing || (data.data && data.data.typing);
+            
+            if (isTyping) {
+                addTypingUser(username);
             } else {
-                hideTypingIndicator();
+                removeTypingUser(username);
             }
         }
     });
@@ -155,7 +159,7 @@ function setupEventListeners() {
                 if (isTyping) {
                     socket.send('user_typing', {
                         channel_id: currentChannelId,
-                        typing: false
+                        data: { typing: false }
                     });
                     isTyping = false;
                 }
@@ -168,7 +172,7 @@ function setupEventListeners() {
                 if (!isTyping) {
                     socket.send('user_typing', {
                         channel_id: currentChannelId,
-                        typing: true
+                        data: { typing: true }
                     });
                     isTyping = true;
                 }
@@ -179,7 +183,7 @@ function setupEventListeners() {
                     if (isTyping) {
                         socket.send('user_typing', {
                             channel_id: currentChannelId,
-                            typing: false
+                            data: { typing: false }
                         });
                         isTyping = false;
                     }
@@ -303,7 +307,7 @@ function sendMessage() {
     
     // Send via Go WebSocket for instant delivery (like /chat)
     console.log(`📤 Sending message to channel ${currentChannelId}:`, message);
-    socket.send('send_message', {
+    socket.send('send_channel_message', {
         channel_id: currentChannelId,
         content: message
     });
@@ -447,44 +451,89 @@ function setupTabSwitching() {
     console.log('✅ Tab switching set up for', tabBtns.length, 'tabs');
 }
 
-// Typing indicator functions
-function showTypingIndicator(username) {
+// Typing indicator system
+let typingUsers = new Set();
+let typingTimeout = {};
+
+function addTypingUser(username) {
+    typingUsers.add(username);
+    updateTypingIndicator();
+    
+    // Clear existing timeout for this user
+    if (typingTimeout[username]) {
+        clearTimeout(typingTimeout[username]);
+    }
+    
+    // Auto-remove after 3 seconds
+    typingTimeout[username] = setTimeout(() => {
+        removeTypingUser(username);
+    }, 3000);
+}
+
+function removeTypingUser(username) {
+    typingUsers.delete(username);
+    if (typingTimeout[username]) {
+        clearTimeout(typingTimeout[username]);
+        delete typingTimeout[username];
+    }
+    updateTypingIndicator();
+}
+
+function updateTypingIndicator() {
     const typingId = 'typing-indicator';
     let typingElement = document.getElementById(typingId);
     
+    if (typingUsers.size === 0) {
+        // No one typing, hide indicator
+        if (typingElement) {
+            typingElement.remove();
+        }
+        return;
+    }
+    
+    // Create or update typing indicator
     if (!typingElement) {
         typingElement = document.createElement('div');
         typingElement.id = typingId;
         typingElement.className = 'typing-indicator';
-        typingElement.innerHTML = `
-            <div class="typing-content">
-                <span class="typing-user">${username}</span> is typing
-                <div class="typing-dots">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        `;
         
-        if (chatMessages) {
-            chatMessages.appendChild(typingElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Insert above the input box
+        const inputContainer = document.querySelector('.input-container');
+        if (inputContainer && inputContainer.parentNode) {
+            inputContainer.parentNode.insertBefore(typingElement, inputContainer);
         }
+    }
+    
+    // Generate typing text
+    let typingText = '';
+    const userArray = Array.from(typingUsers);
+    
+    if (userArray.length === 1) {
+        typingText = `${userArray[0]} is typing`;
+    } else if (userArray.length === 2) {
+        typingText = `${userArray[0]} and ${userArray[1]} are typing`;
+    } else if (userArray.length === 3) {
+        typingText = `${userArray[0]}, ${userArray[1]}, and ${userArray[2]} are typing`;
     } else {
-        // Update username if different user is typing
-        const userSpan = typingElement.querySelector('.typing-user');
-        if (userSpan) {
-            userSpan.textContent = username;
-        }
+        typingText = `Several people are typing`;
     }
-}
-
-function hideTypingIndicator() {
-    const typingElement = document.getElementById('typing-indicator');
-    if (typingElement) {
-        typingElement.remove();
-    }
+    
+    typingElement.innerHTML = `
+        <div class="typing-content" style="display: flex; align-items: center; padding: 8px 16px; background: #f5f5f5; border-radius: 8px; margin: 8px 0; font-size: 14px; color: #666;">
+            <span class="typing-text">${typingText}</span>
+            <div class="typing-dots" style="margin-left: 8px; display: flex; gap: 2px;">
+                <span style="width: 4px; height: 4px; background: #666; border-radius: 50%; animation: typing-bounce 1.4s infinite ease-in-out; animation-delay: 0s;"></span>
+                <span style="width: 4px; height: 4px; background: #666; border-radius: 50%; animation: typing-bounce 1.4s infinite ease-in-out; animation-delay: 0.2s;"></span>
+                <span style="width: 4px; height: 4px; background: #666; border-radius: 50%; animation: typing-bounce 1.4s infinite ease-in-out; animation-delay: 0.4s;"></span>
+            </div>
+        </div>
+        <style>
+            @keyframes typing-bounce {
+                0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+                40% { transform: scale(1); opacity: 1; }
+            }
+        </style>
+    `;
 }
 
 console.log('✅ Channels script loaded successfully!');

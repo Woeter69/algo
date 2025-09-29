@@ -63,6 +63,26 @@ func (h *Hub) handleSendChannelMessage(message WSMessage) {
 	log.Printf("✅ Channel message broadcasted instantly: %s", message.Content[:min(50, len(message.Content))])
 }
 
+// Handle typing indicators for channels (fast, non-blocking)
+func (h *Hub) handleChannelTyping(message WSMessage) {
+	log.Printf("⌨️ Handling typing from %s in channel %v", message.Username, message.ChannelID)
+	
+	// Create typing broadcast message
+	typingMessage := WSMessage{
+		Type:      UserTyping,
+		ChannelID: message.ChannelID,
+		UserID:    message.UserID,
+		Username:  message.Username,
+		Data:      message.Data, // Contains typing: true/false
+		Timestamp: time.Now(),
+	}
+	
+	// Fast, non-blocking broadcast for typing indicators
+	go func() {
+		h.fastBroadcastToChannel(typingMessage)
+	}()
+}
+
 // Save channel message to database
 func (h *Hub) saveChannelMessage(message WSMessage) int {
 	if h.DB == nil {

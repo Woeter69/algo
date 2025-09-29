@@ -35,7 +35,7 @@ const (
 	// Channel events (for /channels)
 	JoinChannel        MessageType = "join_channel"
 	LeaveChannel       MessageType = "leave_channel"
-	SendChannelMessage MessageType = "send_message"
+	SendChannelMessage MessageType = "send_channel_message"
 	GetChannelMessages MessageType = "get_channel_messages"
 	ChannelHistory     MessageType = "messages_history"
 
@@ -101,10 +101,10 @@ type Hub struct {
 
 	// Typing users in chat rooms: room_name -> set of user IDs typing
 	ChatTyping map[string]map[int]bool
-	
+
 	// Channel typing: channel_id -> set of user IDs typing
 	ChannelTyping map[int]map[int]bool
-	
+
 	// Chat rooms: room_name -> map of clients in that room (/chat)
 	ChatRooms map[string]map[int]*Client
 
@@ -218,6 +218,7 @@ func (h *Hub) Run() {
 func (h *Hub) handleBroadcast(message WSMessage) {
 	log.Printf("🔍 Processing message type: %s from user %s", message.Type, message.Username)
 	switch message.Type {
+	// Channel messages
 	case NewMessage:
 		h.broadcastToChannel(message)
 	case JoinChannel:
@@ -229,7 +230,12 @@ func (h *Hub) handleBroadcast(message WSMessage) {
 	case SendChannelMessage:
 		h.handleSendChannelMessage(message)
 	case UserTyping:
-		h.handleTyping(message)
+		h.handleChannelTyping(message)
+	// Direct chat messages (for /chat/<username>)
+	case SendMessage:
+		h.handleChatMessage(message)
+	case ChatMessage:
+		h.handleChatMessage(message)
 	case "typing_start":
 		h.handleDirectTyping(message, true)
 	case "typing_stop":
@@ -244,10 +250,10 @@ func (h *Hub) handleBroadcast(message WSMessage) {
 // Broadcast message to all clients in a channel
 func (h *Hub) broadcastToChannel(message WSMessage) {
 	log.Printf("🔍 broadcastToChannel called - acquiring lock...")
-	
+
 	// Use timeout for the entire function to prevent hanging
 	done := make(chan bool, 1)
-	
+
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -255,25 +261,25 @@ func (h *Hub) broadcastToChannel(message WSMessage) {
 			}
 			done <- true
 		}()
-		
+
 		h.Mutex.RLock()
 		defer h.Mutex.RUnlock()
 
 		channelID := getChannelID(message.ChannelID)
 		log.Printf("🔍 Broadcasting to channel %d, sender userID: %d", channelID, message.UserID)
-		
+
 		if channelClients, exists := h.Channels[channelID]; exists {
 			log.Printf("📋 Channel %d has %d clients", channelID, len(channelClients))
 			for userID, client := range channelClients {
 				log.Printf("🎯 Checking client %d (sender: %d)", userID, message.UserID)
-				
+
 				// Check if client is nil
 				if client == nil {
 					log.Printf("❌ Client %d is nil, cleaning up", userID)
 					delete(channelClients, userID)
 					continue
 				}
-				
+
 				// Don't send back to sender
 				if userID != message.UserID {
 					log.Printf("📤 Sending message to client %d", userID)
@@ -298,13 +304,37 @@ func (h *Hub) broadcastToChannel(message WSMessage) {
 		}
 		log.Printf("✅ Broadcast to channel %d complete", channelID)
 	}()
-	
+
 	// Wait for completion or timeout
 	select {
 	case <-done:
 		log.Printf("✅ broadcastToChannel completed normally")
 	case <-time.After(2 * time.Second):
 		log.Printf("⏰ broadcastToChannel timed out after 2 seconds")
+	}
+}
+
+// Fast broadcast for typing indicators (no timeouts, no complex logic)
+func (h *Hub) fastBroadcastToChannel(message WSMessage) {
+	h.Mutex.RLock()
+	defer h.Mutex.RUnlock()
+
+	channelID := getChannelID(message.ChannelID)
+	log.Printf("⚡ Fast broadcasting typing to channel %d from user %d", channelID, message.UserID)
+	
+	if channelClients, exists := h.Channels[channelID]; exists {
+		for userID, client := range channelClients {
+			// Don't send back to sender
+			if userID != message.UserID && client != nil {
+				// Non-blocking send
+				select {
+				case client.Send <- message:
+					log.Printf("⚡ Typing sent to client %d", userID)
+				default:
+					// Skip if channel is full, don't clean up for typing
+				}
+			}
+		}
 	}
 }
 
@@ -727,7 +757,7 @@ func main() {
 	if portStr == "" {
 		portStr = "8080" // Default for local development
 	}
-	
+
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
 		log.Fatal("❌ Invalid port number:", err)
@@ -813,7 +843,7 @@ func main() {
 
 	// Server configuration
 	host := "0.0.0.0"
-	
+
 	// Start WebSocket server
 	log.Printf("🚀 WebSocket server starting on port %d", port)
 	log.Printf("🌐 Binding to: %s:%d (all interfaces)", host, port)
@@ -824,7 +854,6 @@ func main() {
 	log.Printf("❤️  Health check: http://%s:%d/health", "127.0.0.1", port)
 	log.Printf("🧪 Test endpoint: http://%s:%d/test", "localhost", port)
 	log.Printf("📡 Broadcast API: http://%s:%d/api/broadcast", "localhost", port)
-
 
 	// Broadcast API endpoint for Python to trigger WebSocket broadcasts
 	http.HandleFunc("/api/broadcast", func(w http.ResponseWriter, r *http.Request) {
