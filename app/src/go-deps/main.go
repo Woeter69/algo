@@ -33,8 +33,11 @@ type MessageType string
 
 const (
 	// Channel events (for /channels)
-	JoinChannel  MessageType = "join_channel"
-	LeaveChannel MessageType = "leave_channel"
+	JoinChannel        MessageType = "join_channel"
+	LeaveChannel       MessageType = "leave_channel"
+	SendChannelMessage MessageType = "send_message"
+	GetChannelMessages MessageType = "get_channel_messages"
+	ChannelHistory     MessageType = "messages_history"
 
 	// Message events (for both /channels and /chat)
 	SendMessage MessageType = "send_message"
@@ -96,19 +99,19 @@ type Hub struct {
 	// Channel rooms: channel_id -> map of clients in that channel (/channels)
 	Channels map[int]map[int]*Client
 
-	// Chat rooms: room_name -> map of clients in that chat (/chat)
-	ChatRooms map[string]map[int]*Client
-
-	// Typing users in channels: channel_id -> set of user IDs typing
-	ChannelTyping map[int]map[int]bool
-
 	// Typing users in chat rooms: room_name -> set of user IDs typing
 	ChatTyping map[string]map[int]bool
+	
+	// Channel typing: channel_id -> set of user IDs typing
+	ChannelTyping map[int]map[int]bool
+	
+	// Chat rooms: room_name -> map of clients in that room (/chat)
+	ChatRooms map[string]map[int]*Client
 
 	// Communication channels
+	Broadcast  chan WSMessage
 	Register   chan *Client
 	Unregister chan *Client
-	Broadcast  chan WSMessage
 
 	// Database connection
 	DB *sql.DB
@@ -126,11 +129,18 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-// Global variables
 var (
 	db  *sql.DB
 	hub *Hub
 )
+
+// Helper function for min
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
 
 // Helper function to convert channel_id from interface{} to int
 func getChannelID(channelID interface{}) int {
@@ -157,13 +167,23 @@ func NewHub(db *sql.DB) *Hub {
 		ChatTyping:    make(map[string]map[int]bool),
 		Register:      make(chan *Client),
 		Unregister:    make(chan *Client),
-		Broadcast:     make(chan WSMessage),
+		Broadcast:     make(chan WSMessage, 100), // Buffered channel to prevent blocking
 		DB:            db,
 	}
 }
 
 // Main Hub loop - handles all WebSocket events
 func (h *Hub) Run() {
+	// Start a separate goroutine to handle broadcast messages
+	go func() {
+		log.Printf("🚀 Broadcast goroutine started")
+		for message := range h.Broadcast {
+			log.Printf("🎯 Hub received broadcast message: type='%s' from user %s", message.Type, message.Username)
+			h.handleBroadcast(message)
+		}
+		log.Printf("❌ Broadcast goroutine ended")
+	}()
+	
 	for {
 		select {
 		case client := <-h.Register:
@@ -196,15 +216,14 @@ func (h *Hub) Run() {
 			// Tell everyone this user went offline
 			h.broadcastUserStatus(client.UserID, client.Username, false)
 
-		case message := <-h.Broadcast:
-			// Broadcast message to channel
-			h.handleBroadcast(message)
+		// Broadcast messages are now handled by separate goroutine
 		}
 	}
 }
 
 // Handle different types of messages
 func (h *Hub) handleBroadcast(message WSMessage) {
+	log.Printf("🔍 Processing message type: %s from user %s", message.Type, message.Username)
 	switch message.Type {
 	case NewMessage:
 		h.broadcastToChannel(message)
@@ -216,6 +235,10 @@ func (h *Hub) handleBroadcast(message WSMessage) {
 		h.handleJoinChannel(message)
 	case LeaveChannel:
 		h.handleLeaveChannel(message)
+	case SendChannelMessage:
+		h.handleSendChannelMessage(message)
+	case GetChannelMessages:
+		h.handleGetChannelMessages(message)
 	case "typing_start":
 		h.handleDirectTyping(message, true)
 	case "typing_stop":
@@ -350,7 +373,7 @@ func (h *Hub) handleTyping(message WSMessage) {
 
 // Handle direct chat messages
 func (h *Hub) handleChatMessage(message WSMessage) {
-	log.Printf("💬 Chat message from %s to %d: %s", message.Username, message.ReceiverID, message.Content)
+	log.Printf("📨 Handling chat message from %s: %s", message.Username, message.Type)
 
 	// Save message to database
 	if h.DB != nil {
@@ -570,8 +593,22 @@ func (c *Client) readPump() {
 		message.Username = c.Username
 		message.Timestamp = time.Now()
 
-		// Handle message
-		c.Hub.Broadcast <- message
+		log.Printf("📨 Received message from %s: type='%s' (len=%d)", c.Username, message.Type, len(string(message.Type)))
+
+		// TEMPORARY: Direct call for get_channel_messages to test
+		if message.Type == "get_channel_messages" {
+			log.Printf("🧪 DIRECT TEST: Calling handleGetChannelMessages directly")
+			c.Hub.handleGetChannelMessages(message)
+		} else {
+			// Handle other messages through broadcast channel
+			log.Printf("🚀 Sending to broadcast channel: %s", message.Type)
+			select {
+			case c.Hub.Broadcast <- message:
+				log.Printf("✅ Sent to broadcast channel: %s", message.Type)
+			default:
+				log.Printf("⚠️ Broadcast channel full, dropping message: %s", message.Type)
+			}
+		}
 	}
 }
 
