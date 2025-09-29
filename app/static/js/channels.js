@@ -112,15 +112,24 @@ document.addEventListener('DOMContentLoaded', function () {
     // Handle typing indicators
     socket.on('user_typing', (data) => {
         console.log('⌨️ Received typing indicator:', data);
-        if (data.channel_id == currentChannelId && data.user_id !== currentUserId) {
-            const username = data.username || data.Username;
+        console.log('🔍 Current channel:', currentChannelId, 'Message channel:', data.channel_id);
+        console.log('🔍 Current user:', currentUserId, 'Message user:', data.user_id);
+        
+        if (data.channel_id == currentChannelId && data.user_id != currentUserId) {
+            const username = data.username || data.Username || `User${data.user_id}`;
             const isTyping = data.typing || (data.data && data.data.typing);
             
+            console.log('🔍 Username:', username, 'Is typing:', isTyping);
+            
             if (isTyping) {
+                console.log('✅ Adding typing user:', username);
                 addTypingUser(username);
             } else {
+                console.log('❌ Removing typing user:', username);
                 removeTypingUser(username);
             }
+        } else {
+            console.log('⏭️ Ignoring typing - wrong channel or same user');
         }
     });
     
