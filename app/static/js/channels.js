@@ -40,12 +40,26 @@ document.addEventListener('DOMContentLoaded', function () {
     socket = window.goSocket;
     if (socket && currentUserId) {
         console.log('🔌 Connecting to Go WebSocket server...');
+        console.log('🔍 Connection details:', {
+            userId: currentUserId,
+            username: currentUsername,
+            pfp: currentUserPfp,
+            socketExists: !!socket
+        });
+        
         // Force a fresh connection on page load
         if (socket.connected) {
             console.log('🔄 Existing connection found, disconnecting to ensure fresh connection');
             socket.disconnect();
         }
-        socket.connect(currentUserId.toString(), currentUsername, currentUserPfp);
+        
+        try {
+            socket.connect(currentUserId.toString(), currentUsername, currentUserPfp);
+            console.log('✅ Connection attempt initiated');
+        } catch (error) {
+            console.error('❌ Connection attempt failed:', error);
+        }
+        
         // WebSocket event handlers (using chat.js pattern)
         socket.on('connect', () => {
             console.log('✅ Connected to Go WebSocket server!');
@@ -108,7 +122,14 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('📋 Received message history:', data);
             displayMessageHistory(data);
         });
+    } else {
+        console.error('❌ Cannot connect to WebSocket:', {
+            socketExists: !!socket,
+            currentUserId: currentUserId,
+            reason: !socket ? 'No socket object' : 'No user ID'
+        });
     }
+    
     // Channel switching
     channels.forEach(channel => {
         channel.addEventListener('click', () => {

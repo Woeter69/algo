@@ -595,12 +595,12 @@ func (c *Client) readPump() {
 
 		log.Printf("📨 Received message from %s: type='%s' (len=%d)", c.Username, message.Type, len(string(message.Type)))
 
-		// TEMPORARY: Direct call for get_channel_messages to test
+		// Handle messages - direct call only for channels, broadcast for everything else
 		if message.Type == "get_channel_messages" {
-			log.Printf("🧪 DIRECT TEST: Calling handleGetChannelMessages directly")
+			log.Printf("🧪 DIRECT CHANNEL TEST: Calling handleGetChannelMessages directly")
 			c.Hub.handleGetChannelMessages(message)
 		} else {
-			// Handle other messages through broadcast channel
+			// Handle all other messages (including chat) through broadcast channel
 			log.Printf("🚀 Sending to broadcast channel: %s", message.Type)
 			select {
 			case c.Hub.Broadcast <- message:
