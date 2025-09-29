@@ -203,18 +203,31 @@
     </div>
 
     <!-- Pass data to JavaScript -->
+    <script id="channels-data" type="application/json">
+        {{ {
+            "communities": communities or [],
+            "channels": channels or [],
+            "selectedCommunityId": selected_community_id,
+            "userId": user_id,
+            "currentUsername": session.username or "User",
+            "currentUserPfp": session.pfp_path or "",
+            "currentUserId": session.user_id
+        } | tojson | safe }}
+    </script>
     <script>
+        // Parse server data from JSON script tag
+        const serverData = JSON.parse(document.getElementById('channels-data').textContent);
         window.channelsData = {
-            communities: {{ communities|tojson if communities else '[]' }},
-            channels: {{ channels|tojson if channels else '[]' }},
-            selectedCommunityId: {{ selected_community_id|tojson if selected_community_id else 'null' }},
-            userId: {{ user_id|tojson if user_id else 'null' }}
+            communities: serverData.communities,
+            channels: serverData.channels,
+            selectedCommunityId: serverData.selectedCommunityId,
+            userId: serverData.userId
         };
         
         // Current user info for optimistic UI
-        window.currentUsername = {{ session.username|tojson if session.username else '"User"' }};
-        window.currentUserPfp = {{ session.pfp_path|tojson if session.pfp_path else '""' }};
-        window.currentUserId = {{ session.user_id|tojson if session.user_id else 'null' }};
+        window.currentUsername = serverData.currentUsername;
+        window.currentUserPfp = serverData.currentUserPfp;
+        window.currentUserId = serverData.currentUserId;
     </script>
     <!-- Go WebSocket Client (replaces Socket.IO) -->
     <script src="{{ url_for('static', filename='js/go-websocket-client.js') }}"></script>

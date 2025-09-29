@@ -1,5 +1,109 @@
 // Requests TypeScript - Connection Requests Management
 // Following TypeScript-first approach for the SIH project
+
+// Global functions for button actions (defined outside DOMContentLoaded for accessibility)
+function initializeGlobalFunctions() {
+    // Global functions for button actions
+    window.acceptRequest = async function (connectionId) {
+        try {
+            showLoading(true);
+            const response = await fetch('/api/respond_connection_request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    connection_id: connectionId,
+                    action: 'accept'
+                })
+            });
+            
+            if (response.ok) {
+                location.reload(); // Refresh to show updated state
+            } else {
+                alert('Failed to accept request');
+            }
+        } catch (error) {
+            console.error('Error accepting request:', error);
+            alert('Error accepting request');
+        } finally {
+            showLoading(false);
+        }
+    };
+
+    window.declineRequest = async function (connectionId) {
+        try {
+            showLoading(true);
+            const response = await fetch('/api/respond_connection_request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    connection_id: connectionId,
+                    action: 'reject'
+                })
+            });
+            
+            if (response.ok) {
+                location.reload(); // Refresh to show updated state
+            } else {
+                alert('Failed to decline request');
+            }
+        } catch (error) {
+            console.error('Error declining request:', error);
+            alert('Error declining request');
+        } finally {
+            showLoading(false);
+        }
+    };
+
+    window.cancelRequest = async function (connectionId) {
+        try {
+            showLoading(true);
+            const response = await fetch('/api/cancel_connection_request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    connection_id: connectionId
+                })
+            });
+            
+            if (response.ok) {
+                location.reload(); // Refresh to show updated state
+            } else {
+                alert('Failed to cancel request');
+            }
+        } catch (error) {
+            console.error('Error canceling request:', error);
+            alert('Error canceling request');
+        } finally {
+            showLoading(false);
+        }
+    };
+
+    window.viewProfile = function (username) {
+        window.location.href = `/profile/${username}`;
+    };
+
+    window.startChat = function (username) {
+        window.location.href = `/chat/${username}`;
+    };
+}
+
+// Loading overlay functions
+function showLoading(show) {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = show ? 'flex' : 'none';
+    }
+}
+
+// Initialize global functions immediately
+initializeGlobalFunctions();
+
 // Prevent multiple initializations
 if (window.requestsInitialized) {
     console.log('Requests already initialized, skipping...');
@@ -75,22 +179,6 @@ else {
                 });
             }
         }
-        // Global functions for button actions
-        window.acceptRequest = async function (connectionId) {
-            await handleConnectionResponse(connectionId, 'accept');
-        };
-        window.declineRequest = async function (connectionId) {
-            await handleConnectionResponse(connectionId, 'reject');
-        };
-        window.cancelRequest = async function (connectionId) {
-            await handleCancelRequest(connectionId);
-        };
-        window.viewProfile = function (username) {
-            window.location.href = `/profile/${username}`;
-        };
-        window.startChat = function (username) {
-            window.location.href = `/chat/${username}`;
-        };
         // Handle accept/decline connection requests
         async function handleConnectionResponse(connectionId, action) {
             try {
@@ -265,4 +353,4 @@ else {
         console.log('✅ Requests TypeScript initialization complete');
     });
 }
-export {};
+// End of requests.js
