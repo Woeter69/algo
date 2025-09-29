@@ -80,10 +80,19 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // Only show messages for current channel
         if (data.channel_id == currentChannelId) {
-            const messageElement = createMessageElement(data.content || data.Content, {
-                username: data.username || data.Username,
-                pfp_path: data.pfp_path || data.PfpPath,
-                timestamp: data.created_at || data.CreatedAt || data.timestamp,
+            // Extract message data from nested structure
+            const messageData = data.data || data;
+            const content = messageData.content || messageData.Content || data.content || data.Content;
+            const username = messageData.username || messageData.Username || data.username || data.Username;
+            const pfpPath = messageData.pfp_path || messageData.PfpPath || data.pfp_path || data.PfpPath;
+            const timestamp = messageData.created_at || messageData.CreatedAt || data.created_at || data.CreatedAt || data.timestamp;
+            
+            console.log('🔍 Extracted message data:', { content, username, pfpPath, timestamp });
+            
+            const messageElement = createMessageElement(content, {
+                username: username,
+                pfp_path: pfpPath,
+                timestamp: timestamp,
                 optimistic: false
             });
             
@@ -99,6 +108,25 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('📋 Received message history:', data);
         displayMessageHistory(data);
     });
+    
+    // Handle typing indicators
+    socket.on('user_typing', (data) => {
+        if (data.channel_id == currentChannelId && data.user_id !== currentUserId) {
+            if (data.typing || (data.data && data.data.typing)) {
+                showTypingIndicator(data.username || data.Username);
+            } else {
+                hideTypingIndicator();
+            }
+        }
+    });
+    
+    // Fallback: Poll for new messages every 2 seconds as backup
+    setInterval(() => {
+        if (currentChannelId && !socket?.connected) {
+            console.log('🔄 WebSocket disconnected, polling for new messages...');
+            loadChannelMessages(currentChannelId);
+        }
+    }, 2000);
 });
 
 // Set up event listeners
@@ -116,12 +144,49 @@ function setupEventListeners() {
     }
 
     if (messageInput) {
+        let typingTimer;
+        let isTyping = false;
+        
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 console.log('⌨️ Enter key pressed!');
                 sendMessage();
+                // Stop typing when message is sent
+                if (isTyping) {
+                    socket.send('user_typing', {
+                        channel_id: currentChannelId,
+                        typing: false
+                    });
+                    isTyping = false;
+                }
             }
         });
+        
+        messageInput.addEventListener('input', () => {
+            if (currentChannelId && socket) {
+                // Start typing indicator
+                if (!isTyping) {
+                    socket.send('user_typing', {
+                        channel_id: currentChannelId,
+                        typing: true
+                    });
+                    isTyping = true;
+                }
+                
+                // Reset typing timer
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(() => {
+                    if (isTyping) {
+                        socket.send('user_typing', {
+                            channel_id: currentChannelId,
+                            typing: false
+                        });
+                        isTyping = false;
+                    }
+                }, 2000); // Stop typing after 2 seconds of no input
+            }
+        });
+        
         console.log('✅ Message input event listener attached');
     } else {
         console.error('❌ Message input not found!');
@@ -236,9 +301,12 @@ function sendMessage() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
-    // Send via Python API (which will trigger Go WebSocket broadcast)
+    // Send via Go WebSocket for instant delivery (like /chat)
     console.log(`📤 Sending message to channel ${currentChannelId}:`, message);
-    sendMessageToPython(currentChannelId, message);
+    socket.send('send_message', {
+        channel_id: currentChannelId,
+        content: message
+    });
     
     lastSentMessageTime = Date.now();
 }
@@ -377,6 +445,46 @@ function setupTabSwitching() {
     });
     
     console.log('✅ Tab switching set up for', tabBtns.length, 'tabs');
+}
+
+// Typing indicator functions
+function showTypingIndicator(username) {
+    const typingId = 'typing-indicator';
+    let typingElement = document.getElementById(typingId);
+    
+    if (!typingElement) {
+        typingElement = document.createElement('div');
+        typingElement.id = typingId;
+        typingElement.className = 'typing-indicator';
+        typingElement.innerHTML = `
+            <div class="typing-content">
+                <span class="typing-user">${username}</span> is typing
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        `;
+        
+        if (chatMessages) {
+            chatMessages.appendChild(typingElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    } else {
+        // Update username if different user is typing
+        const userSpan = typingElement.querySelector('.typing-user');
+        if (userSpan) {
+            userSpan.textContent = username;
+        }
+    }
+}
+
+function hideTypingIndicator() {
+    const typingElement = document.getElementById('typing-indicator');
+    if (typingElement) {
+        typingElement.remove();
+    }
 }
 
 console.log('✅ Channels script loaded successfully!');

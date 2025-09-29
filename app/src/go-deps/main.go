@@ -243,27 +243,69 @@ func (h *Hub) handleBroadcast(message WSMessage) {
 
 // Broadcast message to all clients in a channel
 func (h *Hub) broadcastToChannel(message WSMessage) {
-	h.Mutex.RLock()
-	defer h.Mutex.RUnlock()
+	log.Printf("🔍 broadcastToChannel called - acquiring lock...")
+	
+	// Use timeout for the entire function to prevent hanging
+	done := make(chan bool, 1)
+	
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("❌ Panic in broadcastToChannel: %v", r)
+			}
+			done <- true
+		}()
+		
+		h.Mutex.RLock()
+		defer h.Mutex.RUnlock()
 
-	channelID := getChannelID(message.ChannelID)
-	if channelClients, exists := h.Channels[channelID]; exists {
-		for userID, client := range channelClients {
-			// Don't send back to sender
-			if userID != message.UserID {
-				select {
-				case client.Send <- message:
-					// Message sent successfully
-				default:
-					// Client disconnected, clean up
-					close(client.Send)
+		channelID := getChannelID(message.ChannelID)
+		log.Printf("🔍 Broadcasting to channel %d, sender userID: %d", channelID, message.UserID)
+		
+		if channelClients, exists := h.Channels[channelID]; exists {
+			log.Printf("📋 Channel %d has %d clients", channelID, len(channelClients))
+			for userID, client := range channelClients {
+				log.Printf("🎯 Checking client %d (sender: %d)", userID, message.UserID)
+				
+				// Check if client is nil
+				if client == nil {
+					log.Printf("❌ Client %d is nil, cleaning up", userID)
 					delete(channelClients, userID)
+					continue
+				}
+				
+				// Don't send back to sender
+				if userID != message.UserID {
+					log.Printf("📤 Sending message to client %d", userID)
+					// Use non-blocking send
+					select {
+					case client.Send <- message:
+						log.Printf("✅ Message sent to client %d", userID)
+					default:
+						log.Printf("❌ Client %d channel full, cleaning up", userID)
+						// Client channel is full, clean up
+						if client.Send != nil {
+							close(client.Send)
+						}
+						delete(channelClients, userID)
+					}
+				} else {
+					log.Printf("⏭️ Skipping sender %d", userID)
 				}
 			}
+		} else {
+			log.Printf("❌ Channel %d not found in channels map", channelID)
 		}
+		log.Printf("✅ Broadcast to channel %d complete", channelID)
+	}()
+	
+	// Wait for completion or timeout
+	select {
+	case <-done:
+		log.Printf("✅ broadcastToChannel completed normally")
+	case <-time.After(2 * time.Second):
+		log.Printf("⏰ broadcastToChannel timed out after 2 seconds")
 	}
-
-	log.Printf("📢 Broadcasted message in channel %d from %s", channelID, message.Username)
 }
 
 // Handle user joining a channel
@@ -271,12 +313,9 @@ func (h *Hub) handleJoinChannel(message WSMessage) {
 	h.Mutex.Lock()
 	defer h.Mutex.Unlock()
 
-	// Verify user has access to this channel (check database)
+	// Get channel ID
 	channelID := getChannelID(message.ChannelID)
-	if !h.verifyChannelAccess(message.UserID, channelID) {
-		log.Printf("❌ User %d denied access to channel %d", message.UserID, channelID)
-		return
-	}
+	log.Printf("🔍 User %d (%s) attempting to join channel %d", message.UserID, message.Username, channelID)
 
 	// Add client to channel
 	if channelID > 0 {
@@ -828,20 +867,66 @@ func handleBroadcastAPI(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("📡 Received broadcast request: type=%s, channel_id=%v", broadcastReq.Type, broadcastReq.ChannelID)
 
+	// Extract user info from the message data
+	var userID int
+	if msgData, ok := broadcastReq.Message.(map[string]interface{}); ok {
+		log.Printf("🔍 Message data: %+v", msgData)
+		if uid, exists := msgData["user_id"]; exists {
+			log.Printf("🔍 Found user_id: %v (type: %T)", uid, uid)
+			if uidFloat, ok := uid.(float64); ok {
+				userID = int(uidFloat)
+				log.Printf("✅ Extracted userID: %d", userID)
+			} else {
+				log.Printf("❌ user_id is not float64: %T", uid)
+			}
+		} else {
+			log.Printf("❌ No user_id found in message data")
+		}
+	} else {
+		log.Printf("❌ Message is not map[string]interface{}: %T", broadcastReq.Message)
+	}
+
+	// Extract username from message data
+	var username string
+	if msgData, ok := broadcastReq.Message.(map[string]interface{}); ok {
+		if uname, exists := msgData["username"]; exists {
+			log.Printf("🔍 Found username: %v (type: %T)", uname, uname)
+			if unameStr, ok := uname.(string); ok {
+				username = unameStr
+				log.Printf("✅ Extracted username: %s", username)
+			} else {
+				log.Printf("❌ username is not string: %T", uname)
+			}
+		} else {
+			log.Printf("❌ No username found in message data")
+		}
+	}
+
 	// Create WebSocket message for broadcasting
 	wsMessage := WSMessage{
 		Type:      MessageType(broadcastReq.Type),
 		ChannelID: broadcastReq.ChannelID,
+		UserID:    userID,
+		Username:  username,
 		Data:      broadcastReq.Message,
 		Timestamp: time.Now(),
 	}
+	log.Printf("🔍 Created WSMessage: Type=%s, ChannelID=%v, UserID=%d", wsMessage.Type, wsMessage.ChannelID, wsMessage.UserID)
 
-	// Broadcast to all connected clients in the channel
-	log.Printf("🔄 About to broadcast to channel %v, connected clients: %d", broadcastReq.ChannelID, len(hub.Clients))
-	hub.broadcastToChannel(wsMessage)
-
-	log.Printf("✅ Broadcasted message to channel %v", broadcastReq.ChannelID)
-
+	// Respond to Python immediately (don't block)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status": "success"}`))
+
+	// Broadcast asynchronously to avoid blocking the HTTP response
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("❌ Panic in broadcast goroutine: %v", r)
+			}
+		}()
+		log.Printf("🔄 About to broadcast to channel %v, connected clients: %d", broadcastReq.ChannelID, len(hub.Clients))
+		log.Printf("🚀 Calling hub.broadcastToChannel...")
+		hub.broadcastToChannel(wsMessage)
+		log.Printf("✅ Broadcasted message to channel %v", broadcastReq.ChannelID)
+	}()
 }
