@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/create_community.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/compact-footer.css') }}">
 </head>
 
 <body>
@@ -15,42 +17,17 @@
     <header>
         <div class="container">
             <nav>
-                <a href="{{ url_for('home') }}" class="logo">algo</a>
+                <a href="#" class="logo" id="home-link">algo</a>
                 <ul class="nav-links">
-                    <li><a href="{{ url_for('home') }}">Home</a></li>
-                    <li><a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
+                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                    <li><a href="#" data-section="jobs">Job Board</a></li>
+                    <li><a href="#" data-section="events">Events</a></li>
+                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
                 </ul>
-                <div class="user-profile" id="userprofile">
-                    {% set user_full_name = (current_user[0] or '') + ' ' + (current_user[1] or '') if current_user else session.get('username', 'User') %}
-                    {% set user_pfp = current_user[3] if current_user else session.get('pfp_path', '') %}
-                    {% set user_role = current_user[2] if current_user else session.get('role', 'user') %}
-                    <img src="{% if user_pfp %}{{ user_pfp }}{% else %}{{ generate_default_avatar(user_full_name) }}{% endif %}" alt="profile" data-user-name="{{ user_full_name }}" onerror="this.src='{{ generate_default_avatar(user_full_name) }}'">
-                    <div class="user-info">
-                        <div class="user-name">{{ user_full_name.strip() if user_full_name.strip() else session.get('username', 'User') }}</div>
-                        <div class="user-role">{{ user_role.title() if user_role else 'User' }}</div>
-                    </div>
-                    <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
-                    <div class="user-dropdown" id="userdropdown">
-                        <div class="dropdown-item">
-                            <i class="fas fa-user"></i>
-                            <span>view profile</span>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="fas fa-edit"></i>
-                            <span>edit profile</span>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="fas fa-cog"></i>
-                            <span>settings</span>
-                        </div>
-                        <div class="dropdown-item" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>logout</span>
-                        </div>
-                    </div>
-                </div>
                 <div class="hamburger">
                     <div class="line1"></div>
                     <div class="line2"></div>
@@ -159,7 +136,7 @@
                         </div>
 
                         <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ url_for('admin_dashboard') }}'">
+                            <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ url_for('admin_dashboard') }}';">
                                 <i class="fas fa-times"></i>
                                 Cancel
                             </button>
@@ -215,9 +192,20 @@
                 <div class="footer-links">
                     <h3>Quick Links</h3>
                     <ul>
-                        <li><a href="{{ url_for('home') }}">Home</a></li>
-                        <li><a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
+                        <li><a href="#" data-section="home">Home</a></li>
+                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
+                        <li><a href="#" data-section="jobs">Job Board</a></li>
+                        <li><a href="#" data-section="events">Events</a></li>
                         <li><a href="{{ url_for('about') }}">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Career Tips</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">FAQ</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
@@ -235,64 +223,6 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/create_community.js') }}"></script>
-    
-    <!-- User Dropdown Initialization -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize user dropdown
-            const userProfile = document.getElementById('userprofile');
-            const dropdownArrow = document.getElementById('dropdownarrow');
-            const userDropdown = document.getElementById('userdropdown');
-
-            if (userProfile && dropdownArrow && userDropdown) {
-                // Toggle dropdown on click
-                userProfile.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    userDropdown.classList.toggle('active');
-                    dropdownArrow.classList.toggle('rotated');
-                });
-
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!userProfile.contains(e.target)) {
-                        userDropdown.classList.remove('active');
-                        dropdownArrow.classList.remove('rotated');
-                    }
-                });
-
-                // Handle dropdown item clicks
-                const dropdownItems = userDropdown.querySelectorAll('.dropdown-item');
-                dropdownItems.forEach(item => {
-                    item.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const text = this.textContent.trim().toLowerCase();
-                        
-                        switch(text) {
-                            case 'view profile':
-                                window.location.href = '/profile';
-                                break;
-                            case 'edit profile':
-                                window.location.href = '/profile/edit';
-                                break;
-                            case 'settings':
-                                window.location.href = '/settings';
-                                break;
-                            case 'logout':
-                                if (confirm('Are you sure you want to logout?')) {
-                                    localStorage.clear();
-                                    sessionStorage.clear();
-                                    window.location.href = '/logout';
-                                }
-                                break;
-                        }
-                        
-                        // Close dropdown after click
-                        userDropdown.classList.remove('active');
-                        dropdownArrow.classList.remove('rotated');
-                    });
-                });
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
 </body>
 </html>

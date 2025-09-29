@@ -8,6 +8,10 @@
     <!-- If no title is provided, it defaults to "algo - Alumni Network" -->
     <title>{% block title %}Algo - Alumni Network{% endblock %}</title>
     
+    <!-- Add Font Awesome and Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <!-- Add any common CSS files here that all pages will use -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
@@ -22,38 +26,17 @@
     <header>
         <div class="container">
             <nav>
-                <!-- Logo/Brand name -->
-                <a href="{{ url_for('home') }}" class="logo" id="home-link">algo</a>
-                
-                <!-- Main navigation menu -->
+                <a href="#" class="logo" id="home-link">algo</a>
                 <ul class="nav-links">
-                    <!-- 
-                        Using url_for() ensures that links work correctly even if route names change
-                        The 'active' class can be conditionally applied based on current page
-                    -->
-                    <li><a href="{{ url_for('home') }}" 
-                           class="{% if request.endpoint == 'home' %}active{% endif %}" 
-                           data-section="home">Home</a></li>
-                    
+                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
                     <li><a href="#" data-section="browse">Browse Alumni</a></li>
                     <li><a href="#" data-section="jobs">Job Board</a></li>
                     <li><a href="#" data-section="events">Events</a></li>
-                    
-                    <li><a href="{{ url_for('contact') }}" 
-                           class="{% if request.endpoint == 'contact' %}active{% endif %}">Contact Us</a></li>
-                    
-                    <li><a href="{{ url_for('about') }}" 
-                           class="{% if request.endpoint == 'about' %}active{% endif %}">About Us</a></li>
-                    
-                    <!-- Authentication links - these could be made conditional based on user login status -->
-                    <li><a href="{{ url_for('login') }}" 
-                           class="{% if request.endpoint == 'login' %}active{% endif %}">Loda</a></li>
-                    
-                    <li><a href="{{ url_for('register') }}" 
-                           class="nav-signup {% if request.endpoint == 'register' %}active{% endif %}">Sign Up</a></li>
+                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
+                    <li><a href="{{ url_for('about') }}">About Us</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
                 </ul>
-                
-                <!-- Mobile hamburger menu -->
                 <div class="hamburger">
                     <div class="line1"></div>
                     <div class="line2"></div>
