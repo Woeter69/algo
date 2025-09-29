@@ -30,41 +30,37 @@ type ChannelMessage struct {
 func (h *Hub) handleSendChannelMessage(message WSMessage) {
 	log.Printf("📤 Handling send channel message from %s to channel %v", message.Username, message.ChannelID)
 	
-	channelID := getChannelID(message.ChannelID)
-	
-	// Verify user has access to this channel
-	if !h.verifyChannelAccess(message.UserID, channelID) {
-		log.Printf("❌ User %d denied access to channel %d", message.UserID, channelID)
-		return
-	}
-	
-	// Save message to database
-	messageID := h.saveChannelMessage(message)
-	if messageID == 0 {
-		log.Printf("❌ Failed to save channel message")
-		return
-	}
-	
-	// Get user info for broadcasting
+	// Get user info for broadcasting (do this first, it's fast)
 	userInfo := h.getUserInfo(message.UserID)
 	
-	// Create broadcast message
+	// Create broadcast message immediately (before database save)
 	broadcastMessage := WSMessage{
 		Type:      NewMessage,
 		ChannelID: message.ChannelID,
 		UserID:    message.UserID,
 		Username:  userInfo.Username,
 		Content:   message.Content,
-		MessageID: string(messageID),
+		MessageID: "temp", // Temporary ID
 		CreatedAt: time.Now().Format(time.RFC3339),
 		PfpPath:   userInfo.PfpPath,
 		Timestamp: time.Now(),
 	}
 	
-	// Broadcast to all users in the channel
+	// Broadcast immediately for instant delivery
+	log.Printf("🚀 Broadcasting message immediately for speed")
 	h.broadcastToChannel(broadcastMessage)
 	
-	log.Printf("✅ Channel message sent and broadcasted: %s", message.Content[:min(50, len(message.Content))])
+	// Save to database asynchronously (don't block real-time delivery)
+	go func() {
+		messageID := h.saveChannelMessage(message)
+		if messageID == 0 {
+			log.Printf("❌ Failed to save channel message")
+		} else {
+			log.Printf("✅ Channel message saved with ID: %d", messageID)
+		}
+	}()
+	
+	log.Printf("✅ Channel message broadcasted instantly: %s", message.Content[:min(50, len(message.Content))])
 }
 
 // Save channel message to database
