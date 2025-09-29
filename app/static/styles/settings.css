@@ -198,13 +198,14 @@ nav {
 .settings-nav-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    gap: 1rem;
+    padding: 1rem;
     border-radius: 12px;
     text-decoration: none;
     color: #4a5568;
     font-weight: 500;
     transition: all 0.3s ease;
+    min-height: 48px;
 }
 
 .settings-nav-item:hover {
@@ -218,8 +219,14 @@ nav {
 }
 
 .settings-nav-item i {
-    width: 20px;
-    font-size: 1rem;
+    width: 24px;
+    height: 24px;
+    font-size: 1.1rem;
+    text-align: center;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Settings Content */
@@ -573,6 +580,44 @@ nav {
 .danger-info small {
     color: #718096;
     font-size: 0.8rem;
+}
+
+/* Info Section Styles */
+.info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s ease;
+}
+
+.info-item:hover {
+    background: #f1f5f9;
+    transform: translateX(4px);
+}
+
+.info-label {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
+    flex: 1;
+}
+
+.info-value {
+    color: #4a5568;
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+    font-size: 0.9rem;
 }
 
 /* Buttons */
