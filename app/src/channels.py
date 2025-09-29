@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, session
-from werkzeug.security import check_password_hash
-import psycopg2
 from psycopg2.extras import RealDictCursor
-import os
+import logging
+import requests
+import json
 from datetime import datetime, timedelta
 import logging
 
@@ -14,6 +14,35 @@ channels_bp = Blueprint('channels', __name__)
 
 # Import database connection from connection module
 import connection
+
+# Function to broadcast messages to Go WebSocket server
+def broadcast_to_go_websocket(channel_id, message_data):
+    """Send message to Go WebSocket server for real-time broadcasting"""
+    try:
+        # Go WebSocket server internal API endpoint
+        go_websocket_url = "http://localhost:8080/api/broadcast"
+        
+        broadcast_payload = {
+            "type": "new_message",
+            "channel_id": channel_id,
+            "message": message_data
+        }
+        
+        # Send to Go server with short timeout
+        response = requests.post(
+            go_websocket_url, 
+            json=broadcast_payload, 
+            timeout=1.0  # Short timeout so we don't block the response
+        )
+        
+        if response.status_code == 200:
+            logger.info(f"✅ Broadcasted message to Go WebSocket for channel {channel_id}")
+        else:
+            logger.warning(f"⚠️ Go WebSocket returned status {response.status_code}")
+            
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"⚠️ Failed to reach Go WebSocket server: {e}")
+        # Don't raise - we don't want to fail the message send if WebSocket is down
 
 def get_db_connection():
     return connection.get_db_connection()
@@ -530,6 +559,19 @@ def send_message(channel_id):
             'pfp_path': user_info['pfp_path'],
             'reactions': []
         })
+        
+        # Convert datetime objects to strings for JSON serialization
+        broadcast_message = dict(response_message)
+        for key, value in broadcast_message.items():
+            if hasattr(value, 'isoformat'):  # datetime object
+                broadcast_message[key] = value.isoformat()
+        
+        # Trigger Go WebSocket broadcast for real-time delivery
+        try:
+            broadcast_to_go_websocket(channel_id, broadcast_message)
+        except Exception as e:
+            logger.warning(f"Failed to broadcast to WebSocket: {e}")
+            # Don't fail the request if WebSocket broadcast fails
         
         return jsonify({
             'message': 'Message sent successfully',

@@ -1,5 +1,5 @@
-// Channels WebSocket Integration (TypeScript version based on working chat.js pattern)
 // Global variables
+let socket = null;
 let currentUserId = null;
 let currentUsername = 'User';
 let currentUserPfp = '';
@@ -7,8 +7,6 @@ let currentChannelId = null;
 let processedMessages = new Set();
 let lastSentMessageTime = 0;
 
-// Initialize Go WebSocket connection (same as chat.js)
-let socket = window.goSocket;
 // DOM elements
 let channels;
 let currentChannelName;
@@ -16,19 +14,23 @@ let currentChannelIcon;
 let messageInput;
 let chatMessages;
 let sendBtn;
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('🚀 Channels TypeScript initializing - DOM ready');
+    console.log('🚀 Channels initializing - DOM ready');
+    
     // Get user data from template
     const channelsData = window.channelsData || {};
     currentUserId = window.currentUserId;
     currentUsername = window.currentUsername || 'User';
     currentUserPfp = window.currentUserPfp || '';
     console.log('User data:', { currentUserId, currentUsername });
+    
     if (!currentUserId) {
         console.error('No current user ID - user might not be logged in');
         return;
     }
+    
     // Get DOM elements
     channels = document.querySelectorAll('.channel');
     currentChannelName = document.querySelector('.current-channel-name');
@@ -36,335 +38,278 @@ document.addEventListener('DOMContentLoaded', function () {
     messageInput = document.getElementById('messageInput');
     chatMessages = document.getElementById('chatMessages');
     sendBtn = document.getElementById('sendBtn');
-    // Initialize Go WebSocket connection (same pattern as chat.js)
-    socket = window.goSocket;
-    if (socket && currentUserId) {
-        console.log('🔌 Connecting to Go WebSocket server...');
-        console.log('🔍 Connection details:', {
-            userId: currentUserId,
-            username: currentUsername,
-            pfp: currentUserPfp,
-            socketExists: !!socket
-        });
-        
-        // Connect to Go WebSocket server (same as chat.js)
-        socket.connect(currentUserId.toString(), currentUsername, currentUserPfp);
-        
-        // WebSocket event handlers (using chat.js pattern)
-        socket.on('connect', () => {
-            console.log('✅ Connected to Go WebSocket server!');
-            // Auto-select first channel after connection with longer delay to ensure connection is stable
-            setTimeout(() => {
-                const firstChannel = document.querySelector('.channel');
-                if (firstChannel && !currentChannelId) {
-                    console.log('🎯 Auto-selecting first channel after connection confirmed');
-                    firstChannel.click();
-                }
-            }, 1000); // Increased delay to ensure connection is fully established
-        });
-        socket.on('disconnect', () => {
-            console.log('❌ Disconnected from WebSocket server');
-        });
-        socket.on('error', (error) => {
-            console.error('❌ WebSocket error:', error);
-        });
-        // Handle incoming channel messages (using chat.js deduplication pattern)
-        socket.on('new_message', (data) => {
-            console.log('📨 Received channel message:', data);
-            const messageKey = `${data.user_id}-${data.channel_id}-${data.content}-${data.message_id || Date.now()}`;
-            if (processedMessages.has(messageKey)) {
-                console.log('🔄 Duplicate message detected, ignoring');
-                return;
-            }
-            processedMessages.add(messageKey);
-            // Only show messages for current channel
-            if (data.channel_id == currentChannelId) {
-                const isSent = data.user_id === currentUserId;
-                // Prevent showing our own sent messages twice (optimistic UI already showed it)
-                if (isSent && (Date.now() - lastSentMessageTime < 3000)) {
-                    console.log('🚫 Skipping own recent message to prevent duplicate');
-                    return;
-                }
-                displayChannelMessage(data);
-            }
-        });
-        // Handle user join/leave events
-        socket.on('user_joined', (data) => {
-            if (data.channel_id == currentChannelId) {
-                console.log('👋 User joined channel:', data);
-                showUserJoinedMessage(data);
-            }
-        });
-        socket.on('user_left', (data) => {
-            if (data.channel_id == currentChannelId) {
-                console.log('👋 User left channel:', data);
-                showUserLeftMessage(data);
-            }
-        });
-        // Handle typing indicators
-        socket.on('user_typing', (data) => {
-            if (data.channel_id == currentChannelId && data.user_id !== currentUserId) {
-                showTypingIndicator(data.username);
-            }
-        });
-        // Handle message history response
-        socket.on('messages_history', (data) => {
-            console.log('📋 Received message history:', data);
-            displayMessageHistory(data);
-        });
-    } else {
-        console.error('❌ Cannot connect to WebSocket:', {
-            socketExists: !!socket,
-            currentUserId: currentUserId,
-            reason: !socket ? 'No socket object' : 'No user ID'
-        });
-    }
     
-    // Channel switching
-    channels.forEach(channel => {
-        channel.addEventListener('click', () => {
-            var _a, _b;
-            channels.forEach(c => c.classList.remove('active'));
-            channel.classList.add('active');
-            const channelName = ((_a = channel.querySelector('.channel-name')) === null || _a === void 0 ? void 0 : _a.textContent) || '';
-            const channelIcon = ((_b = channel.querySelector('.channel-icon i')) === null || _b === void 0 ? void 0 : _b.className) || '';
-            const channelId = channel.getAttribute('data-channel-id') || channelName;
-            // Update UI
-            if (currentChannelName)
-                currentChannelName.textContent = channelName;
-            if (currentChannelIcon)
-                currentChannelIcon.innerHTML = `<i class="${channelIcon}"></i>`;
-            if (messageInput)
-                messageInput.placeholder = `Message #${channelName}`;
-            // Leave previous channel and join new one
-            if (currentChannelId && socket) {
-                socket.leaveChannel(currentChannelId);
-            }
-            currentChannelId = channelId;
-            if (socket) {
-                console.log(`🚪 Joining channel: ${channelId}`);
-                socket.joinChannel(channelId);
-            }
-            // Clear messages and load channel history
-            if (chatMessages) {
-                chatMessages.innerHTML = `
-                    <div class="loading-messages">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <span>Loading messages...</span>
-                    </div>
-                `;
-                // Request message history from Go server with retry logic
-                const requestMessages = () => {
-                    if (socket && socket.isConnected()) {
-                        console.log(`📋 Requesting message history for channel ${channelId}`);
-                        console.log(`🔍 Socket connection status:`, {
-                            connected: socket.isConnected(),
-                            socketExists: !!socket
-                        });
-                        const success = socket.send('get_channel_messages', { channel_id: channelId });
-                        console.log(`📤 Message send result:`, success);
-                    }
-                    else {
-                        console.log('⏳ WebSocket not ready, retrying in 500ms...');
-                        setTimeout(requestMessages, 500);
-                    }
-                };
-                requestMessages();
-                // Set a timeout to show welcome message if no response
-                setTimeout(() => {
-                    if (chatMessages && chatMessages.innerHTML.includes('Loading messages...')) {
-                        console.log('⏰ No response from WebSocket, showing welcome message');
-                        chatMessages.innerHTML = `
-                                <div class="welcome-message">
-                                    <div class="welcome-icon">
-                                        <i class="fas fa-comments"></i>
-                                    </div>
-                                    <div class="welcome-text">
-                                        <h3>Welcome to the channel!</h3>
-                                        <p>WebSocket timeout - messages should load here. Try refreshing.</p>
-                                    </div>
-                                </div>
-                            `;
-                    }
-                }, 5000);
-            }
-            else {
-                console.error('❌ Socket not connected or not available:', {
-                    socketExists: !!socket,
-                    connected: socket ? socket.isConnected() : false
-                });
-                // Show error message
-                if (chatMessages) {
-                    chatMessages.innerHTML = `
-                            <div class="welcome-message">
-                                <div class="welcome-icon">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                </div>
-                                <div class="welcome-text">
-                                    <h3>Connection Issue</h3>
-                                    <p>WebSocket not connected. Please refresh the page.</p>
-                                </div>
-                            </div>
-                        `;
-                }
-            }
-        });
+    console.log('🔍 DOM elements found:', {
+        channels: channels.length,
+        messageInput: !!messageInput,
+        chatMessages: !!chatMessages,
+        sendBtn: !!sendBtn
     });
-});
-// Tab switching
-const tabBtns = document.querySelectorAll('.tab-btn');
-const tabPanels = document.querySelectorAll('.tab-panel');
-tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        const tabName = btn.getAttribute('data-tab');
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabPanels.forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        if (tabName) {
-            const panel = document.getElementById(`${tabName}-panel`);
-            if (panel)
-                panel.classList.add('active');
+    
+    // Initialize Go WebSocket connection (same as chat.js)
+    console.log('Initializing Go WebSocket connection...');
+    socket = window.goSocket;
+    socket.connect(currentUserId.toString(), currentUsername, currentUserPfp);
+    
+    // WebSocket event handlers
+    socket.on('connect', () => {
+        console.log('✅ Connected to Go WebSocket server!');
+        
+        // Set up all functionality after connection
+        setupEventListeners();
+        setupChannelSwitching();
+        setupTabSwitching();
+        
+        // Auto-select first channel
+        setTimeout(() => {
+            const firstChannel = document.querySelector('.channel');
+            if (firstChannel && !currentChannelId) {
+                console.log('🎯 Auto-selecting first channel');
+                firstChannel.click();
+            }
+        }, 1000);
+    });
+    
+    socket.on('disconnect', () => {
+        console.log('❌ Disconnected from WebSocket server');
+    });
+    
+    // Handle incoming messages
+    socket.on('new_message', (data) => {
+        console.log('📨 Received channel message:', data);
+        
+        // Only show messages for current channel
+        if (data.channel_id == currentChannelId) {
+            const messageElement = createMessageElement(data.content || data.Content, {
+                username: data.username || data.Username,
+                pfp_path: data.pfp_path || data.PfpPath,
+                timestamp: data.created_at || data.CreatedAt || data.timestamp,
+                optimistic: false
+            });
+            
+            if (chatMessages) {
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
         }
     });
+    
+    // Handle message history
+    socket.on('messages_history', (data) => {
+        console.log('📋 Received message history:', data);
+        displayMessageHistory(data);
+    });
 });
-// Message sending (using chat.js pattern)
+
+// Set up event listeners
+function setupEventListeners() {
+    console.log('🔍 Setting up event listeners');
+    
+    if (sendBtn) {
+        sendBtn.addEventListener('click', () => {
+            console.log('🖱️ Send button clicked!');
+            sendMessage();
+        });
+        console.log('✅ Send button event listener attached');
+    } else {
+        console.error('❌ Send button not found!');
+    }
+
+    if (messageInput) {
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                console.log('⌨️ Enter key pressed!');
+                sendMessage();
+            }
+        });
+        console.log('✅ Message input event listener attached');
+    } else {
+        console.error('❌ Message input not found!');
+    }
+}
+
+// Set up channel switching
+function setupChannelSwitching() {
+    console.log('🔍 Setting up channel switching, channels:', channels.length);
+    
+    if (channels && channels.length > 0) {
+        channels.forEach(channel => {
+            channel.addEventListener('click', () => {
+                console.log('📍 Channel clicked');
+                
+                // Remove active class from all channels
+                channels.forEach(c => c.classList.remove('active'));
+                channel.classList.add('active');
+                
+                // Get channel info
+                const channelName = channel.querySelector('.channel-name')?.textContent || '';
+                const channelIcon = channel.querySelector('.channel-icon i')?.className || '';
+                const channelId = channel.getAttribute('data-channel-id') || channelName;
+                
+                console.log('🔄 Switching to channel:', { channelId, channelName });
+                
+                // Update UI
+                if (currentChannelName) currentChannelName.textContent = channelName;
+                if (currentChannelIcon) currentChannelIcon.className = channelIcon;
+                
+                // Leave current channel and join new one
+                if (currentChannelId && socket) {
+                    socket.leaveChannel(currentChannelId);
+                }
+                
+                currentChannelId = channelId;
+                
+                if (socket) {
+                    console.log(`🚪 Joining channel: ${channelId}`);
+                    socket.joinChannel(channelId);
+                    
+                    // Load message history via Python API (working approach)
+                    console.log(`📋 Loading messages for channel: ${channelId}`);
+                    loadChannelMessages(channelId);
+                }
+            });
+        });
+        console.log('✅ Channel switching set up for', channels.length, 'channels');
+    } else {
+        console.warn('⚠️ No channels found in DOM');
+    }
+}
+
+// Load channel messages via Python API (reliable approach)
+async function loadChannelMessages(channelId) {
+    try {
+        console.log(`📡 Fetching messages from Python API: /api/channels/${channelId}/messages`);
+        const response = await fetch(`/api/channels/${channelId}/messages`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('📋 Received messages from Python:', data);
+            
+            // Display the messages
+            displayMessageHistory({ messages: data.messages || [] });
+        } else {
+            console.error('❌ Failed to load messages:', response.status);
+            displayMessageHistory({ messages: [] });
+        }
+    } catch (error) {
+        console.error('❌ Error loading messages:', error);
+        displayMessageHistory({ messages: [] });
+    }
+}
+
+// Send message function
 function sendMessage() {
-    if (!messageInput || !socket)
+    console.log('📤 sendMessage() called!');
+    console.log('🔍 Send conditions:', {
+        messageInput: !!messageInput,
+        socket: !!socket,
+        socketConnected: socket?.connected,
+        currentChannelId: currentChannelId
+    });
+    
+    if (!messageInput || !socket) {
+        console.error('❌ Missing messageInput or socket');
         return;
+    }
+    
     const message = messageInput.value.trim();
-    if (!message || !currentChannelId)
+    console.log('📝 Message content:', message);
+    
+    if (!message || !currentChannelId) {
+        console.error('❌ Empty message or no channel selected');
         return;
-    lastSentMessageTime = Date.now();
-    // Clear input immediately for better UX
+    }
+    
+    // Clear input immediately
     messageInput.value = '';
-    // Create optimistic message element (show immediately on left side)
+    
+    // Create optimistic message element (show immediately)
     const messageElement = createMessageElement(message, {
         username: currentUsername,
         pfp_path: currentUserPfp,
         timestamp: new Date().toISOString(),
         optimistic: true
     });
+    
     if (chatMessages) {
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-    // Send message via WebSocket (using send_message type for channels)
+    
+    // Send via Python API (which will trigger Go WebSocket broadcast)
     console.log(`📤 Sending message to channel ${currentChannelId}:`, message);
-    socket.send('send_message', {
-        channel_id: currentChannelId,
-        content: message
-    });
+    sendMessageToPython(currentChannelId, message);
+    
+    lastSentMessageTime = Date.now();
 }
-// Event listeners for sending messages
-if (sendBtn) {
-    sendBtn.addEventListener('click', sendMessage);
-}
-if (messageInput) {
-    messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendMessage();
+
+// Send message via Python API (which triggers Go WebSocket broadcast)
+async function sendMessageToPython(channelId, content) {
+    try {
+        console.log(`📡 Sending to Python API: /api/channels/${channelId}/messages`);
+        const response = await fetch(`/api/channels/${channelId}/messages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                content: content,
+                message_type: 'text'
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Message sent via Python API:', data);
+            // Real-time broadcast will be handled by Go WebSocket via Python trigger
+        } else {
+            console.error('❌ Failed to send message via Python API:', response.status);
         }
-    });
-    // Typing indicators
-    let typingTimer = null;
-    messageInput.addEventListener('input', () => {
-        if (socket && currentChannelId) {
-            socket.startTyping(currentChannelId);
-            if (typingTimer)
-                clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                if (socket && currentChannelId) {
-                    socket.stopTyping(currentChannelId);
-                }
-            }, 1000);
-        }
-    });
+    } catch (error) {
+        console.error('❌ Error sending message to Python API:', error);
+    }
 }
-;
-// Helper functions
+
+// Create message element
 function createMessageElement(content, options) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message received'; // All messages on left side
-    const time = options.timestamp ?
-        new Date(options.timestamp).toLocaleTimeString() :
+    
+    const time = options.timestamp ? 
+        new Date(options.timestamp).toLocaleTimeString() : 
         'Now';
+    
     messageDiv.innerHTML = `
         <div class="message-avatar">
-            ${options.pfp_path ?
-        `<img src="${options.pfp_path}" alt="${options.username}">` :
-        (options.username ? options.username[0] : 'U')}
+            ${options.pfp_path ? 
+                `<img src="${options.pfp_path}" alt="${options.username}" class="avatar">` : 
+                `<div class="avatar-placeholder">${options.username?.charAt(0) || 'U'}</div>`
+            }
         </div>
         <div class="message-content">
             <div class="message-header">
-                <span class="message-author">${options.username || 'Unknown User'}</span>
+                <span class="message-username">${options.username || 'User'}</span>
                 <span class="message-time">${time}</span>
             </div>
             <div class="message-text">${content}</div>
         </div>
     `;
+    
     return messageDiv;
 }
-function displayChannelMessage(data) {
-    if (!chatMessages)
-        return;
-    const messageElement = createMessageElement(data.content, {
-        username: data.username,
-        pfp_path: data.pfp_path,
-        timestamp: data.created_at || data.timestamp
-    });
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-function showUserJoinedMessage(data) {
-    if (!chatMessages)
-        return;
-    const systemMsg = document.createElement('div');
-    systemMsg.className = 'system-message';
-    systemMsg.innerHTML = `<span>👋 ${data.username} joined the channel</span>`;
-    chatMessages.appendChild(systemMsg);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-function showUserLeftMessage(data) {
-    if (!chatMessages)
-        return;
-    const systemMsg = document.createElement('div');
-    systemMsg.className = 'system-message';
-    systemMsg.innerHTML = `<span>👋 ${data.username} left the channel</span>`;
-    chatMessages.appendChild(systemMsg);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-function showTypingIndicator(username) {
-    if (!chatMessages)
-        return;
-    // Remove existing typing indicators
-    const existingIndicator = chatMessages.querySelector('.typing-indicator');
-    if (existingIndicator) {
-        existingIndicator.remove();
-    }
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'typing-indicator';
-    typingDiv.innerHTML = `<span>${username} is typing...</span>`;
-    chatMessages.appendChild(typingDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    // Remove after 3 seconds
-    setTimeout(() => {
-        if (typingDiv.parentNode) {
-            typingDiv.remove();
-        }
-    }, 3000);
-}
+
+// Display message history
 function displayMessageHistory(data) {
-    var _a, _b;
-    if (!chatMessages)
-        return;
+    if (!chatMessages) return;
+    
     console.log('📋 Displaying message history:', data);
-    // Clear loading indicator
+    
+    // Clear existing messages
     chatMessages.innerHTML = '';
-    // Get messages from the data (Go server sends it in data field)
-    const messages = ((_a = data.data) === null || _a === void 0 ? void 0 : _a.messages) || ((_b = data.Data) === null || _b === void 0 ? void 0 : _b.messages) || data.messages || [];
-    console.log('📋 Messages extracted:', messages);
+    
+    const messages = data.messages || [];
+    
     if (messages.length === 0) {
-        // Show welcome message for empty channels
         chatMessages.innerHTML = `
             <div class="welcome-message">
                 <div class="welcome-icon">
@@ -372,12 +317,13 @@ function displayMessageHistory(data) {
                 </div>
                 <div class="welcome-text">
                     <h3>Welcome to the channel!</h3>
-                    <p>This is the beginning of your conversation. Say hello!</p>
+                    <p>Start the conversation by sending a message.</p>
                 </div>
             </div>
         `;
         return;
     }
+    
     // Display messages
     messages.forEach((message) => {
         const messageElement = createMessageElement(message.content || message.Content, {
@@ -387,8 +333,50 @@ function displayMessageHistory(data) {
         });
         chatMessages.appendChild(messageElement);
     });
+    
     // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
     console.log(`✅ Displayed ${messages.length} messages`);
 }
-console.log('✅ Channels TypeScript loaded successfully!');
+
+// Set up tab switching (Messages/Members)
+function setupTabSwitching() {
+    console.log('🔍 Setting up tab switching');
+    
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    
+    console.log('📋 Found tabs:', {
+        tabBtns: tabBtns.length,
+        tabPanels: tabPanels.length
+    });
+    
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.getAttribute('data-tab');
+            console.log('📍 Tab clicked:', tabName);
+            
+            // Remove active class from all tabs and panels
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanels.forEach(p => p.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            btn.classList.add('active');
+            
+            // Show corresponding panel
+            if (tabName) {
+                const panel = document.getElementById(`${tabName}-panel`);
+                if (panel) {
+                    panel.classList.add('active');
+                    console.log('✅ Switched to tab:', tabName);
+                } else {
+                    console.warn('⚠️ Panel not found for tab:', tabName);
+                }
+            }
+        });
+    });
+    
+    console.log('✅ Tab switching set up for', tabBtns.length, 'tabs');
+}
+
+console.log('✅ Channels script loaded successfully!');

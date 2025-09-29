@@ -684,11 +684,16 @@ func main() {
 	log.Println("🚀 Starting Go WebSocket server...")
 
 	// Get port from environment variable (Render sets this)
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080" // Default for local development
+	portStr := os.Getenv("PORT")
+	if portStr == "" {
+		portStr = "8080" // Default for local development
 	}
-	log.Printf("📡 Port: %s", port)
+	
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		log.Fatal("❌ Invalid port number:", err)
+	}
+	log.Printf("📡 Port: %d", port)
 
 	// Get database URL
 	dbURL := os.Getenv("DATABASE_URL")
@@ -767,16 +772,76 @@ func main() {
 		w.Write([]byte("Go server is running!"))
 	})
 
-	log.Printf("🚀 WebSocket server starting on port %s", port)
-	log.Printf("🌐 Binding to: 0.0.0.0:%s (all interfaces)", port)
-	log.Printf("🌐 WebSocket endpoint: ws://localhost:%s/ws", port)
-	log.Printf("🌐 WebSocket endpoint: ws://127.0.0.1:%s/ws", port)
-	log.Printf("🌐 WebSocket endpoint: ws://192.168.56.131:%s/ws", port)
-	log.Printf("❤️  Health check: http://localhost:%s/health", port)
-	log.Printf("❤️  Health check: http://127.0.0.1:%s/health", port)
-	log.Printf("🧪 Test endpoint: http://localhost:%s/test", port)
+	// Server configuration
+	host := "0.0.0.0"
+	
+	// Start WebSocket server
+	log.Printf("🚀 WebSocket server starting on port %d", port)
+	log.Printf("🌐 Binding to: %s:%d (all interfaces)", host, port)
+	log.Printf("🌐 WebSocket endpoint: ws://%s:%d/ws", "localhost", port)
+	log.Printf("🌐 WebSocket endpoint: ws://%s:%d/ws", "127.0.0.1", port)
+	log.Printf("🌐 WebSocket endpoint: ws://%s:%d/ws", "192.168.56.131", port)
+	log.Printf("❤️  Health check: http://%s:%d/health", "localhost", port)
+	log.Printf("❤️  Health check: http://%s:%d/health", "127.0.0.1", port)
+	log.Printf("🧪 Test endpoint: http://%s:%d/test", "localhost", port)
+	log.Printf("📡 Broadcast API: http://%s:%d/api/broadcast", "localhost", port)
 
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal("❌ Server failed to start:", err)
+
+	// Broadcast API endpoint for Python to trigger WebSocket broadcasts
+	http.HandleFunc("/api/broadcast", func(w http.ResponseWriter, r *http.Request) {
+		handleBroadcastAPI(hub, w, r)
+	})
+
+	// Start the server
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), nil))
+}
+
+// Handle broadcast API requests from Python
+func handleBroadcastAPI(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	// Enable CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
 	}
+
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Parse the broadcast request
+	var broadcastReq struct {
+		Type      string      `json:"type"`
+		ChannelID interface{} `json:"channel_id"`
+		Message   interface{} `json:"message"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&broadcastReq); err != nil {
+		log.Printf("❌ Failed to decode broadcast request: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("📡 Received broadcast request: type=%s, channel_id=%v", broadcastReq.Type, broadcastReq.ChannelID)
+
+	// Create WebSocket message for broadcasting
+	wsMessage := WSMessage{
+		Type:      MessageType(broadcastReq.Type),
+		ChannelID: broadcastReq.ChannelID,
+		Data:      broadcastReq.Message,
+		Timestamp: time.Now(),
+	}
+
+	// Broadcast to all connected clients in the channel
+	log.Printf("🔄 About to broadcast to channel %v, connected clients: %d", broadcastReq.ChannelID, len(hub.Clients))
+	hub.broadcastToChannel(wsMessage)
+
+	log.Printf("✅ Broadcasted message to channel %v", broadcastReq.ChannelID)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "success"}`))
 }
