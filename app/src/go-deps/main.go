@@ -174,16 +174,6 @@ func NewHub(db *sql.DB) *Hub {
 
 // Main Hub loop - handles all WebSocket events
 func (h *Hub) Run() {
-	// Start a separate goroutine to handle broadcast messages
-	go func() {
-		log.Printf("🚀 Broadcast goroutine started")
-		for message := range h.Broadcast {
-			log.Printf("🎯 Hub received broadcast message: type='%s' from user %s", message.Type, message.Username)
-			h.handleBroadcast(message)
-		}
-		log.Printf("❌ Broadcast goroutine ended")
-	}()
-	
 	for {
 		select {
 		case client := <-h.Register:
@@ -216,7 +206,10 @@ func (h *Hub) Run() {
 			// Tell everyone this user went offline
 			h.broadcastUserStatus(client.UserID, client.Username, false)
 
-		// Broadcast messages are now handled by separate goroutine
+		case message := <-h.Broadcast:
+			// Broadcast message to all users
+			log.Printf("🎯 Hub received broadcast message: type='%s' from user %s", message.Type, message.Username)
+			h.handleBroadcast(message)
 		}
 	}
 }
@@ -227,18 +220,16 @@ func (h *Hub) handleBroadcast(message WSMessage) {
 	switch message.Type {
 	case NewMessage:
 		h.broadcastToChannel(message)
-	case ChatMessage:
-		h.handleChatMessage(message)
-	case UserTyping:
-		h.handleTyping(message)
 	case JoinChannel:
 		h.handleJoinChannel(message)
 	case LeaveChannel:
 		h.handleLeaveChannel(message)
-	case SendChannelMessage:
-		h.handleSendChannelMessage(message)
 	case GetChannelMessages:
 		h.handleGetChannelMessages(message)
+	case SendChannelMessage:
+		h.handleSendChannelMessage(message)
+	case UserTyping:
+		h.handleTyping(message)
 	case "typing_start":
 		h.handleDirectTyping(message, true)
 	case "typing_stop":
@@ -595,12 +586,12 @@ func (c *Client) readPump() {
 
 		log.Printf("📨 Received message from %s: type='%s' (len=%d)", c.Username, message.Type, len(string(message.Type)))
 
-		// Handle messages - direct call only for channels, broadcast for everything else
+		// Handle channel messages directly, others through broadcast
 		if message.Type == "get_channel_messages" {
-			log.Printf("🧪 DIRECT CHANNEL TEST: Calling handleGetChannelMessages directly")
+			log.Printf("🧪 DIRECT CHANNEL: Calling handleGetChannelMessages directly")
 			c.Hub.handleGetChannelMessages(message)
 		} else {
-			// Handle all other messages (including chat) through broadcast channel
+			// Handle all other messages through broadcast channel
 			log.Printf("🚀 Sending to broadcast channel: %s", message.Type)
 			select {
 			case c.Hub.Broadcast <- message:

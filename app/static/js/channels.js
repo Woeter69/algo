@@ -47,18 +47,8 @@ document.addEventListener('DOMContentLoaded', function () {
             socketExists: !!socket
         });
         
-        // Force a fresh connection on page load
-        if (socket.connected) {
-            console.log('🔄 Existing connection found, disconnecting to ensure fresh connection');
-            socket.disconnect();
-        }
-        
-        try {
-            socket.connect(currentUserId.toString(), currentUsername, currentUserPfp);
-            console.log('✅ Connection attempt initiated');
-        } catch (error) {
-            console.error('❌ Connection attempt failed:', error);
-        }
+        // Connect to Go WebSocket server (same as chat.js)
+        socket.connect(currentUserId.toString(), currentUsername, currentUserPfp);
         
         // WebSocket event handlers (using chat.js pattern)
         socket.on('connect', () => {
