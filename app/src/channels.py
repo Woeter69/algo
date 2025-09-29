@@ -586,6 +586,62 @@ def send_message(channel_id):
         cursor.close()
         conn.close()
 
+@channels_bp.route('/channels/<int:channel_id>/members', methods=['GET'])
+@require_auth
+def get_channel_members(channel_id):
+    """Get members of a specific channel using channel_members table"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Get channel members directly from channel_members table
+        query = """
+            SELECT 
+                u.user_id, 
+                u.username, 
+                u.firstname, 
+                u.lastname, 
+                u.pfp_path,
+                cm.role,
+                cm.joined_at,
+                CASE WHEN u.last_login > NOW() - INTERVAL '5 minutes' THEN true ELSE false END as is_online
+            FROM channel_members cm
+            JOIN users u ON cm.user_id = u.user_id
+            WHERE cm.channel_id = %s
+            ORDER BY is_online DESC, u.username ASC
+        """
+        
+        cursor.execute(query, (channel_id,))
+        members = cursor.fetchall()
+        
+        # Convert to list of dictionaries
+        members_list = []
+        for member in members:
+            members_list.append({
+                'user_id': member['user_id'],
+                'username': member['username'],
+                'firstname': member['firstname'],
+                'lastname': member['lastname'],
+                'pfp_path': member['pfp_path'],
+                'role': member['role'],
+                'joined_at': member['joined_at'].isoformat() if member['joined_at'] else None,
+                'is_online': member['is_online']
+            })
+        
+        logger.info(f"✅ Retrieved {len(members_list)} members for channel {channel_id}")
+        return jsonify({
+            'success': True,
+            'members': members_list,
+            'count': len(members_list)
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting channel members: {e}")
+        return jsonify({'error': 'Failed to get channel members'}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 @channels_bp.route('/messages/<int:message_id>/reactions', methods=['POST'])
 @require_auth
 def add_reaction(message_id):

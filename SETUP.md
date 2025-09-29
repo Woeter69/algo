@@ -33,7 +33,7 @@ For experienced developers who want to get up and running fast:
 # 1. Clone and setup
 git clone <your-repo-url>
 cd algo
-chmod +x *.sh app/src/go-deps/*.sh
+chmod +x *.sh app/src/*.sh
 
 # 2. Install dependencies (Ubuntu/Debian)
 sudo apt update && sudo apt install -y python3 python3-pip python3-venv postgresql postgresql-contrib
@@ -46,7 +46,7 @@ python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
 # 4. Setup Go dependencies
-cd app/src/go-deps/ && go mod tidy && cd ../../../
+cd app/src/ && go mod tidy && cd ../../
 
 # 5. Configure database and environment (see detailed setup)
 # 6. Start application
@@ -117,7 +117,7 @@ cd algo
 
 # Make scripts executable
 chmod +x start-all.sh cleanup.sh
-chmod +x app/src/go-deps/start-sockets.sh
+chmod +x app/src/start-go-server.sh
 ```
 
 ### 4. Python Environment
@@ -139,16 +139,16 @@ pip install -r requirements.txt
 
 ```bash
 # Navigate to Go module directory
-cd app/src/go-deps/
+cd app/src/
 
 # Download Go dependencies
 go mod tidy
 
 # Test build
-go build -o ../websocket-server .
+go build -o websocket-server .
 
 # Return to project root
-cd ../../../
+cd ../../
 ```
 
 ### 6. Database Setup
@@ -269,7 +269,7 @@ go env GOPATH
 go env GOROOT
 
 # Reinstall Go modules
-cd app/src/go-deps/
+cd app/src/
 rm go.sum
 go mod tidy
 ```
@@ -301,7 +301,7 @@ sudo -u postgres createdb algo_database
 ```bash
 # Fix script permissions
 chmod +x *.sh
-chmod +x app/src/go-deps/*.sh
+chmod +x app/src/*.sh
 
 # Fix directory permissions
 sudo chown -R $USER:$USER .
@@ -331,13 +331,13 @@ sudo chown -R $USER:$USER .
 ./cleanup.sh
 
 # Start only Go WebSocket server
-cd app/src/go-deps/ && ./start-sockets.sh
+cd app/src/ && ./start-go-server.sh
 
 # Start only Flask server
 source venv/bin/activate && python app/src/app.py
 
 # Build Go server manually
-cd app/src/go-deps/ && go build -o ../websocket-server .
+cd app/src/ && go build -o websocket-server .
 ```
 
 ### File Structure
@@ -346,8 +346,10 @@ algo/
 ├── app/
 │   ├── src/
 │   │   ├── app.py              # Main Flask application
-│   │   ├── sockets.go          # Go WebSocket server
-│   │   └── go-deps/            # Go module dependencies
+│   │   ├── main.go             # Go WebSocket server (main)
+│   │   ├── sockets.go          # Go WebSocket handlers
+│   │   ├── channels.go         # Go channels functionality
+│   │   └── oauth.go            # Go OAuth handlers
 │   ├── static/
 │   │   ├── js/
 │   │   │   ├── go-websocket-client.js  # WebSocket client

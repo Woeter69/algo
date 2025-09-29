@@ -2,9 +2,9 @@ services:
   - type: web
     name: algo-websocket-server
     env: go
-    rootDir: app/src/go-deps
-    buildCommand: go build -o ../websocket-server ../sockets.go
-    startCommand: cd .. && ./websocket-server
+    rootDir: app/src
+    buildCommand: go build -o websocket-server .
+    startCommand: ./websocket-server
     plan: starter
     envVars:
       - key: DATABASE_URL

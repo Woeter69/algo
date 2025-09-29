@@ -450,6 +450,20 @@ function setupTabSwitching() {
                 if (panel) {
                     panel.classList.add('active');
                     console.log('✅ Switched to tab:', tabName);
+                    
+                    // Load members when Members tab is clicked (backend still calls it 'connections')
+                    if (tabName === 'members' || tabName === 'connections') {
+                        console.log('🔍 Members tab clicked, loading from database...');
+                        if (currentChannelId) {
+                            loadChannelMembers(currentChannelId);
+                        } else {
+                            console.error('❌ No currentChannelId set');
+                            const targetPanel = document.getElementById('connections-panel') || document.getElementById('members-panel');
+                            if (targetPanel) {
+                                targetPanel.innerHTML = '<div style="padding: 20px; text-align: center;">❌ No channel selected</div>';
+                            }
+                        }
+                    }
                 } else {
                     console.warn('⚠️ Panel not found for tab:', tabName);
                 }
@@ -458,6 +472,155 @@ function setupTabSwitching() {
     });
     
     console.log('✅ Tab switching set up for', tabBtns.length, 'tabs');
+}
+
+// Load channel members from API
+async function loadChannelMembers(channelId) {
+    console.log(`📋 Loading members for channel ${channelId}`);
+    
+    // Show loading state immediately
+    const membersPanel = document.getElementById('connections-panel') || document.getElementById('members-panel');
+    if (membersPanel) {
+        membersPanel.innerHTML = `
+            <div class="loading-state" style="text-align: center; padding: 40px;">
+                <div>Loading members...</div>
+            </div>
+        `;
+    }
+    
+    try {
+        console.log(`🌐 Fetching: /api/channels/${channelId}/members`);
+        const response = await fetch(`/api/channels/${channelId}/members`);
+        console.log(`📡 Response status: ${response.status}`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Members API response:', data);
+            
+            if (data.success && data.members && data.members.length > 0) {
+                console.log(`📋 Found ${data.members.length} members in database`);
+                displayMembers(data.members);
+            } else {
+                console.log('📋 No members found in database, API returned:', data);
+                // Show empty state instead of mock data
+                const membersPanel = document.getElementById('connections-panel') || document.getElementById('members-panel');
+                if (membersPanel) {
+                    membersPanel.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #666;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">👥</div>
+                            <h3>No members found</h3>
+                            <p>Run the SQL to add members to channel_members table:</p>
+                            <code style="background: #f5f5f5; padding: 8px; border-radius: 4px; display: block; margin-top: 10px; font-size: 12px;">
+                                INSERT INTO channel_members (channel_id, user_id, role) VALUES (1, 9, 'admin'), (1, 10, 'member');
+                            </code>
+                        </div>
+                    `;
+                }
+            }
+        } else {
+            console.error('❌ Failed to load members:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('❌ Error response:', errorText);
+            displayMembersError(`API Error: ${response.status} - ${errorText}`);
+        }
+    } catch (error) {
+        console.error('❌ Error loading members:', error);
+        displayMembersError(`Network Error: ${error.message}`);
+    }
+}
+
+// Display mock members as fallback
+function displayMockMembers() {
+    const mockMembers = [
+        { user_id: 9, username: 'Woeter', pfp_path: 'https://i.ibb.co/jtyZsc1/ea279cd51508.png', is_online: true },
+        { user_id: 10, username: 'AJAX', pfp_path: 'https://i.ibb.co/jtyZsc1/ea279cd51508.png', is_online: true }
+    ];
+    console.log('📋 Showing mock members as fallback');
+    displayMembers(mockMembers);
+}
+
+// Display members in the Members tab
+function displayMembers(members) {
+    const membersPanel = document.getElementById('connections-panel') || document.getElementById('members-panel');
+    if (!membersPanel) {
+        console.error('❌ Members panel not found');
+        return;
+    }
+    
+    if (!members || members.length === 0) {
+        membersPanel.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <div class="empty-text">
+                    <h3>No members found</h3>
+                    <p>This channel doesn't have any members yet.</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    let membersHTML = `
+        <div class="members-list" style="padding: 16px;">
+            <h4 style="margin-bottom: 16px; color: #333; font-size: 16px;">Members — ${members.length}</h4>
+            <div class="members-grid">
+    `;
+    
+    // Add all members without online/offline separation
+    members.forEach(member => {
+        // Generate auto avatar if no pfp_path or if it's empty
+        let avatarUrl = member.pfp_path;
+        if (!avatarUrl || avatarUrl.trim() === '') {
+            const name = encodeURIComponent(`${member.firstname || ''} ${member.lastname || ''}`.trim() || member.username);
+            const colors = ['6D28D9', '8B5CF6', '3B82F6', '10B981', 'F59E0B', 'EF4444', 'EC4899', '6366F1'];
+            const color = colors[member.user_id % colors.length];
+            avatarUrl = `https://ui-avatars.com/api/?name=${name}&background=${color}&color=fff&size=150`;
+        }
+        
+        // Role badge
+        const roleBadge = member.role === 'admin' ? 
+            '<span style="background: #dc2626; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">ADMIN</span>' :
+            member.role === 'moderator' ? 
+            '<span style="background: #7c3aed; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">MOD</span>' : '';
+        
+        membersHTML += `
+            <div class="member-item" style="display: flex; align-items: center; padding: 10px; margin-bottom: 8px; border-radius: 8px; background: #f9f9f9; border: 1px solid #e5e7eb;">
+                <img src="${avatarUrl}" 
+                     alt="${member.username}" 
+                     style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; flex-shrink: 0;"
+                     onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(member.username)}&background=6B7280&color=fff&size=150'">
+                <div class="member-info" style="flex: 1; min-width: 0;">
+                    <div class="member-name" style="font-weight: 500; font-size: 15px; color: #333; display: flex; align-items: center;">
+                        ${member.username}${roleBadge}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    membersHTML += `
+            </div>
+        </div>
+    `;
+    
+    membersPanel.innerHTML = membersHTML;
+    console.log(`✅ Displayed ${members.length} members`);
+}
+
+// Display error in members tab
+function displayMembersError(message) {
+    const membersPanel = document.getElementById('connections-panel') || document.getElementById('members-panel');
+    if (membersPanel) {
+        membersPanel.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <div class="error-text">
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                </div>
+            </div>
+        `;
+    }
 }
 
 // Typing indicator system
@@ -544,5 +707,45 @@ function updateTypingIndicator() {
         </style>
     `;
 }
+
+// Online status management for channels
+let onlineUsers = new Set();
+
+async function fetchOnlineStatus() {
+    try {
+        const response = await fetch('/api/online_status');
+        if (response.ok) {
+            const data = await response.json();
+            onlineUsers.clear();
+            data.online_users.forEach(userId => onlineUsers.add(userId));
+            console.log('📊 Online users updated:', Array.from(onlineUsers));
+            
+            // Update any displayed members if Members tab is active
+            const membersPanel = document.getElementById('connections-panel') || document.getElementById('members-panel');
+            if (membersPanel && membersPanel.innerHTML.includes('member-item')) {
+                // Refresh members display with updated online status
+                const currentTab = document.querySelector('.tab-btn.active');
+                if (currentTab && (currentTab.getAttribute('data-tab') === 'members' || currentTab.getAttribute('data-tab') === 'connections')) {
+                    if (currentChannelId) {
+                        loadChannelMembers(currentChannelId);
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching online status:', error);
+    }
+}
+
+function initializeOnlineStatus() {
+    // Fetch online status immediately
+    fetchOnlineStatus();
+    
+    // Update every 30 seconds
+    setInterval(fetchOnlineStatus, 30000);
+}
+
+// Initialize online status tracking when page loads
+initializeOnlineStatus();
 
 console.log('✅ Channels script loaded successfully!');
