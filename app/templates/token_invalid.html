@@ -18,21 +18,22 @@
     <header>
         <div class="container">
             <nav>
-                <a href="{{ url_for('home') }}" class="logo">ALGO</a>
-                <ul class="nav-links" id="main-navigation" role="navigation" aria-label="Main">
-                    <li><a href="{{ url_for('home') }}">Home</a></li>
+                <a href="#" class="logo" id="home-link">algo</a>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
                     <li><a href="#" data-section="browse">Browse Alumni</a></li>
                     <li><a href="#" data-section="jobs">Job Board</a></li>
                     <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
+                    <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('login') }}">Login</a></li>
                     <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
                 </ul>
-                <button class="hamburger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="main-navigation">
-                    <div class="line1" aria-hidden="true"></div>
-                    <div class="line2" aria-hidden="true"></div>
-                    <div class="line3" aria-hidden="true"></div>
-                </button>
+                <div class="hamburger">
+                    <div class="line1"></div>
+                    <div class="line2"></div>
+                    <div class="line3"></div>
+                </div>
             </nav>
         </div>
     </header>
