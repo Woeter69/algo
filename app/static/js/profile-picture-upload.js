@@ -4,7 +4,6 @@ function initProfilePictureUpload() {
     const fileInput = document.getElementById('pfp-file-input');
     const profileImg = document.getElementById('profile-image');
     const uploadStatus = document.getElementById('upload-status');
-
     // Create file input if it doesn't exist
     if (!fileInput) {
         const input = document.createElement('input');
@@ -14,36 +13,31 @@ function initProfilePictureUpload() {
         input.style.display = 'none';
         document.body.appendChild(input);
     }
-
     // Handle upload button click
     if (uploadBtn) {
-        uploadBtn.addEventListener('click', function() {
+        uploadBtn.addEventListener('click', function () {
             document.getElementById('pfp-file-input').click();
         });
     }
-
     // Handle file selection
-    document.getElementById('pfp-file-input').addEventListener('change', function(e) {
-        const file = e.target.files[0];
+    document.getElementById('pfp-file-input').addEventListener('change', function (e) {
+        const target = e.target;
+        const file = target.files?.[0];
         if (file) {
             uploadProfilePicture(file);
         }
     });
 }
-
 function uploadProfilePicture(file) {
     const uploadStatus = document.getElementById('upload-status');
     const profileImg = document.getElementById('profile-image');
-    
     // Show loading state
     if (uploadStatus) {
         uploadStatus.innerHTML = '<div class="alert alert-info">Uploading image...</div>';
     }
-
     // Create FormData
     const formData = new FormData();
     formData.append('profile_picture', file);
-
     // Upload to server
     fetch('/api/update_profile_picture', {
         method: 'POST',
@@ -52,14 +46,13 @@ function uploadProfilePicture(file) {
             'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => response.json())
-    .then(data => {
+        .then(response => response.json())
+        .then(data => {
         if (data.success) {
             // Update profile image
             if (profileImg && data.pfp_url) {
                 profileImg.src = data.pfp_url;
             }
-            
             // Show success message
             if (uploadStatus) {
                 uploadStatus.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
@@ -67,27 +60,26 @@ function uploadProfilePicture(file) {
                     uploadStatus.innerHTML = '';
                 }, 3000);
             }
-            
             // Refresh page to update all profile images
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
-        } else {
+        }
+        else {
             // Show error message
             if (uploadStatus) {
                 uploadStatus.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
             }
         }
     })
-    .catch(error => {
+        .catch(error => {
         console.error('Error uploading profile picture:', error);
         if (uploadStatus) {
             uploadStatus.innerHTML = '<div class="alert alert-danger">Error uploading image. Please try again.</div>';
         }
     });
 }
-
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initProfilePictureUpload();
 });

@@ -1,40 +1,36 @@
 // Limited Dashboard JavaScript
-
 // Mobile Navigation
-const hamburger = document.querySelector('.hamburger');
-const navLinks = document.querySelector('.nav-links');
-const links = document.querySelectorAll('.nav-links li');
-
-if (hamburger) {
-    hamburger.addEventListener('click', () => {
+const hamburgerLimited = document.querySelector('.hamburger');
+const navLinksLimited = document.querySelector('.nav-links');
+const linksLimited = document.querySelectorAll('.nav-links li');
+if (hamburgerLimited) {
+    hamburgerLimited.addEventListener('click', () => {
         // Toggle Nav
-        navLinks.classList.toggle('open');
-        
+        navLinksLimited?.classList.toggle('open');
         // Animate Links
-        links.forEach((link, index) => {
-            if (link.style.animation) {
-                link.style.animation = '';
-            } else {
-                link.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
+        linksLimited.forEach((link, index) => {
+            const element = link;
+            if (element.style.animation) {
+                element.style.animation = '';
+            }
+            else {
+                element.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
             }
         });
-        
         // Hamburger Animation
-        hamburger.classList.toggle('toggle');
+        hamburgerLimited.classList.toggle('toggle');
     });
 }
-
 // Close mobile menu when clicking on a nav link
-links.forEach(link => {
+linksLimited.forEach(link => {
     link.addEventListener('click', () => {
-        navLinks.classList.remove('open');
-        hamburger.classList.remove('toggle');
-        links.forEach(link => {
+        navLinksLimited?.classList.remove('open');
+        hamburgerLimited?.classList.remove('toggle');
+        linksLimited.forEach(link => {
             link.style.animation = '';
         });
     });
 });
-
 // Scroll Header Effect
 window.addEventListener('scroll', () => {
     const header = document.querySelector('header');
@@ -42,24 +38,20 @@ window.addEventListener('scroll', () => {
         header.classList.toggle('scrolled', window.scrollY > 50);
     }
 });
-
 // Feature Card Interactions
 const featureCards = document.querySelectorAll('.feature-card.locked');
-
 featureCards.forEach(card => {
     card.addEventListener('click', () => {
         // Show tooltip or modal about verification requirement
         showVerificationTooltip(card);
     });
 });
-
 function showVerificationTooltip(card) {
     // Remove any existing tooltips
     const existingTooltip = document.querySelector('.verification-tooltip');
     if (existingTooltip) {
         existingTooltip.remove();
     }
-    
     // Create tooltip
     const tooltip = document.createElement('div');
     tooltip.className = 'verification-tooltip';
@@ -69,7 +61,6 @@ function showVerificationTooltip(card) {
             <p>This feature requires verification. <a href="/verification_request">Request verification</a> to unlock.</p>
         </div>
     `;
-    
     // Position tooltip
     const rect = card.getBoundingClientRect();
     tooltip.style.position = 'fixed';
@@ -79,9 +70,7 @@ function showVerificationTooltip(card) {
     tooltip.style.height = rect.height + 'px';
     tooltip.style.pointerEvents = 'none';
     tooltip.style.zIndex = '1000';
-    
     document.body.appendChild(tooltip);
-    
     // Remove tooltip after 3 seconds
     setTimeout(() => {
         if (tooltip.parentNode) {
@@ -89,7 +78,6 @@ function showVerificationTooltip(card) {
         }
     }, 3000);
 }
-
 // Smooth scrolling for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -103,10 +91,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         }
     });
 });
-
 // Add CSS for tooltip
-const style = document.createElement('style');
-style.textContent = `
+const tooltipStyle = document.createElement('style');
+tooltipStyle.textContent = `
     .verification-tooltip {
         background: rgba(0, 0, 0, 0.9);
         color: white;
@@ -175,8 +162,7 @@ style.textContent = `
         backdrop-filter: blur(10px);
     }
 `;
-document.head.appendChild(style);
-
+document.head.appendChild(tooltipStyle);
 // Add mobile navigation styles
 const mobileStyle = document.createElement('style');
 mobileStyle.textContent = `

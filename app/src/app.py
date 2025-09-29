@@ -720,24 +720,65 @@ def admin_dashboard():
         
         username, role, pfp_path = admin_info
         
-        # Get pending verification requests count
-        cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'pending' AND role != 'unverified'")
-        pending_requests = cur.fetchone()[0]
+        # Get pending verification requests count and list
+        try:
+            cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'pending' AND role != 'unverified'")
+            pending_count_result = cur.fetchone()
+            pending_count = pending_count_result[0] if pending_count_result else 0
+            
+            # Get actual pending requests for the template
+            cur.execute("""
+                SELECT user_id, username, email, role, pfp_path, registration_date 
+                FROM users 
+                WHERE verification_status = 'pending' AND role != 'unverified'
+                ORDER BY registration_date DESC
+            """)
+            pending_requests_data = cur.fetchall()
+            pending_requests = []
+            for row in pending_requests_data:
+                pending_requests.append({
+                    'user_id': row[0],
+                    'username': row[1],
+                    'email': row[2],
+                    'requested_role': row[3],
+                    'pfp_path': row[4],
+                    'created_at': row[5]  # Template expects 'created_at'
+                })
+            
+        except Exception as e:
+            app.logger.error(f"Error getting pending requests: {e}")
+            pending_count = 0
+            pending_requests = []
         
         # Get total users count
-        cur.execute("SELECT COUNT(*) FROM users")
-        total_users = cur.fetchone()[0]
+        try:
+            cur.execute("SELECT COUNT(*) FROM users")
+            total_users_result = cur.fetchone()
+            total_users = total_users_result[0] if total_users_result else 0
+        except Exception as e:
+            app.logger.error(f"Error getting total users: {e}")
+            total_users = 0
         
         # Get verified users count
-        cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'verified'")
-        verified_users = cur.fetchone()[0]
+        try:
+            cur.execute("SELECT COUNT(*) FROM users WHERE verification_status = 'verified'")
+            verified_users_result = cur.fetchone()
+            verified_users = verified_users_result[0] if verified_users_result else 0
+        except Exception as e:
+            app.logger.error(f"Error getting verified users: {e}")
+            verified_users = 0
         
         # Get recent registrations (last 7 days)
-        cur.execute("""
-            SELECT COUNT(*) FROM users 
-            WHERE registration_date >= NOW() - INTERVAL '7 days'
-        """)
-        recent_registrations = cur.fetchone()[0]
+        try:
+            cur.execute("""
+                SELECT COUNT(*) FROM users 
+                WHERE registration_date >= NOW() - INTERVAL '7 days'
+            """)
+            recent_registrations_result = cur.fetchone()
+            recent_registrations = recent_registrations_result[0] if recent_registrations_result else 0
+        except Exception as e:
+            app.logger.error(f"Error getting recent registrations: {e}")
+            recent_registrations = 0
         
         cur.close()
         mydb.close()
@@ -746,15 +787,91 @@ def admin_dashboard():
                              username=username,
                              role=role,
                              pfp_path=pfp_path,
+                             pending_count=pending_count,
                              pending_requests=pending_requests,
                              total_users=total_users,
-                             verified_users=verified_users,
+                             total_verified=verified_users,
                              recent_registrations=recent_registrations)
         
     except Exception as e:
         app.logger.error(f"Error in admin_dashboard: {str(e)}")
         flash("Error loading admin dashboard", "error")
         return redirect(url_for('user_dashboard'))
+
+@app.route("/api/handle_verification_request", methods=["POST"])
+@user_roles.login_required
+@user_roles.admin_required
+def handle_verification_request():
+    """Handle approve/reject verification requests"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        action = data.get('action')  # 'approve' or 'reject'
+        
+        if not user_id or action not in ['approve', 'reject']:
+            return {'success': False, 'message': 'Invalid request data'}, 400
+        
+        admin_id = session['user_id']
+        mydb = connection.get_db_connection()
+        cur = mydb.cursor()
+        
+        # Check if user exists and is pending
+        cur.execute("""
+            SELECT username, email, role FROM users 
+            WHERE user_id = %s AND verification_status = 'pending'
+        """, (user_id,))
+        
+        user_info = cur.fetchone()
+        if not user_info:
+            return {'success': False, 'message': 'User not found or not pending verification'}, 404
+        
+        username, email, current_role = user_info
+        
+        if action == 'approve':
+            # Approve the user
+            cur.execute("""
+                UPDATE users 
+                SET verification_status = 'verified', 
+                    verified_by = %s, 
+                    verified_at = NOW()
+                WHERE user_id = %s
+            """, (admin_id, user_id))
+            
+            message = f"Verification request approved for {username}"
+            
+        else:  # reject
+            # Reject the user - set back to unverified
+            cur.execute("""
+                UPDATE users 
+                SET verification_status = 'rejected',
+                    role = 'unverified',
+                    verified_by = %s,
+                    verified_at = NOW()
+                WHERE user_id = %s
+            """, (admin_id, user_id))
+            
+            message = f"Verification request rejected for {username}"
+        
+        mydb.commit()
+        
+        app.logger.info(f"Admin {admin_id} {action}d verification for user {user_id} ({username})")
+        
+        return {
+            'success': True,
+            'message': message,
+            'action': action,
+            'user_id': user_id
+        }
+        
+    except Exception as e:
+        app.logger.error(f"Error handling verification request: {str(e)}")
+        return {'success': False, 'message': 'Internal server error'}, 500
+    
+    finally:
+        if 'cur' in locals() and cur:
+            cur.close()
+        if 'mydb' in locals() and mydb:
+            mydb.close()
 
 @app.route("/limited_dashboard", methods=["GET"])
 @validators.login_required

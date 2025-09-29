@@ -131,10 +131,10 @@
                                 {% endif %}
                             </div>
                             <div class="request-actions">
-                                <button class="btn-approve" onclick="handleRequest('{{ request.id }}', 'approve')">
+                                <button class="btn-approve" onclick="handleRequest('{{ request.user_id }}', 'approve')">
                                     <i class="fas fa-check"></i> Approve
                                 </button>
-                                <button class="btn-reject" onclick="handleRequest('{{ request.id }}', 'reject')">
+                                <button class="btn-reject" onclick="handleRequest('{{ request.user_id }}', 'reject')">
                                     <i class="fas fa-times"></i> Reject
                                 </button>
                             </div>
@@ -259,6 +259,77 @@
                 });
             });
         });
+
+        // Handle approve/reject requests
+        async function handleRequest(userId, action) {
+            const button = event.target.closest('button');
+            const requestCard = button.closest('.request-card');
+            
+            // Disable buttons during request
+            const approveBtn = requestCard.querySelector('.btn-approve');
+            const rejectBtn = requestCard.querySelector('.btn-reject');
+            approveBtn.disabled = true;
+            rejectBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/handle_verification_request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        action: action
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    alert(`Request ${action}d successfully!`);
+                    
+                    // Remove the request card from the UI
+                    requestCard.style.transition = 'opacity 0.3s ease';
+                    requestCard.style.opacity = '0';
+                    setTimeout(() => {
+                        requestCard.remove();
+                        
+                        // Update pending count
+                        const pendingCountEl = document.getElementById('pending-count');
+                        if (pendingCountEl) {
+                            const currentCount = parseInt(pendingCountEl.textContent);
+                            pendingCountEl.textContent = Math.max(0, currentCount - 1);
+                        }
+                        
+                        // Check if no more requests
+                        const remainingRequests = document.querySelectorAll('.request-card');
+                        if (remainingRequests.length === 0) {
+                            document.getElementById('requests-grid').innerHTML = `
+                                <div class="empty-state">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <h3>All Caught Up!</h3>
+                                    <p>No pending verification requests at the moment.</p>
+                                </div>
+                            `;
+                        }
+                    }, 300);
+                } else {
+                    alert(`Error: ${result.message}`);
+                    // Re-enable buttons on error
+                    approveBtn.disabled = false;
+                    rejectBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error handling request:', error);
+                alert('An error occurred. Please try again.');
+                // Re-enable buttons on error
+                approveBtn.disabled = false;
+                rejectBtn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>

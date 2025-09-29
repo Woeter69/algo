@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for integrated Python + Go deployment
-FROM golang:1.21-alpine AS go-builder
+FROM golang:1.22-alpine AS go-builder
 
 # Build Go WebSocket server
 WORKDIR /app

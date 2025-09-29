@@ -75,9 +75,14 @@ compile_ts() {
     return 0
 }
 
-# Compile TypeScript files
-compile_ts "app/static/js/profile.ts" "profile.ts" || exit 1
-compile_ts "app/static/js/user_dashboard.ts" "user_dashboard.ts" || exit 1
+# Compile all TypeScript files using tsconfig.json
+echo "📄 Compiling all TypeScript files..."
+$TSC_CMD
+
+if [ $? -ne 0 ]; then
+    echo "❌ TypeScript compilation failed"
+    exit 1
+fi
 
 echo "✅ TypeScript compilation completed!"
 echo "📁 Compiled files are in app/static/js/"
