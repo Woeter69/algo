@@ -140,6 +140,10 @@ class GoWebSocketClient {
             case 'user_offline':
                 this.emit('user_offline', data);
                 break;
+            case 'messages_history':
+                console.log('📋 Emitting messages_history event:', data);
+                this.emit('messages_history', data);
+                break;
             default:
                 console.log('📨 Unknown message type:', type, data);
         }

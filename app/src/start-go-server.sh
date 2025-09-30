@@ -46,7 +46,7 @@ fi
 
 # Build and start the Go server
 echo "📦 Preparing Go module..."
-cd go-deps
+# Already in /src directory
 
 # Install dependencies
 echo "📦 Installing Go dependencies..."

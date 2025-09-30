@@ -71,7 +71,7 @@ DATABASE_URL=postgresql://user:password@localhost/algo_database
 
 ```bash
 # Navigate to Go directory
-cd app/src/go-deps/
+cd app/src/
 
 # Install OAuth dependencies
 go mod tidy

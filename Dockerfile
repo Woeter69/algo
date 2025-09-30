@@ -5,10 +5,10 @@ FROM golang:1.22-alpine AS go-builder
 WORKDIR /app
 
 # Initialize Go module and copy dependencies
-COPY app/src/go-deps/go.mod ./go.mod
+COPY app/src/go.mod ./go.mod
 
-# Copy Go source code as main.go (module entry point)
-COPY app/src/sockets.go ./main.go
+# Copy Go source code
+COPY app/src/*.go ./
 
 # Download dependencies and update go.sum
 RUN go mod tidy

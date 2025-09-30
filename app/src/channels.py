@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, session
-from werkzeug.security import check_password_hash
-import psycopg2
 from psycopg2.extras import RealDictCursor
-import os
+import logging
+import requests
+import json
 from datetime import datetime, timedelta
 import logging
 
@@ -14,6 +14,35 @@ channels_bp = Blueprint('channels', __name__)
 
 # Import database connection from connection module
 import connection
+
+# Function to broadcast messages to Go WebSocket server
+def broadcast_to_go_websocket(channel_id, message_data):
+    """Send message to Go WebSocket server for real-time broadcasting"""
+    try:
+        # Go WebSocket server internal API endpoint
+        go_websocket_url = "http://localhost:8080/api/broadcast"
+        
+        broadcast_payload = {
+            "type": "new_message",
+            "channel_id": channel_id,
+            "message": message_data
+        }
+        
+        # Send to Go server with short timeout
+        response = requests.post(
+            go_websocket_url, 
+            json=broadcast_payload, 
+            timeout=1.0  # Short timeout so we don't block the response
+        )
+        
+        if response.status_code == 200:
+            logger.info(f"✅ Broadcasted message to Go WebSocket for channel {channel_id}")
+        else:
+            logger.warning(f"⚠️ Go WebSocket returned status {response.status_code}")
+            
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"⚠️ Failed to reach Go WebSocket server: {e}")
+        # Don't raise - we don't want to fail the message send if WebSocket is down
 
 def get_db_connection():
     return connection.get_db_connection()
@@ -531,6 +560,19 @@ def send_message(channel_id):
             'reactions': []
         })
         
+        # Convert datetime objects to strings for JSON serialization
+        broadcast_message = dict(response_message)
+        for key, value in broadcast_message.items():
+            if hasattr(value, 'isoformat'):  # datetime object
+                broadcast_message[key] = value.isoformat()
+        
+        # Trigger Go WebSocket broadcast for real-time delivery
+        try:
+            broadcast_to_go_websocket(channel_id, broadcast_message)
+        except Exception as e:
+            logger.warning(f"Failed to broadcast to WebSocket: {e}")
+            # Don't fail the request if WebSocket broadcast fails
+        
         return jsonify({
             'message': 'Message sent successfully',
             'data': response_message
@@ -540,6 +582,62 @@ def send_message(channel_id):
         conn.rollback()
         logger.error(f"Error sending message: {e}")
         return jsonify({'error': 'Failed to send message'}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@channels_bp.route('/channels/<int:channel_id>/members', methods=['GET'])
+@require_auth
+def get_channel_members(channel_id):
+    """Get members of a specific channel using channel_members table"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Get channel members directly from channel_members table
+        query = """
+            SELECT 
+                u.user_id, 
+                u.username, 
+                u.firstname, 
+                u.lastname, 
+                u.pfp_path,
+                cm.role,
+                cm.joined_at,
+                CASE WHEN u.last_login > NOW() - INTERVAL '5 minutes' THEN true ELSE false END as is_online
+            FROM channel_members cm
+            JOIN users u ON cm.user_id = u.user_id
+            WHERE cm.channel_id = %s
+            ORDER BY is_online DESC, u.username ASC
+        """
+        
+        cursor.execute(query, (channel_id,))
+        members = cursor.fetchall()
+        
+        # Convert to list of dictionaries
+        members_list = []
+        for member in members:
+            members_list.append({
+                'user_id': member['user_id'],
+                'username': member['username'],
+                'firstname': member['firstname'],
+                'lastname': member['lastname'],
+                'pfp_path': member['pfp_path'],
+                'role': member['role'],
+                'joined_at': member['joined_at'].isoformat() if member['joined_at'] else None,
+                'is_online': member['is_online']
+            })
+        
+        logger.info(f"✅ Retrieved {len(members_list)} members for channel {channel_id}")
+        return jsonify({
+            'success': True,
+            'members': members_list,
+            'count': len(members_list)
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting channel members: {e}")
+        return jsonify({'error': 'Failed to get channel members'}), 500
     finally:
         cursor.close()
         conn.close()

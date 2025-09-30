@@ -50,19 +50,40 @@ else {
         const chatUserStatus = document.getElementById('chatUserStatus');
         const chatUserOnlineStatus = document.getElementById('chatUserOnlineStatus');
         function updateUserOnlineStatus(userId, isOnline) {
+            console.log('🔄 Updating user status:', userId, 'isOnline:', isOnline, 'otherUserId:', otherUserId);
+            
             // Update chat header status for the current conversation
             if (userId === otherUserId) {
+                console.log('✅ Updating status for current chat user');
+                
                 if (chatUserStatus) {
                     if (isOnline) {
                         chatUserStatus.classList.add('online');
+                        console.log('🟢 Added online class to status dot');
                     }
                     else {
                         chatUserStatus.classList.remove('online');
+                        console.log('⚪ Removed online class from status dot');
                     }
+                } else {
+                    console.log('❌ chatUserStatus element not found');
                 }
+                
                 if (chatUserOnlineStatus) {
-                    chatUserOnlineStatus.textContent = isOnline ? 'Active now' : 'Offline';
+                    if (isOnline) {
+                        chatUserOnlineStatus.textContent = 'Online';
+                        chatUserOnlineStatus.style.color = '#10b981';
+                        console.log('🟢 Set status text to Online (green)');
+                    } else {
+                        chatUserOnlineStatus.textContent = 'Offline';
+                        chatUserOnlineStatus.style.color = '#6b7280';
+                        console.log('⚪ Set status text to Offline (gray)');
+                    }
+                } else {
+                    console.log('❌ chatUserOnlineStatus element not found');
                 }
+            } else {
+                console.log('⏭️ Skipping - not current chat user');
             }
             // Update sidebar status indicators
             const statusElements = document.querySelectorAll(`[data-user-id="${userId}"] .online-status`);
@@ -78,21 +99,41 @@ else {
         // Fetch initial online status
         async function fetchOnlineStatus() {
             try {
+                console.log('🔍 Fetching online status from /api/online_status');
                 const response = await fetch('/api/online_status');
+                console.log('📡 Online status response:', response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('📊 Online status data:', data);
+                    
                     onlineUsers.clear();
-                    data.online_users.forEach(userId => onlineUsers.add(userId));
+                    data.online_users.forEach(userId => {
+                        // Ensure consistent data types (convert to number)
+                        const userIdNum = parseInt(userId);
+                        onlineUsers.add(userIdNum);
+                    });
+                    console.log('👥 Online users set:', Array.from(onlineUsers));
+                    console.log('🎯 Other user ID:', otherUserId, '(type:', typeof otherUserId, ')');
+                    console.log('🎯 Other user ID as number:', parseInt(otherUserId));
+                    console.log('🎯 Is online:', onlineUsers.has(parseInt(otherUserId)));
+                    
                     // Update the current chat user's status
                     if (otherUserId) {
-                        updateUserOnlineStatus(otherUserId, onlineUsers.has(otherUserId));
+                        const otherUserIdNum = parseInt(otherUserId);
+                        const isOnline = onlineUsers.has(otherUserIdNum);
+                        console.log('🔄 Final check - User ID:', otherUserIdNum, 'Is online:', isOnline);
+                        updateUserOnlineStatus(otherUserId, isOnline);
                     }
+                } else {
+                    console.error('❌ Online status API failed:', response.status);
                 }
             }
             catch (error) {
-                console.error('Error fetching online status:', error);
+                console.error('❌ Error fetching online status:', error);
                 if (chatUserOnlineStatus) {
-                    chatUserOnlineStatus.textContent = 'Status unknown';
+                    chatUserOnlineStatus.textContent = 'Offline';
+                    chatUserOnlineStatus.style.color = '#6b7280';
                 }
             }
         }

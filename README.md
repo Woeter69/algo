@@ -27,8 +27,10 @@ algo/
 ├── app/
 │   ├── src/
 │   │   ├── app.py                    # 🐍 Flask web application
-│   │   ├── sockets.go               # 🚀 Go WebSocket server
-│   │   ├── go-deps/                 # Go module dependencies
+│   │   ├── main.go                  # 🚀 Go WebSocket server (main)
+│   │   ├── sockets.go               # 🚀 Go WebSocket handlers
+│   │   ├── channels.go              # 🚀 Go channels functionality
+│   │   ├── oauth.go                 # 🚀 Go OAuth handlers
 │   │   ├── connection.py            # Database connections
 │   │   ├── validators.py            # Authentication & validation
 │   │   └── user_roles.py           # User management
@@ -64,7 +66,7 @@ git clone https://github.com/Woeter69/algo.git
 cd algo
 
 # 2. Make scripts executable
-chmod +x *.sh app/src/go-deps/*.sh
+chmod +x *.sh app/src/*.sh
 
 # 3. Setup Python environment
 python3 -m venv venv
@@ -72,7 +74,7 @@ source venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
 
 # 4. Install Go dependencies
-cd app/src/go-deps/ && go mod tidy && cd ../../../
+cd app/src/ && go mod tidy && cd ../../
 
 # 5. Configure environment (see SETUP.md for details)
 cp .env.example .env  # Edit with your settings
@@ -141,13 +143,13 @@ For complete installation instructions, troubleshooting, and development setup, 
 ./cleanup.sh
 
 # Start only Go WebSocket server
-cd app/src/go-deps/ && ./start-sockets.sh
+cd app/src/ && ./start-go-server.sh
 
 # Start only Flask server  
 source venv/bin/activate && python app/src/app.py
 
 # Build Go server manually
-cd app/src/go-deps/ && go build -o ../websocket-server .
+cd app/src/ && go build -o websocket-server .
 
 # Run tests (when available)
 python -m pytest tests/

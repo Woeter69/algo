@@ -7,10 +7,10 @@ echo "===================================="
 
 # Test Go build
 echo "1️⃣ Testing Go WebSocket Server build..."
-cd app/src/go-deps
-if go build -o ../websocket-server ../sockets.go; then
+cd app/src
+if go build -o websocket-server .; then
     echo "✅ Go server builds successfully"
-    rm -f ../websocket-server
+    rm -f websocket-server
 else
     echo "❌ Go server build failed"
     exit 1
@@ -31,7 +31,7 @@ echo "3️⃣ Checking dependencies..."
 
 # Check Go dependencies
 echo "   🔍 Go dependencies..."
-cd app/src/go-deps
+cd app/src
 if go mod verify; then
     echo "   ✅ Go dependencies verified"
 else

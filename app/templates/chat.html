@@ -10,14 +10,18 @@
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/chat.css') }}?v={{ range(1000, 9999) | random }}">
     <script src="{{ url_for('static', filename='js/go-websocket-client.js') }}"></script>
+    <!-- Template data for JavaScript -->
+    <script id="chat-data" type="application/json">
+        {{ {
+            "currentUserId": current_user_id,
+            "otherUserId": other_user_id, 
+            "otherUserName": other_user_name,
+            "otherUserPfp": other_user_pfp
+        } | tojson | safe }}
+    </script>
     <script>
-        // Pass server data to JavaScript
-        window.chatData = {
-            currentUserId: {{ current_user_id | tojson | safe }},
-            otherUserId: {{ other_user_id | tojson | safe }},
-            otherUserName: {{ other_user_name | tojson | safe }},
-            otherUserPfp: {{ other_user_pfp | tojson | safe }}
-        };
+        // Parse server data from JSON script tag
+        window.chatData = JSON.parse(document.getElementById('chat-data').textContent);
         console.log('Template data loaded:', window.chatData);
     </script>
 </head>
@@ -93,8 +97,7 @@
                     </div>
                     <div class="chat-user-details">
                         <h3 id="chatUserName">{{ other_user_name if other_user_name else 'Select a conversation' }}</h3>
-                        <span class="user-status" id="chatUserOnlineStatus">Checking status...</span>
-                        <span class="connection-status" id="connectionStatus">Connecting...</span>
+                        <span class="user-status" id="chatUserOnlineStatus">Offline</span>
                     </div>
                 </div>
                 <div class="chat-actions">
