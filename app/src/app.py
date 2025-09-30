@@ -101,6 +101,8 @@ def login():
 
             if row:
                 user_id, hashed_password, login_count, username, pfp_path, role = row
+                hashed = bcrypt.generate_password_hash(hashed_password).decode('utf-8')
+                print(hashed)
                 if bcrypt.check_password_hash(hashed_password, password):
                     session['user_id'] = user_id
                     session['username'] = username
@@ -950,6 +952,16 @@ def channels():
         
         communities = cur.fetchall()
         
+        # Debug logging for communities
+        app.logger.info(f"User {user_id} communities: found {len(communities)} communities")
+        for community in communities:
+            app.logger.info(f"  - Community {community[0]}: {community[1]} (role: {community[3]})")
+        
+        # If user has no communities, show helpful message
+        if not communities:
+            app.logger.warning(f"User {user_id} is not a member of any communities")
+            flash("You are not a member of any communities. Please contact an administrator to be added to a community.", "warning")
+        
         # Default to first community or CIC
         selected_community_id = request.args.get('community_id')
         if not selected_community_id and communities:
@@ -958,16 +970,28 @@ def channels():
             selected_community_id = cic_community[0] if cic_community else communities[0][0]
         
         channels_list = []
+        app.logger.info(f"Selected community ID: {selected_community_id}")
+        
         if selected_community_id:
-            # Get channels for selected community
+            # Get channels for selected community that the user has access to
             cur.execute("""
-                SELECT channel_id, name, description, channel_type, is_private
-                FROM channels
-                WHERE community_id = %s AND is_active = true
-                ORDER BY position_order, created_at
-            """, (selected_community_id,))
+                SELECT DISTINCT c.channel_id, c.name, c.description, c.channel_type, c.is_private, c.position_order, c.created_at
+                FROM channels c
+                LEFT JOIN channel_members cm ON c.channel_id = cm.channel_id
+                WHERE c.community_id = %s AND c.is_active = true
+                AND (
+                    c.is_private = false OR 
+                    (c.is_private = true AND cm.user_id = %s)
+                )
+                ORDER BY c.position_order, c.created_at
+            """, (selected_community_id, user_id))
             
             channels_list = cur.fetchall()
+            
+            # Debug logging
+            app.logger.info(f"User {user_id} in community {selected_community_id}: found {len(channels_list)} accessible channels")
+            for channel in channels_list:
+                app.logger.info(f"  - Channel {channel[0]}: {channel[1]} (private: {channel[4]})")
         
         cur.close()
         mydb.close()
@@ -995,27 +1019,48 @@ def chat_list():
     
     try:
         
+        # Get users from both messages and accepted connections
         cur.execute("""
-            SELECT DISTINCT 
-                CASE 
+            SELECT DISTINCT other_user_id FROM (
+                -- Users from message history
+                SELECT CASE 
                     WHEN m.sender_id = %s THEN m.receiver_id 
                     ELSE m.sender_id 
                 END as other_user_id
-            FROM messages m
-            WHERE m.sender_id = %s OR m.receiver_id = %s
-        """, (user_id, user_id, user_id))
+                FROM messages m
+                WHERE m.sender_id = %s OR m.receiver_id = %s
+                
+                UNION
+                
+                -- Users from accepted connections
+                SELECT CASE 
+                    WHEN c.user_id = %s THEN c.con_user_id 
+                    ELSE c.user_id 
+                END as other_user_id
+                FROM connections c
+                WHERE (c.user_id = %s OR c.con_user_id = %s) AND c.status = 'accepted'
+            ) AS combined_users
+        """, (user_id, user_id, user_id, user_id, user_id, user_id))
         
         user_ids = cur.fetchall()
         chat_history = []
         
+        # Debug logging
+        app.logger.info(f"Chat list for user {user_id}: found {len(user_ids)} potential chat partners")
+        for user_tuple in user_ids:
+            app.logger.info(f"  - User ID: {user_tuple[0]}")
         
         for (other_user_id,) in user_ids:
             
-            cur.execute("SELECT username, pfp_path FROM users WHERE user_id = %s", (other_user_id,))
+            cur.execute("SELECT username, pfp_path, firstname, lastname FROM users WHERE user_id = %s", (other_user_id,))
             user_data = cur.fetchone()
             
             if user_data:
-                username, pfp_path = user_data
+                username, pfp_path, firstname, lastname = user_data
+                # Generate default avatar if no custom pfp
+                if not pfp_path:
+                    full_name = f"{firstname or ''} {lastname or ''}".strip()
+                    pfp_path = utils.generate_default_avatar(full_name or username)
                 
                 
                 cur.execute("""
@@ -1028,13 +1073,35 @@ def chat_list():
                 """, (user_id, other_user_id, other_user_id, user_id))
                 
                 message_data = cur.fetchone()
-                last_message = message_data[0] if message_data else None
-                last_message_time = message_data[1] if message_data else None
+                
+                if message_data:
+                    last_message = message_data[0]
+                    last_message_time = message_data[1]
+                    app.logger.info(f"  - Found message with {username}: '{last_message[:50]}...' at {last_message_time}")
+                else:
+                    # Check if this is a connection without messages
+                    cur.execute("""
+                        SELECT 1 FROM connections 
+                        WHERE ((user_id = %s AND con_user_id = %s) OR (user_id = %s AND con_user_id = %s)) 
+                        AND status = 'accepted'
+                    """, (user_id, other_user_id, other_user_id, user_id))
+                    
+                    if cur.fetchone():
+                        last_message = "You're now connected! Start a conversation."
+                        last_message_time = None
+                    else:
+                        last_message = None
+                        last_message_time = None
                 
                 chat_history.append((other_user_id, username, pfp_path, last_message, last_message_time))
         
         
         chat_history.sort(key=lambda x: x[4] if x[4] else datetime.datetime.min, reverse=True)
+        
+        # Final debug logging
+        app.logger.info(f"Final chat_history for user {user_id}: {len(chat_history)} conversations")
+        for chat in chat_history:
+            app.logger.info(f"  - {chat[1]} (ID: {chat[0]}): '{chat[3]}' at {chat[4]}")
         
     except Exception as e:
         app.logger.error(f"Error in chat_list: {str(e)}")
@@ -1102,13 +1169,18 @@ def chat(username):
     cur = mydb.cursor()
     
     
-    cur.execute("SELECT user_id, username, pfp_path FROM users WHERE username=%s", (username,))
+    cur.execute("SELECT user_id, username, pfp_path, firstname, lastname FROM users WHERE username=%s", (username,))
     other_user_row = cur.fetchone()
     if not other_user_row:
         flash("User not found")
         return redirect(url_for('user_dashboard'))
     
-    other_user_id, other_user_name, other_user_pfp = other_user_row
+    other_user_id, other_user_name, other_user_pfp, other_firstname, other_lastname = other_user_row
+    
+    # Generate default avatar if no custom pfp
+    if not other_user_pfp:
+        other_full_name = f"{other_firstname or ''} {other_lastname or ''}".strip()
+        other_user_pfp = utils.generate_default_avatar(other_full_name or other_user_name)
     
     
     cur.execute("""
@@ -1140,11 +1212,15 @@ def chat(username):
         
         for (chat_user_id,) in user_ids:
             
-            cur.execute("SELECT username, pfp_path FROM users WHERE user_id = %s", (chat_user_id,))
+            cur.execute("SELECT username, pfp_path, firstname, lastname FROM users WHERE user_id = %s", (chat_user_id,))
             user_data = cur.fetchone()
             
             if user_data:
-                chat_username, pfp_path = user_data
+                chat_username, pfp_path, chat_firstname, chat_lastname = user_data
+                # Generate default avatar if no custom pfp
+                if not pfp_path:
+                    chat_full_name = f"{chat_firstname or ''} {chat_lastname or ''}".strip()
+                    pfp_path = utils.generate_default_avatar(chat_full_name or chat_username)
                 
                 
                 cur.execute("""
@@ -1471,12 +1547,12 @@ def requests():
         
         # Get pending incoming requests (where current user is the target)
         cur.execute("""
-            SELECT c.connection_id, c.user_id, c.request, c.created_at,
+            SELECT c.connection_id, c.user_id, c.request,
                    u.firstname, u.lastname, u.username, u.pfp_path
             FROM connections c
             JOIN users u ON c.user_id = u.user_id
             WHERE c.con_user_id = %s AND c.status = 'pending'
-            ORDER BY c.created_at DESC
+            ORDER BY c.connection_id DESC
         """, (user_id,))
         
         pending_requests = []
@@ -1485,20 +1561,20 @@ def requests():
                 'connection_id': row[0],
                 'user_id': row[1],
                 'message': row[2],
-                'created_at': row[3],
-                'name': f"{row[4]} {row[5]}",
-                'username': row[6],
-                'avatar': row[7]
+                'created_at': 'Recently',  # Placeholder since created_at column doesn't exist
+                'name': f"{row[3]} {row[4]}",
+                'username': row[5],
+                'avatar': row[6]
             })
         
         # Get sent requests (where current user is the sender)
         cur.execute("""
-            SELECT c.connection_id, c.con_user_id, c.request, c.created_at,
+            SELECT c.connection_id, c.con_user_id, c.request,
                    u.firstname, u.lastname, u.username, u.pfp_path
             FROM connections c
             JOIN users u ON c.con_user_id = u.user_id
             WHERE c.user_id = %s AND c.status = 'pending'
-            ORDER BY c.created_at DESC
+            ORDER BY c.connection_id DESC
         """, (user_id,))
         
         sent_requests = []
@@ -1507,10 +1583,10 @@ def requests():
                 'connection_id': row[0],
                 'user_id': row[1],
                 'message': row[2],
-                'created_at': row[3],
-                'name': f"{row[4]} {row[5]}",
-                'username': row[6],
-                'avatar': row[7]
+                'created_at': 'Recently',  # Placeholder since created_at column doesn't exist
+                'name': f"{row[3]} {row[4]}",
+                'username': row[5],
+                'avatar': row[6]
             })
         
         # Get accepted connections
@@ -1536,12 +1612,12 @@ def requests():
                     WHEN c.user_id = %s THEN u2.pfp_path 
                     ELSE u1.pfp_path 
                 END as avatar,
-                c.created_at
+                c.connection_id
             FROM connections c
             JOIN users u1 ON c.user_id = u1.user_id
             JOIN users u2 ON c.con_user_id = u2.user_id
             WHERE (c.user_id = %s OR c.con_user_id = %s) AND c.status = 'accepted'
-            ORDER BY c.created_at DESC
+            ORDER BY c.connection_id DESC
         """, (user_id, user_id, user_id, user_id, user_id, user_id, user_id))
         
         connections = []
@@ -1551,7 +1627,7 @@ def requests():
                 'name': f"{row[1]} {row[2]}",
                 'username': row[3],
                 'avatar': row[4],
-                'connected_at': row[5]
+                'connected_at': 'Recently'  # Placeholder since created_at column doesn't exist
             })
         
         connections_count = len(connections)
@@ -1607,7 +1683,7 @@ def connect():
             LEFT JOIN work_experience we ON u.user_id = we.user_id AND we.leave_year IS NULL
             LEFT JOIN user_interests ui ON u.user_id = ui.user_id
             LEFT JOIN interests i ON ui.interest_id = i.interest_id
-            WHERE u.user_id != %s AND u.verified = TRUE
+            WHERE u.user_id != %s AND u.verification_status = 'verified'
             GROUP BY u.user_id, u.firstname, u.lastname, u.username, u.university_name, 
                      u.graduation_year, u.current_city, u.pfp_path, u.role,
                      we.company_name, we.job_title
@@ -1637,7 +1713,7 @@ def connect():
         for user in all_users:
             # Generate default avatar if none exists
             name = f"{user[1]} {user[2]}"
-            avatar = user[7] if user[7] else generate_default_avatar(name)
+            avatar = user[7] if user[7] else utils.generate_default_avatar(name)
             
             user_data = {
                 'id': user[0],
@@ -1783,9 +1859,9 @@ def respond_connection_request():
             WHERE connection_id = %s AND con_user_id = %s AND status = 'pending'
         """, (connection_id, user_id))
         
-        connection = cur.fetchone()
+        connection_record = cur.fetchone()
         
-        if not connection:
+        if not connection_record:
             return {'success': False, 'message': 'Connection request not found'}, 404
         
         # Update connection status
@@ -1823,12 +1899,12 @@ def get_connection_requests():
         
         # Get pending requests where current user is the target
         cur.execute("""
-            SELECT c.connection_id, c.user_id, c.request, c.created_at,
+            SELECT c.connection_id, c.user_id, c.request,
                    u.firstname, u.lastname, u.username, u.pfp_path
             FROM connections c
             JOIN users u ON c.user_id = u.user_id
             WHERE c.con_user_id = %s AND c.status = 'pending'
-            ORDER BY c.created_at DESC
+            ORDER BY c.connection_id DESC
         """, (user_id,))
         
         requests = []
@@ -1837,10 +1913,10 @@ def get_connection_requests():
                 'connection_id': row[0],
                 'user_id': row[1],
                 'message': row[2],
-                'created_at': row[3].isoformat() if row[3] else None,
-                'name': f"{row[4]} {row[5]}",
-                'username': row[6],
-                'avatar': row[7]
+                'created_at': 'Recently',  # Placeholder since created_at column doesn't exist
+                'name': f"{row[3]} {row[4]}",
+                'username': row[5],
+                'avatar': row[6]
             })
         
         return {'success': True, 'requests': requests}
@@ -2249,7 +2325,7 @@ def export_data():
         
         # Get connections
         cur.execute("""
-            SELECT u.firstname, u.lastname, u.email, c.created_at
+            SELECT u.firstname, u.lastname, u.email
             FROM connections c
             JOIN users u ON (c.con_user_id = u.user_id OR c.user_id = u.user_id)
             WHERE (c.user_id = %s OR c.con_user_id = %s) 

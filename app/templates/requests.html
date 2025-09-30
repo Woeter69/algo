@@ -23,7 +23,11 @@
                     <li><a href="{{ url_for('contact') }}">contact us</a></li>
                     <li><a href="{{ url_for('channels') }}">channels</a></li>
                     <li><a href="{{ url_for('about') }}">about us</a></li>
-                    <li><a href="{{ url_for('user_dashboard') }}" class="nav-signup">Dashboard</a></li>
+                    {% if current_user and current_user[3] == 'admin' %}
+                    <li><a href="{{ url_for('admin_dashboard') }}" class="admin-btn">
+                        <i class="fas fa-shield-alt"></i> admin
+                    </a></li>
+                    {% endif %}
                 </ul>
                 <div class="user-profile" id="userprofile">
                     {% set user_full_name = (current_user[1] or '') + ' ' + (current_user[2] or '') if current_user else session.get('username', 'User') %}
@@ -150,7 +154,7 @@
                                     <div class="user-info">
                                         <h3>{{ request.name }}</h3>
                                         <p class="username">@{{ request.username }}</p>
-                                        <p class="time">{{ request.created_at|format_ist_time }}</p>
+                                        <p class="time">{{ request.created_at }}</p>
                                     </div>
                                 </div>
                                 {% if request.message %}
@@ -202,7 +206,7 @@
                                     <div class="user-info">
                                         <h3>{{ request.name }}</h3>
                                         <p class="username">@{{ request.username }}</p>
-                                        <p class="time">Sent {{ request.created_at|format_ist_time }}</p>
+                                        <p class="time">Sent {{ request.created_at }}</p>
                                     </div>
                                     <div class="status-badge pending">
                                         <i class="fas fa-clock"></i> Pending
@@ -254,7 +258,7 @@
                                     <div class="user-info">
                                         <h3>{{ connection.name }}</h3>
                                         <p class="username">@{{ connection.username }}</p>
-                                        <p class="time">Connected {{ connection.connected_at|format_ist_time }}</p>
+                                        <p class="time">Connected {{ connection.connected_at }}</p>
                                     </div>
                                     <div class="status-badge connected">
                                         <i class="fas fa-check-circle"></i> Connected
@@ -293,13 +297,17 @@
     </div>
 
     <!-- Pass data to TypeScript -->
+    <script id="requests-data" type="application/json">
+        {{ {
+            "pendingRequests": pending_requests,
+            "sentRequests": sent_requests,
+            "connections": connections,
+            "connectionsCount": connections_count
+        } | tojson | safe }}
+    </script>
     <script>
-        window.requestsData = {
-            pendingRequests: {{ pending_requests | tojson }},
-            sentRequests: {{ sent_requests | tojson }},
-            connections: {{ connections | tojson }},
-            connectionsCount: {{ connections_count }}
-        };
+        // Parse server data from JSON script tag
+        window.requestsData = JSON.parse(document.getElementById('requests-data').textContent);
     </script>
     <script src="{{ url_for('static', filename='js/requests.js') }}"></script>
     
