@@ -8,3 +8,5 @@ Scripts/
 Lib/
 node_modules/
 PROJECT_DEMO_SCRIPT.md
+./app/websocket-server/
+app/websocket-server
