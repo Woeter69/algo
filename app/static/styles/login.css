@@ -447,6 +447,7 @@ footer {
 
 .google-auth-button svg {
     flex-shrink: 0;
+    margin-bottom: 2px;
 }
 
 /* Error and success messages */
