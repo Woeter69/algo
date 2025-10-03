@@ -56,4 +56,3 @@ EXPOSE 10000
 # Start all services with supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 
-# Run this file with docker to make your own DockerImage 
