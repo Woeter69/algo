@@ -179,10 +179,6 @@ We welcome contributions! Here's how you can help:
 - **💡 Feature Requests**: Describe your use case and proposed solution
 - **❓ Questions**: Use GitHub Discussions for general questions
 
-## 📄 License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
 ## 🙌 Acknowledgements
 
 - **[Smart India Hackathon (SIH) 2025](https://www.sih.gov.in/)** - Innovation platform
