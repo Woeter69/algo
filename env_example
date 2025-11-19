@@ -1,0 +1,20 @@
+APP_URL = your-app-url
+DB_HOST = database-host
+DB_NAME = database-name
+DB_PASSWORD = database-password
+DB_PORT = 5432
+DB_USER = database-user
+DEBUG = True
+EMAIL_PASS = your-email-sending-secret-key
+EMAIL_USER = your-email-sending-email
+FLASK_APP = app.py
+FLASK_DEBUG = True
+FLASK_ENV = development
+PFP_API = your-pfp-upload-api-key
+PORT = 10000
+SECRET_KEY = your-super-secret-key-here-for-development-only
+TEST_EMAILS = your-test-emails
+
+
+
+
