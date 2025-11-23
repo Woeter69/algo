@@ -321,7 +321,7 @@ func (h *Hub) fastBroadcastToChannel(message WSMessage) {
 
 	channelID := getChannelID(message.ChannelID)
 	log.Printf("⚡ Fast broadcasting typing to channel %d from user %d", channelID, message.UserID)
-	
+
 	if channelClients, exists := h.Channels[channelID]; exists {
 		for userID, client := range channelClients {
 			// Don't send back to sender
@@ -708,10 +708,6 @@ func (c *Client) writePump() {
 func connectDB() *sql.DB {
 	// Get database URL from environment variable (Render sets this automatically)
 	connStr := os.Getenv("DATABASE_URL")
-	if connStr == "" {
-		// Fallback to your existing connection string for local development
-		connStr = "postgresql://algo_database_user:XyB825sj3CoiUZpEsDyYz4zASy16Gg1o@dpg-d32qu6juibrs73a3u200-a.oregon-postgres.render.com/algo_database"
-	}
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {

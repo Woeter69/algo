@@ -26,17 +26,30 @@ echo "✅ Go version: $(go version)"
 # Load environment variables from .env file
 if [ -f ".env" ]; then
     echo "📄 Loading environment variables from .env file..."
-    # More careful parsing to avoid issues with comments
-    while IFS= read -r line; do
+    # More careful parsing to avoid issues with comments and spaces around =
+    # Also handle files that don't end with newline
+    while IFS= read -r line || [[ -n "$line" ]]; do
         # Skip empty lines and comments
         if [[ -n "$line" && ! "$line" =~ ^[[:space:]]*# ]]; then
-            # Remove inline comments and export
+            # Remove inline comments and trim whitespace
             clean_line=$(echo "$line" | sed 's/#.*$//' | xargs)
-            if [[ -n "$clean_line" ]]; then
-                export "$clean_line"
+            
+            if [[ -n "$clean_line" && "$clean_line" == *"="* ]]; then
+                # Remove spaces around the equals sign for proper export syntax
+                var_name=$(echo "$clean_line" | cut -d'=' -f1 | xargs)
+                var_value=$(echo "$clean_line" | cut -d'=' -f2- | xargs)
+                export "$var_name=$var_value"
+                echo "   ✓ Loaded: $var_name"
             fi
         fi
     done < .env
+    
+    # Verify DATABASE_URL was loaded
+    if [[ -n "${DATABASE_URL:-}" ]]; then
+        echo "   ✅ DATABASE_URL loaded successfully"
+    else
+        echo "   ❌ DATABASE_URL not found - check your .env file"
+    fi
 else
     echo "⚠️  No .env file found in $(pwd)"
     echo "📝 Create a .env file with your Google OAuth credentials:"
