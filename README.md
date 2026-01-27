@@ -1,4 +1,4 @@
-# 🎓 AlumniGo
+# 🎓 Alumnigo
 
 **High-Performance Alumni Network Platform** - Built for Smart India Hackathon (SIH) 2025
 
