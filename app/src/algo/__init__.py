@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 # Import db and other components that will be initialized
 from algo import db
 # Import blueprints that will be registered
-# from .blueprints import core, auth, profile, admin, connections, chat, settings
+# from .blueprints import core, auth, profile, profile, admin, connections, chat, settings
 
 # Initialize extensions without an app
 bcrypt = Bcrypt()
@@ -52,6 +52,10 @@ def create_app(test_config=None):
     @app.route('/hello')
     def hello():
         return 'Hello, World!'
+
+    return app
+urn app
+rld!'
 
     return app
 urn app
