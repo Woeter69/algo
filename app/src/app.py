@@ -2950,4 +2950,3 @@ if __name__ == "__main__":
     print("🚀 Real-time features handled by Go WebSocket server")
 
     app.run(host="0.0.0.0", port=port, debug=debug)
-g)
