@@ -60,3 +60,15 @@ export function scrollToBottom(messagesArea: HTMLElement | null): void {
     messagesArea.scrollTop = messagesArea.scrollHeight;
   });
 }
+
+export function showTypingIndicator(typingIndicator: HTMLElement | null): void {
+  if (typingIndicator) {
+    typingIndicator.style.display = "flex";
+  }
+}
+
+export function hideTypingIndicator(typingIndicator: HTMLElement | null): void {
+  if (typingIndicator) {
+    typingIndicator.style.display = "none";
+  }
+}
