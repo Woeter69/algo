@@ -46,7 +46,7 @@ algo/
 ├── Dockerfile                      # Production deployment
 ├── start-all.sh                   # 🚀 Start both servers
 ├── cleanup.sh                     # 🧹 Stop all services
-├── SETUP.md                       # 📖 Detailed setup guide
+├── docs/SETUP.md                  # 📖 Detailed setup guide
 └── README.md                      # This file
 ```
 
@@ -76,7 +76,7 @@ pip install -r requirements.txt
 # 4. Install Go dependencies
 cd app/src/ && go mod tidy && cd ../../
 
-# 5. Configure environment (see SETUP.md for details)
+# 5. Configure environment (see docs/SETUP.md for details)
 cp .env.example .env  # Edit with your settings
 
 # 6. Start application
@@ -103,7 +103,7 @@ This automatically:
 
 ## 📖 Detailed Setup
 
-For complete installation instructions, troubleshooting, and development setup, see **[SETUP.md](SETUP.md)**
+For complete installation instructions, troubleshooting, and development setup, see **[SETUP.md](docs/SETUP.md)**
 
 ## 🏗️ Technology Stack
 
@@ -174,7 +174,7 @@ We welcome contributions! Here's how you can help:
 
 ## 🆘 Support & Troubleshooting
 
-- **📖 Setup Issues**: Check [SETUP.md](SETUP.md) for detailed instructions
+- **📖 Setup Issues**: Check [SETUP.md](docs/SETUP.md) for detailed instructions
 - **🐛 Bug Reports**: Open an issue with reproduction steps
 - **💡 Feature Requests**: Describe your use case and proposed solution
 - **❓ Questions**: Use GitHub Discussions for general questions
