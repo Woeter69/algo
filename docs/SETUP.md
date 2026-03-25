@@ -50,7 +50,7 @@ cd app/src/ && go mod tidy && cd ../../
 
 # 5. Configure database and environment (see detailed setup)
 # 6. Start application
-./start-all.sh
+./scripts/start-all.sh
 ```
 
 ## 📖 Detailed Setup
@@ -116,7 +116,7 @@ git clone <your-repo-url>
 cd algo
 
 # Make scripts executable
-chmod +x start-all.sh cleanup.sh
+chmod +x scripts/start-all.sh scripts/cleanup.sh
 chmod +x app/src/start-go-server.sh
 ```
 
@@ -225,7 +225,7 @@ source venv/bin/activate
 
 ```bash
 # Start both Go WebSocket server and Flask app
-./start-all.sh
+./scripts/start-all.sh
 ```
 
 ## ✅ Verification
@@ -258,7 +258,7 @@ lsof -i :5000
 lsof -i :8080
 
 # Clean up automatically
-./cleanup.sh
+./scripts/cleanup.sh
 ```
 
 ### Go Issues
@@ -325,10 +325,10 @@ sudo chown -R $USER:$USER .
 ### Development Commands
 ```bash
 # Start with auto-cleanup
-./start-all.sh
+./scripts/start-all.sh
 
 # Stop all services
-./cleanup.sh
+./scripts/cleanup.sh
 
 # Start only Go WebSocket server
 cd app/src/ && ./start-go-server.sh
@@ -358,8 +358,8 @@ algo/
 │   └── templates/              # HTML templates
 ├── venv/                       # Python virtual environment
 ├── requirements.txt            # Python dependencies
-├── start-all.sh               # Start both servers
-├── cleanup.sh                 # Stop all services
+├── scripts/start-all.sh               # Start both servers
+├── scripts/cleanup.sh                 # Stop all services
 └── README.md                  # Project documentation
 ```
 

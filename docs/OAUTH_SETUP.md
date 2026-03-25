@@ -86,7 +86,7 @@ go mod tidy
 ### **4.1 Start Servers**
 ```bash
 # Start both servers
-./start-all.sh
+./scripts/start-all.sh
 ```
 
 ### **4.2 Test OAuth Endpoints**

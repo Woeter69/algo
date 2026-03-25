@@ -42,7 +42,7 @@ AlumniGo is a modern, real-time alumni networking platform built for the Smart I
 ### Running the Application
 The easiest way to start both the Python and Go servers is by using the provided startup script:
 ```bash
-./start-all.sh
+./scripts/start-all.sh
 ```
 *This automatically starts the Go WebSocket server on port 8080 and the Python Flask server on port 5000.*
 
@@ -53,7 +53,7 @@ npm run watch
 
 **Stopping the application:**
 ```bash
-./cleanup.sh
+./scripts/cleanup.sh
 ```
 
 ## Development Conventions

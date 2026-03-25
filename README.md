@@ -44,8 +44,8 @@ algo/
 ├── venv/                           # Python virtual environment
 ├── requirements.txt                # Python dependencies
 ├── Dockerfile                      # Production deployment
-├── start-all.sh                   # 🚀 Start both servers
-├── cleanup.sh                     # 🧹 Stop all services
+├── scripts/start-all.sh                   # 🚀 Start both servers
+├── scripts/cleanup.sh                     # 🧹 Stop all services
 ├── docs/SETUP.md                  # 📖 Detailed setup guide
 └── README.md                      # This file
 ```
@@ -80,13 +80,13 @@ cd app/src/ && go mod tidy && cd ../../
 cp .env.example .env  # Edit with your settings
 
 # 6. Start application
-./start-all.sh
+./scripts/start-all.sh
 ```
 
 ### 🚀 One-Command Start
 
 ```bash
-./start-all.sh
+./scripts/start-all.sh
 ```
 
 This automatically:
@@ -137,10 +137,10 @@ For complete installation instructions, troubleshooting, and development setup, 
 
 ```bash
 # Start full application stack
-./start-all.sh
+./scripts/start-all.sh
 
 # Stop all services
-./cleanup.sh
+./scripts/cleanup.sh
 
 # Start only Go WebSocket server
 cd app/src/ && ./start-go-server.sh
