@@ -404,12 +404,7 @@ if ((window as any).chatInitialized) {
       });
     }
 
-    // Utility functions with proper typing
-    function escapeHtml(text: string): string {
-      const div = document.createElement("div");
-      div.textContent = text;
-      return div.innerHTML;
-    }
+
 
     function createMessageElement(
       text: string,
@@ -1102,6 +1097,18 @@ if ((window as any).chatInitialized) {
       if (emojiPicker) {
         emojiPicker.style.display =
           emojiPicker.style.display === "none" ? "flex" : "none";
+        console.log(
+          "Toggled emoji picker display to:",
+          emojiPicker.style.display,
+        );
+      }
+    };
+
+    // Initialize everything
+    console.log("✅ Chat TypeScript initialization complete");
+  });
+}
+ "none" ? "flex" : "none";
         console.log(
           "Toggled emoji picker display to:",
           emojiPicker.style.display,
