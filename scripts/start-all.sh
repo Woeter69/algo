@@ -78,7 +78,7 @@ if command -v python3 &> /dev/null; then
     python3 app.py &
     PYTHON_PID=$!
 elif command -v python &> /dev/null; then
-    python app.py &
+    python run.py &
     PYTHON_PID=$!
 else
     echo "❌ Python not found! Please install Python 3"
