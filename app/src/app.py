@@ -258,79 +258,7 @@ def reset_password(token):
             mydb.close()
 
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
 
-    if "user_id" in session:
-        return redirect(url_for("user_dashboard"))
-
-    try:
-        if request.method == "POST":
-            firstname = request.form["firstname"]
-            lastname = request.form["lastname"]
-            email = request.form["email"]
-            username = request.form["username"]
-            password = request.form["password"]
-
-            mydb = connection.get_db_connection()
-            cur = mydb.cursor()
-
-            # Check if email already exists
-            cur.execute("SELECT user_id, username FROM users WHERE email=%s", (email,))
-            existing_user = cur.fetchone()
-
-            if existing_user:
-                cur.close()
-                mydb.close()
-                flash("This email is already registered. Please login instead.")
-                return redirect(url_for("login"))
-
-            # Check if username already exists
-            cur.execute("SELECT user_id FROM users WHERE username=%s", (username,))
-            existing_username = cur.fetchone()
-
-            if existing_username:
-                cur.close()
-                mydb.close()
-                return render_template(
-                    "register.html",
-                    error="Username already taken. Please choose a different username.",
-                )
-
-            hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
-
-            session["register_data"] = {
-                "firstname": firstname,
-                "lastname": lastname,
-                "email": email,
-                "username": username,
-                "password": hashed_password,
-            }
-
-            token = secrets.token_urlsafe(32)
-            expiry = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
-
-            cur.execute(
-                "INSERT INTO verification_tokens (email,token,expiry) VALUES (%s,%s,%s)",
-                (email, token, expiry),
-            )
-            mydb.commit()
-            cur.close()
-            mydb.close()
-
-            APP_URL = os.getenv("APP_URL")
-            link = f"{APP_URL}/verify/{token}"
-            validators.send_verification_email(email, link)
-
-            return redirect(url_for("check_email"))
-    except Exception as e:
-        app.logger.error(f"Error during register: {str(e)}")
-        flash("An unexpected error occurred while registering. Please try again.")
-
-        session.pop("register_data", None)
-        return render_template("register.html"), 500
-
-    return render_template("register.html")
 
 
 @app.route("/confirmation", methods=["GET", "POST"])
@@ -594,68 +522,7 @@ def complete_profile():
             mydb.close()
 
 
-@app.route("/check_email")
-def check_email():
-    try:
-        return render_template("check_email.html")
-    except Exception as e:
-        app.logger.error(f"Error in check_email route: {str(e)}")
-        flash("Unable to load the check email page.")
-        return "<h1>Error loading page. Please try again later.</h1>", 500
 
-
-@app.route("/verify/<token>")
-def verify(token):
-    mydb = None
-    cur = None
-    try:
-        mydb = connection.get_db_connection()
-        cur = mydb.cursor()
-
-        cur.execute("SELECT * FROM verification_tokens where token=%s", (token,))
-        row = cur.fetchone()
-
-        if not row:
-            return render_template("token_invalid.html")
-
-        id, email, db_token, expiry = row
-
-        if datetime.datetime.utcnow() > expiry:
-            return render_template("token_expired.html")
-
-        register_data = session.get("register_data")
-
-        if not register_data:
-            return redirect(url_for("register"))
-        cur.execute(
-            """
-            insert into users (firstname, lastname, email, username, password,verified)
-            values (%s, %s, %s, %s, %s, %s)
-        """,
-            (
-                register_data["firstname"],
-                register_data["lastname"],
-                register_data["email"],
-                register_data["username"],
-                register_data["password"],
-                True,
-            ),
-        )
-
-        cur.execute("delete from verification_tokens WHERE token=%s", (token,))
-        mydb.commit()
-        session.pop("register_data", None)
-        return redirect(url_for("confirmation"))
-
-    except Exception as e:
-        app.logger.error(f"Error verifying token: {str(e)}")
-        flash("We couldn’t verify your account. Please try again.")
-        return redirect(url_for("register"))
-    finally:
-        if cur is not None:
-            cur.close()
-        if mydb is not None:
-            mydb.close()
 
 
 @app.route("/interests", methods=["GET", "POST"])
