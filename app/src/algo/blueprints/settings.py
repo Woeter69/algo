@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, session, redirect, url_for, flash,
 from algo.db import get_db
 from algo.auth.decorators import login_required
 import datetime
-import utils
+from algo import utils
 
 bp = Blueprint('settings', __name__)
 
@@ -194,7 +194,7 @@ def change_password():
 def update_profile_picture():
     try:
         import os
-        import validators
+        from algo import validators
         if "pfp" not in request.files:
             return ({"success": False, "message": "No image provided"}, 400)
             

@@ -6,8 +6,8 @@ import datetime
 from algo.db import get_db
 from algo.auth.decorators import login_required
 from algo.utils import is_safe_url
-import utils
-import validators
+from algo import utils
+from algo import validators
 
 bp = Blueprint('profile', __name__)
 

@@ -3,7 +3,7 @@ from algo.db import get_db
 from algo.auth.decorators import login_required
 from algo.auth import user_roles
 import datetime
-import utils
+from algo import utils
 
 bp = Blueprint('communities', __name__)
 

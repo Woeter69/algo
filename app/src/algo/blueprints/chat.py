@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, session, redirect, url_for, flash,
 from algo.db import get_db
 from algo.auth.decorators import login_required
 from algo.auth import user_roles
-import utils
+from algo import utils
 import datetime
 
 bp = Blueprint('chat', __name__)

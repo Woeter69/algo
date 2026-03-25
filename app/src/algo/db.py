@@ -16,15 +16,24 @@ def init_db_pool():
     This should be called once when the application starts.
     """
     global pool
-    pool = psycopg2.pool.SimpleConnectionPool(
-        1,  # minconn
-        20, # maxconn
-        host=os.getenv("DB_HOST"),
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        port=os.getenv("DB_PORT", 5432),
-    )
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        pool = psycopg2.pool.SimpleConnectionPool(
+            1,  # minconn
+            20, # maxconn
+            dsn=db_url
+        )
+    else:
+        pool = psycopg2.pool.SimpleConnectionPool(
+            1,  # minconn
+            20, # maxconn
+            host=os.getenv("DB_HOST"),
+            dbname=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            port=os.getenv("DB_PORT", 5432),
+            sslmode="require"
+        )
 
 def get_db():
     """
