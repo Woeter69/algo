@@ -64,9 +64,9 @@ echo ""
 cd app/src
 
 # Check if virtual environment exists
-if [ -d "../../venv" ]; then
+if [ -d "../../.venv" ]; then
     echo "🐍 Activating virtual environment..."
-    source ../../venv/bin/activate
+    source ../../.venv/bin/activate
     echo "✅ Virtual environment activated"
 else
     echo "⚠️  Virtual environment not found at ../../venv"
@@ -75,7 +75,7 @@ fi
 
 # Start Flask server
 if command -v python3 &> /dev/null; then
-    python3 app.py &
+    python3 run.py &
     PYTHON_PID=$!
 elif command -v python &> /dev/null; then
     python run.py &
