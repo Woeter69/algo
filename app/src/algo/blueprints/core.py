@@ -20,3 +20,9 @@ def contact():
         flash('Thank you for your message. We will get back to you shortly.', 'success')
         return redirect(url_for('core.contact'))
     return render_template('contact.html')
+
+@bp.route("/thanks", methods=["GET", "POST"])
+def thanks():
+    if request.method == "POST":
+        return redirect(url_for("core.home"))
+    return render_template("thanks.html")
