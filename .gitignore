@@ -10,3 +10,9 @@ node_modules/
 PROJECT_DEMO_SCRIPT.md
 ./app/websocket-server/
 app/websocket-server
+
+# Generated JS from TypeScript
+app/static/js/
+
+# Generated Tailwind CSS
+app/static/styles/output.css
