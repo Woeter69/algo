@@ -1,377 +1,551 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Complete Your Profile - ALGO</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="../static/styles/complete_profile.css">
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../static/styles/complete_profile.css" />
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
-</head>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/output.css') }}"
+    />
+  </head>
 
-<body>
+  <body>
     <!-- HEADER -->
     <header>
-        <div class="container">
-            <nav>
-                <a href="#" class="logo" id="home-link">algo</a>
-                <ul class="nav-links">
-                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
-                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                    <li><a href="#" data-section="jobs">Job Board</a></li>
-                    <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
-                    <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
-                </ul>
-                <div class="hamburger">
-                    <div class="line1"></div>
-                    <div class="line2"></div>
-                    <div class="line3"></div>
-                </div>
-            </nav>
-        </div>
+      <div class="container">
+        <nav>
+          <a href="#" class="logo" id="home-link">algo</a>
+          <ul class="nav-links">
+            <li>
+              <a href="{{ url_for('home')}}" class="active" data-section="home"
+                >Home</a
+              >
+            </li>
+            <li><a href="#" data-section="browse">Browse Alumni</a></li>
+            <li><a href="#" data-section="jobs">Job Board</a></li>
+            <li><a href="#" data-section="events">Events</a></li>
+            <li>
+              <a href="{{ url_for('contact') }}" class="active">Contact Us</a>
+            </li>
+            <li><a href="{{ url_for('about') }}">About Us</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li>
+              <a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a>
+            </li>
+          </ul>
+          <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <!-- PROFILE COMPLETION CONTENT -->
     <section class="profile-container">
-        <div class="profile-box">
-            <div class="profile-header">
-                <h2>Complete Your Profile</h2>
-                <p>Help us personalize your ALGO experience</p>
-            </div>
-            <form method="POST" action="/complete_profile" class="profile-form" enctype="multipart/form-data">
-                <!-- Profile Picture Section -->
-                <div class="form-group profile-picture-group">
-                    <label for="profile-picture">Profile Picture</label>
-                    <div class="profile-picture-container">
-                        <div class="profile-picture-preview" id="profile-preview">
-                            <i class="fas fa-user-circle"></i>
-                            <span class="preview-text">Click to upload photo</span>
-                        </div>
-                        <input type="file" id="profile-picture" name="pfp" accept="image/*"
-                            class="profile-picture-input">
-                        <div class="upload-info">
-                            <small>Recommended: Square image, max 5MB (JPG, PNG, GIF)</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Personal Information Section -->
-                <div class="section-header">
-                    <h3><i class="fas fa-user"></i> Personal Information</h3>
-                </div>
-
-                <div class="form-group">
-                    <label for="dob">Date of Birth *</label>
-                    <input type="date" id="dob" name="dob" required max="{{cutoff_date}}">
-                </div>
-
-                <div class="form-group">
-                    <label for="bio">Bio</label>
-                    <textarea id="bio" name="bio" rows="3"
-                        placeholder="Tell us about yourself, your interests, and career goals..."></textarea>
-                </div>
-
-                <!-- Role Selection Section -->
-                <div class="section-header">
-                    <h3><i class="fas fa-user-tag"></i> Role Selection</h3>
-                </div>
-
-                <div class="form-group">
-                    <label for="role">I am a *</label>
-                    <select id="role" name="role" required onchange="toggleRoleFields()">
-                        <option value="" disabled selected>Select your role</option>
-                        <option value="student">Current Student</option>
-                        <option value="alumni">Alumni/Graduate</option>
-                        <option value="staff">Staff/Faculty</option>
-                    </select>
-                    <small>This will determine which features you can access after verification</small>
-                </div>
-
-                <div class="role-info-box" id="role-info">
-                    <div class="info-content">
-                        <i class="fas fa-info-circle"></i>
-                        <div class="info-text">
-                            <strong>Role Verification Process:</strong>
-                            <p>After completing your profile, you'll be able to browse basic features. To access full networking and communication features, an admin will need to verify your role and institutional affiliation.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Education Section -->
-                <div class="section-header">
-                    <h3><i class="fas fa-graduation-cap"></i> Education</h3>
-                </div>
-
-                <div class="form-group">
-                    <label for="uni-name">University Name *</label>
-                    <input type="text" id="uni-name" name="uni_name" required placeholder="Enter your university name">
-                </div>
-
-                <div class="form-group">
-                    <label for="clg-name">College/School Name</label>
-                    <input type="text" id="clg-name" name="clg_name" placeholder="Enter your college or school name">
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="degree">Degree *</label>
-                        <select id="degree" name="degree" required>
-                            <option value="" disabled selected>Select your degree</option>
-                            <option value="Bachelors">Bachelor's Degree</option>
-                            <option value="B Tech">B.Tech (Bachelor of Technology)</option>
-                            <option value="B.E.">B.E. (Bachelor of Engineering)</option>
-                            <option value="B.Sc.">B.Sc. (Bachelor of Science)</option>
-                            <option value="BCA">BCA (Bachelor of Computer Applications)</option>
-                            <option value="BBA">BBA (Bachelor of Business Administration)</option>
-                            <option value="Masters">Master's Degree</option>
-                            <option value="M Tech">M.Tech (Master of Technology)</option>
-                            <option value="M.E.">M.E. (Master of Engineering)</option>
-                            <option value="M.Sc.">M.Sc. (Master of Science)</option>
-                            <option value="MCA">MCA (Master of Computer Applications)</option>
-                            <option value="MBA">MBA (Master of Business Administration)</option>
-                            <option value="PHD">Ph.D. (Doctor of Philosophy)</option>
-                            <option value="Doctorate">Doctorate</option>
-                            <option value="Diploma">Diploma</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="major">Major/Field of Study *</label>
-                        <input type="text" id="major" name="major" required
-                            placeholder="e.g., Computer Science, Business">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="grad_year">Graduation Year *</label>
-                        <select id="grad_year" name="grad_year" required>
-                            <option value="" disabled selected>Select graduation year</option>
-                            {% for year in range(1980, 2031) %}
-                            <option value="{{ year }}">{{ year }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="gpa">GPA (Optional)</label>
-                        <input type="text" id="gpa" name="gpa" pattern="^(10(\.0{1,2})?|[0-9](\.[0-9]{1,2})?)$" min="0" max="10" placeholder="Enter your GPA if applicable" title="Enter GPA between 0 and 10">
-                    </div>
-                </div>
-
-                <!-- Role-specific fields -->
-                <div class="role-specific-fields" id="student-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="student-id">Student ID/Roll Number *</label>
-                        <input type="text" id="student-id" name="student_id" placeholder="Enter your student ID or roll number">
-                        <small>This will be used for verification purposes</small>
-                    </div>
-                </div>
-
-                <div class="role-specific-fields" id="alumni-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="alumni-id">Alumni ID (if available)</label>
-                        <input type="text" id="alumni-id" name="alumni_id" placeholder="Enter your alumni ID if you have one">
-                        <small>Optional - helps with verification</small>
-                    </div>
-                </div>
-
-                <div class="role-specific-fields" id="staff-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="employee-id">Employee ID *</label>
-                        <input type="text" id="employee-id" name="employee_id" placeholder="Enter your employee ID">
-                        <small>Required for staff verification</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="department-role">Department/Position *</label>
-                        <input type="text" id="department-role" name="department_role" placeholder="e.g., Computer Science Department, Professor">
-                    </div>
-                </div>
-
-                <!-- Location Section -->
-                <div class="section-header">
-                    <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
-                </div>
-
-                <div class="form-group">
-                    <label for="city">Current City *</label>
-                    <select id="city" name="city" required>
-                        <option value="" disabled selected>Select your current city</option>
-                        {% for city in cities %}
-                        <option value="{{city}}">{{city}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Work Experience Section -->
-                <div class="section-header">
-                    <h3><i class="fas fa-briefcase"></i> Work Experience</h3>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="company">Current/Recent Company</label>
-                        <input type="text" id="company" name="company" placeholder="Enter company name (or 'None' if not applicable)">
-                        <small>Leave blank or enter 'None' if you don't have work experience</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="job-title">Job Title/Position</label>
-                        <input type="text" id="job-title" name="job_title" placeholder="Enter your job title (or 'Student' if not working)">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="join-year">Start Year</label>
-                        <select id="join-year" name="join_year">
-                            <option value="">Select start year (optional)</option>
-                            {% for year in range(2000, 2026) %}
-                            <option value="{{ year }}">{{ year }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="leave-year">End Year</label>
-                        <select id="leave-year" name="leave_year">
-                            <option value="">Current position / Not applicable</option>
-                            {% for year in range(2000, 2026) %}
-                            <option value="{{ year }}">{{ year }}</option>
-                            {% endfor %}
-                        </select>
-                        <small>Leave blank if current position or not applicable</small>
-                    </div>
-                </div>
-
-                <!-- Skills Section -->
-                <div class="section-header">
-                    <h3><i class="fas fa-lightbulb"></i> Skills</h3>
-                </div>
-
-                <div class="form-group">
-                    <label for="skills">Skills</label>
-                    <textarea id="skills" name="skills" rows="2"
-                        placeholder="Enter your skills separated by commas (e.g., JavaScript, Python, Project Management)"></textarea>
-                    <small>List your technical and professional skills</small>
-                </div>
-
-                <!-- Social Links Section -->
-                <div class="section-header">
-                    <h3><i class="fas fa-share-alt"></i> Social Links (Optional)</h3>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="linkedin">LinkedIn</label>
-                        <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/username">
-                    </div>
-                    <div class="form-group">
-                        <label for="github">GitHub</label>
-                        <input type="url" id="github" name="github" placeholder="https://github.com/username">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="twitter">Twitter</label>
-                        <input type="text" id="twitter" name="twitter" placeholder="@username">
-                    </div>
-                    <div class="form-group">
-                        <label for="website">Personal Website</label>
-                        <input type="url" id="website" name="website" placeholder="https://yourwebsite.com">
-                    </div>
-                </div>
-
-                <!-- Privacy Settings Section -->
-                <div class="section-header">
-                    <h3><i class="fas fa-shield-alt"></i> Privacy Settings</h3>
-                </div>
-
-                <div class="checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="profile_visibility" value="public" checked>
-                        <span class="checkmark"></span>
-                        Make my profile visible to other users
-                    </label>
-                </div>
-
-                <div class="checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="email_notifications" value="enabled" checked>
-                        <span class="checkmark"></span>
-                        Receive email notifications about job opportunities and events
-                    </label>
-                </div>
-
-                <div class="checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="job_alerts" value="enabled">
-                        <span class="checkmark"></span>
-                        Get notified about relevant job opportunities
-                    </label>
-                </div>
-
-                <button type="submit" class="submit-button">
-                    <i class="fas fa-check-circle"></i>
-                    Complete Profile
-                </button>
-            </form>
+      <div class="profile-box">
+        <div class="profile-header">
+          <h2>Complete Your Profile</h2>
+          <p>Help us personalize your ALGO experience</p>
         </div>
+        <form
+          method="POST"
+          action="/complete_profile"
+          class="profile-form"
+          enctype="multipart/form-data"
+        >
+          <!-- Profile Picture Section -->
+          <div class="form-group profile-picture-group">
+            <label for="profile-picture">Profile Picture</label>
+            <div class="profile-picture-container">
+              <div class="profile-picture-preview" id="profile-preview">
+                <i class="fas fa-user-circle"></i>
+                <span class="preview-text">Click to upload photo</span>
+              </div>
+              <input
+                type="file"
+                id="profile-picture"
+                name="pfp"
+                accept="image/*"
+                class="profile-picture-input"
+              />
+              <div class="upload-info">
+                <small
+                  >Recommended: Square image, max 5MB (JPG, PNG, GIF)</small
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Personal Information Section -->
+          <div class="section-header">
+            <h3><i class="fas fa-user"></i> Personal Information</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="dob">Date of Birth *</label>
+            <input
+              type="date"
+              id="dob"
+              name="dob"
+              required
+              max="{{cutoff_date}}"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea
+              id="bio"
+              name="bio"
+              rows="3"
+              placeholder="Tell us about yourself, your interests, and career goals..."
+            ></textarea>
+          </div>
+
+          <!-- Role Selection Section -->
+          <div class="section-header">
+            <h3><i class="fas fa-user-tag"></i> Role Selection</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="role">I am a *</label>
+            <select
+              id="role"
+              name="role"
+              required
+              onchange="toggleRoleFields()"
+            >
+              <option value="" disabled selected>Select your role</option>
+              <option value="student">Current Student</option>
+              <option value="alumni">Alumni/Graduate</option>
+              <option value="staff">Staff/Faculty</option>
+            </select>
+            <small
+              >This will determine which features you can access after
+              verification</small
+            >
+          </div>
+
+          <div class="role-info-box" id="role-info">
+            <div class="info-content">
+              <i class="fas fa-info-circle"></i>
+              <div class="info-text">
+                <strong>Role Verification Process:</strong>
+                <p>
+                  After completing your profile, you'll be able to browse basic
+                  features. To access full networking and communication
+                  features, an admin will need to verify your role and
+                  institutional affiliation.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Education Section -->
+          <div class="section-header">
+            <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="uni-name">University Name *</label>
+            <input
+              type="text"
+              id="uni-name"
+              name="uni_name"
+              required
+              placeholder="Enter your university name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="clg-name">College/School Name</label>
+            <input
+              type="text"
+              id="clg-name"
+              name="clg_name"
+              placeholder="Enter your college or school name"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="degree">Degree *</label>
+              <select id="degree" name="degree" required>
+                <option value="" disabled selected>Select your degree</option>
+                <option value="Bachelors">Bachelor's Degree</option>
+                <option value="B Tech">B.Tech (Bachelor of Technology)</option>
+                <option value="B.E.">B.E. (Bachelor of Engineering)</option>
+                <option value="B.Sc.">B.Sc. (Bachelor of Science)</option>
+                <option value="BCA">
+                  BCA (Bachelor of Computer Applications)
+                </option>
+                <option value="BBA">
+                  BBA (Bachelor of Business Administration)
+                </option>
+                <option value="Masters">Master's Degree</option>
+                <option value="M Tech">M.Tech (Master of Technology)</option>
+                <option value="M.E.">M.E. (Master of Engineering)</option>
+                <option value="M.Sc.">M.Sc. (Master of Science)</option>
+                <option value="MCA">
+                  MCA (Master of Computer Applications)
+                </option>
+                <option value="MBA">
+                  MBA (Master of Business Administration)
+                </option>
+                <option value="PHD">Ph.D. (Doctor of Philosophy)</option>
+                <option value="Doctorate">Doctorate</option>
+                <option value="Diploma">Diploma</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="major">Major/Field of Study *</label>
+              <input
+                type="text"
+                id="major"
+                name="major"
+                required
+                placeholder="e.g., Computer Science, Business"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="grad_year">Graduation Year *</label>
+              <select id="grad_year" name="grad_year" required>
+                <option value="" disabled selected>
+                  Select graduation year
+                </option>
+                {% for year in range(1980, 2031) %}
+                <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="gpa">GPA (Optional)</label>
+              <input
+                type="text"
+                id="gpa"
+                name="gpa"
+                pattern="^(10(\.0{1,2})?|[0-9](\.[0-9]{1,2})?)$"
+                min="0"
+                max="10"
+                placeholder="Enter your GPA if applicable"
+                title="Enter GPA between 0 and 10"
+              />
+            </div>
+          </div>
+
+          <!-- Role-specific fields -->
+          <div
+            class="role-specific-fields"
+            id="student-fields"
+            style="display: none"
+          >
+            <div class="form-group">
+              <label for="student-id">Student ID/Roll Number *</label>
+              <input
+                type="text"
+                id="student-id"
+                name="student_id"
+                placeholder="Enter your student ID or roll number"
+              />
+              <small>This will be used for verification purposes</small>
+            </div>
+          </div>
+
+          <div
+            class="role-specific-fields"
+            id="alumni-fields"
+            style="display: none"
+          >
+            <div class="form-group">
+              <label for="alumni-id">Alumni ID (if available)</label>
+              <input
+                type="text"
+                id="alumni-id"
+                name="alumni_id"
+                placeholder="Enter your alumni ID if you have one"
+              />
+              <small>Optional - helps with verification</small>
+            </div>
+          </div>
+
+          <div
+            class="role-specific-fields"
+            id="staff-fields"
+            style="display: none"
+          >
+            <div class="form-group">
+              <label for="employee-id">Employee ID *</label>
+              <input
+                type="text"
+                id="employee-id"
+                name="employee_id"
+                placeholder="Enter your employee ID"
+              />
+              <small>Required for staff verification</small>
+            </div>
+            <div class="form-group">
+              <label for="department-role">Department/Position *</label>
+              <input
+                type="text"
+                id="department-role"
+                name="department_role"
+                placeholder="e.g., Computer Science Department, Professor"
+              />
+            </div>
+          </div>
+
+          <!-- Location Section -->
+          <div class="section-header">
+            <h3><i class="fas fa-map-marker-alt"></i> Location</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="city">Current City *</label>
+            <select id="city" name="city" required>
+              <option value="" disabled selected>
+                Select your current city
+              </option>
+              {% for city in cities %}
+              <option value="{{city}}">{{city}}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Work Experience Section -->
+          <div class="section-header">
+            <h3><i class="fas fa-briefcase"></i> Work Experience</h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="company">Current/Recent Company</label>
+              <input
+                type="text"
+                id="company"
+                name="company"
+                placeholder="Enter company name (or 'None' if not applicable)"
+              />
+              <small
+                >Leave blank or enter 'None' if you don't have work
+                experience</small
+              >
+            </div>
+            <div class="form-group">
+              <label for="job-title">Job Title/Position</label>
+              <input
+                type="text"
+                id="job-title"
+                name="job_title"
+                placeholder="Enter your job title (or 'Student' if not working)"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="join-year">Start Year</label>
+              <select id="join-year" name="join_year">
+                <option value="">Select start year (optional)</option>
+                {% for year in range(2000, 2026) %}
+                <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="leave-year">End Year</label>
+              <select id="leave-year" name="leave_year">
+                <option value="">Current position / Not applicable</option>
+                {% for year in range(2000, 2026) %}
+                <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+              </select>
+              <small>Leave blank if current position or not applicable</small>
+            </div>
+          </div>
+
+          <!-- Skills Section -->
+          <div class="section-header">
+            <h3><i class="fas fa-lightbulb"></i> Skills</h3>
+          </div>
+
+          <div class="form-group">
+            <label for="skills">Skills</label>
+            <textarea
+              id="skills"
+              name="skills"
+              rows="2"
+              placeholder="Enter your skills separated by commas (e.g., JavaScript, Python, Project Management)"
+            ></textarea>
+            <small>List your technical and professional skills</small>
+          </div>
+
+          <!-- Social Links Section -->
+          <div class="section-header">
+            <h3><i class="fas fa-share-alt"></i> Social Links (Optional)</h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="linkedin">LinkedIn</label>
+              <input
+                type="url"
+                id="linkedin"
+                name="linkedin"
+                placeholder="https://linkedin.com/in/username"
+              />
+            </div>
+            <div class="form-group">
+              <label for="github">GitHub</label>
+              <input
+                type="url"
+                id="github"
+                name="github"
+                placeholder="https://github.com/username"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="twitter">Twitter</label>
+              <input
+                type="text"
+                id="twitter"
+                name="twitter"
+                placeholder="@username"
+              />
+            </div>
+            <div class="form-group">
+              <label for="website">Personal Website</label>
+              <input
+                type="url"
+                id="website"
+                name="website"
+                placeholder="https://yourwebsite.com"
+              />
+            </div>
+          </div>
+
+          <!-- Privacy Settings Section -->
+          <div class="section-header">
+            <h3><i class="fas fa-shield-alt"></i> Privacy Settings</h3>
+          </div>
+
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                name="profile_visibility"
+                value="public"
+                checked
+              />
+              <span class="checkmark"></span>
+              Make my profile visible to other users
+            </label>
+          </div>
+
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                name="email_notifications"
+                value="enabled"
+                checked
+              />
+              <span class="checkmark"></span>
+              Receive email notifications about job opportunities and events
+            </label>
+          </div>
+
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="job_alerts" value="enabled" />
+              <span class="checkmark"></span>
+              Get notified about relevant job opportunities
+            </label>
+          </div>
+
+          <button type="submit" class="submit-button">
+            <i class="fas fa-check-circle"></i>
+            Complete Profile
+          </button>
+        </form>
+      </div>
     </section>
 
     <!-- FOOTER -->
     <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <span class="logo">algo</span>
-                    <p>Connecting students and alumni for career growth and opportunities.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
-                            target="_blank"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="{{ url_for('home') }}">Home</a></li>
-                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                        <li><a href="#" data-section="jobs">Job Board</a></li>
-                        <li><a href="#" data-section="events">Events</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Resources</h3>
-                    <ul>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Career Tips</a></li>
-                        <li><a href="#">Success Stories</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Support</h3>
-                    <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
-                </div>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <span class="logo">algo</span>
+            <p>
+              Connecting students and alumni for career growth and
+              opportunities.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="https://x.com/algo_pancho" target="_blank"
+                ><i class="fab fa-twitter"></i
+              ></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+              <a
+                href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                target="_blank"
+                ><i class="fab fa-instagram"></i
+              ></a>
             </div>
-            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+          </div>
+          <div class="footer-links">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="{{ url_for('home') }}">Home</a></li>
+              <li><a href="#" data-section="browse">Browse Alumni</a></li>
+              <li><a href="#" data-section="jobs">Job Board</a></li>
+              <li><a href="#" data-section="events">Events</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Career Tips</a></li>
+              <li><a href="#">Success Stories</a></li>
+              <li><a href="#">FAQ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Support</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
+          </div>
         </div>
+        <p class="copyright">
+          &copy; 2025 ALGO - Alumni Go. All rights reserved.
+        </p>
+      </div>
     </footer>
 
     <script src="{{ url_for('static', filename='js/complete_profile.js') }}"></script>
-</body>
-
+  </body>
 </html>

@@ -1,237 +1,269 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Channels - algo</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/channels.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
-</head>
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/channels.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/output.css') }}"
+    />
+  </head>
 
-<body>
+  <body>
     <!-- TOP NAVIGATION -->
     <div class="top-nav">
-        <div class="logo">ALGO</div>
-        <div class="user-info">
-            <div class="user-avatar">
-                {% if session.pfp_path %}
-                    <img src="{{ session.pfp_path }}" alt="Profile">
-                {% else %}
-                    {{ session.username[0] if session.username else 'U' }}
-                {% endif %}
-            </div>
-            <div class="user-name">{{ session.username or 'User' }}</div>
+      <div class="logo">ALGO</div>
+      <div class="user-info">
+        <div class="user-avatar">
+          {% if session.pfp_path %}
+          <img src="{{ session.pfp_path }}" alt="Profile" />
+          {% else %} {{ session.username[0] if session.username else 'U' }} {%
+          endif %}
         </div>
+        <div class="user-name">{{ session.username or 'User' }}</div>
+      </div>
     </div>
 
     <!-- MAIN CONTAINER -->
     <div class="main-container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-title">
-                    {% if communities %}
-                        {% for community in communities %}
-                            {% if community[0] == selected_community_id %}
-                                {{ community[1] }}
-                            {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        Cluster Innovation Centre
-                    {% endif %}
-                </div>
-                <div class="sidebar-subtitle">Connect with your community</div>
-            </div>
-
-            {% if communities|length > 1 %}
-            <div class="communities-section">
-                <div class="section-title">Communities</div>
-                <ul class="communities-list">
-                    {% for community in communities %}
-                    <li class="community {% if community[0] == selected_community_id %}active{% endif %}">
-                        <a href="?community_id={{ community[0] }}">
-                            <div class="community-name">{{ community[1] }}</div>
-                            <div class="community-role">{{ community[3] }}</div>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            <div class="channels-section">
-                <div class="section-title">Channels</div>
-                <ul class="channels-list">
-                    {% if channels %}
-                        {% for channel in channels %}
-                        <li class="channel {% if loop.first %}active{% endif %}" data-channel-id="{{ channel[0] }}">
-                            <div class="channel-icon">
-                                {% if channel[3] == 'announcement' %}
-                                    <i class="fas fa-bullhorn"></i>
-                                {% elif 'general' in channel[1] %}
-                                    <i class="fas fa-users"></i>
-                                {% elif 'job' in channel[1] or 'career' in channel[1] %}
-                                    <i class="fas fa-briefcase"></i>
-                                {% elif 'tech' in channel[1] or 'code' in channel[1] %}
-                                    <i class="fas fa-code"></i>
-                                {% elif 'alumni' in channel[1] %}
-                                    <i class="fas fa-graduation-cap"></i>
-                                {% elif 'startup' in channel[1] %}
-                                    <i class="fas fa-rocket"></i>
-                                {% elif 'project' in channel[1] %}
-                                    <i class="fas fa-folder"></i>
-                                {% elif 'event' in channel[1] %}
-                                    <i class="fas fa-calendar"></i>
-                                {% elif 'help' in channel[1] or 'support' in channel[1] %}
-                                    <i class="fas fa-question-circle"></i>
-                                {% elif 'random' in channel[1] %}
-                                    <i class="fas fa-dice"></i>
-                                {% else %}
-                                    <i class="fas fa-hashtag"></i>
-                                {% endif %}
-                            </div>
-                            <div class="channel-name">{{ channel[1] }}</div>
-                            {% if channel[4] %}
-                                <div class="channel-private"><i class="fas fa-lock"></i></div>
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    {% else %}
-                        <li class="no-channels">
-                            <div class="no-channels-text">No channels available</div>
-                            <div class="no-channels-subtitle">Join a community to see channels</div>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title">
+            {% if communities %} {% for community in communities %} {% if
+            community[0] == selected_community_id %} {{ community[1] }} {% endif
+            %} {% endfor %} {% else %} Cluster Innovation Centre {% endif %}
+          </div>
+          <div class="sidebar-subtitle">Connect with your community</div>
         </div>
 
-        <!-- CHAT AREA -->
-        <div class="chat-area">
-            {% if channels %}
-            <div class="chat-header">
-                <div class="current-channel-icon">
-                    <i class="fas fa-hashtag"></i>
-                </div>
-                <div class="current-channel-name" id="currentChannelName"># {{ channels[0][1] if channels else 'general' }}</div>
-                <div class="channel-description" id="channelDescription">{{ channels[0][2] if channels and channels[0][2] else '' }}</div>
-            </div>
-
-            <div class="chat-tabs">
-                <button class="tab-btn active" data-tab="messages">Messages</button>
-                <button class="tab-btn" data-tab="connections">Members</button>
-            </div>
-
-            <div class="tab-content">
-                <div class="tab-panel active" id="messages-panel">
-                    <div class="chat-messages" id="chatMessages">
-                        <div class="loading-messages">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <span>Loading messages...</span>
-                        </div>
-                    </div>
-
-                    <div class="chat-input">
-                        <div class="input-container">
-                            <input type="text" id="messageInput" class="message-input" placeholder="Message # {{ channels[0][1] if channels else 'general' }}">
-                            <button id="sendBtn" class="send-btn">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            {% else %}
-            <div class="no-channel-selected">
-                <div class="no-channel-icon">
-                    <i class="fas fa-comments"></i>
-                </div>
-                <div class="no-channel-title">Welcome to Channels!</div>
-                <div class="no-channel-subtitle">
-                    {% if not communities %}
-                        You need to join a community to start chatting.
-                    {% else %}
-                        Select a channel from the sidebar to start chatting.
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-                <div class="tab-panel" id="connections-panel">
-                    <div class="connections-list" id="membersList">
-                        <div class="loading-members">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <span>Loading members...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        {% if communities|length > 1 %}
+        <div class="communities-section">
+          <div class="section-title">Communities</div>
+          <ul class="communities-list">
+            {% for community in communities %}
+            <li
+              class="community {% if community[0] == selected_community_id %}active{% endif %}"
+            >
+              <a href="?community_id={{ community[0] }}">
+                <div class="community-name">{{ community[1] }}</div>
+                <div class="community-role">{{ community[3] }}</div>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
         </div>
+        {% endif %}
+
+        <div class="channels-section">
+          <div class="section-title">Channels</div>
+          <ul class="channels-list">
+            {% if channels %} {% for channel in channels %}
+            <li
+              class="channel {% if loop.first %}active{% endif %}"
+              data-channel-id="{{ channel[0] }}"
+            >
+              <div class="channel-icon">
+                {% if channel[3] == 'announcement' %}
+                <i class="fas fa-bullhorn"></i>
+                {% elif 'general' in channel[1] %}
+                <i class="fas fa-users"></i>
+                {% elif 'job' in channel[1] or 'career' in channel[1] %}
+                <i class="fas fa-briefcase"></i>
+                {% elif 'tech' in channel[1] or 'code' in channel[1] %}
+                <i class="fas fa-code"></i>
+                {% elif 'alumni' in channel[1] %}
+                <i class="fas fa-graduation-cap"></i>
+                {% elif 'startup' in channel[1] %}
+                <i class="fas fa-rocket"></i>
+                {% elif 'project' in channel[1] %}
+                <i class="fas fa-folder"></i>
+                {% elif 'event' in channel[1] %}
+                <i class="fas fa-calendar"></i>
+                {% elif 'help' in channel[1] or 'support' in channel[1] %}
+                <i class="fas fa-question-circle"></i>
+                {% elif 'random' in channel[1] %}
+                <i class="fas fa-dice"></i>
+                {% else %}
+                <i class="fas fa-hashtag"></i>
+                {% endif %}
+              </div>
+              <div class="channel-name">{{ channel[1] }}</div>
+              {% if channel[4] %}
+              <div class="channel-private"><i class="fas fa-lock"></i></div>
+              {% endif %}
+            </li>
+            {% endfor %} {% else %}
+            <li class="no-channels">
+              <div class="no-channels-text">No channels available</div>
+              <div class="no-channels-subtitle">
+                Join a community to see channels
+              </div>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- CHAT AREA -->
+      <div class="chat-area">
+        {% if channels %}
+        <div class="chat-header">
+          <div class="current-channel-icon">
+            <i class="fas fa-hashtag"></i>
+          </div>
+          <div class="current-channel-name" id="currentChannelName">
+            # {{ channels[0][1] if channels else 'general' }}
+          </div>
+          <div class="channel-description" id="channelDescription">
+            {{ channels[0][2] if channels and channels[0][2] else '' }}
+          </div>
+        </div>
+
+        <div class="chat-tabs">
+          <button class="tab-btn active" data-tab="messages">Messages</button>
+          <button class="tab-btn" data-tab="connections">Members</button>
+        </div>
+
+        <div class="tab-content">
+          <div class="tab-panel active" id="messages-panel">
+            <div class="chat-messages" id="chatMessages">
+              <div class="loading-messages">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading messages...</span>
+              </div>
+            </div>
+
+            <div class="chat-input">
+              <div class="input-container">
+                <input
+                  type="text"
+                  id="messageInput"
+                  class="message-input"
+                  placeholder="Message # {{ channels[0][1] if channels else 'general' }}"
+                />
+                <button id="sendBtn" class="send-btn">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="no-channel-selected">
+            <div class="no-channel-icon">
+              <i class="fas fa-comments"></i>
+            </div>
+            <div class="no-channel-title">Welcome to Channels!</div>
+            <div class="no-channel-subtitle">
+              {% if not communities %} You need to join a community to start
+              chatting. {% else %} Select a channel from the sidebar to start
+              chatting. {% endif %}
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="tab-panel" id="connections-panel">
+            <div class="connections-list" id="membersList">
+              <div class="loading-members">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading members...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Profile Preview Modal -->
     <div class="modal-overlay" id="profileModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>Profile Details</h3>
-                <button type="button" class="modal-close" id="closeProfileModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-content">
-                <div class="profile-preview" id="profilePreview">
-                    <!-- Profile details will be populated -->
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" id="closePreview">Close</button>
-                    <button type="button" class="btn" id="profileFromPreview" style="display: inline-flex;">
-                        <i class="fas fa-user"></i> View Profile
-                    </button>
-                    <button type="button" class="btn" id="connectFromPreview" style="display: inline-flex;">
-                        <i class="fas fa-user-plus"></i> Connect
-                    </button>
-                    <button type="button" class="btn" id="messageFromPreview" style="display: inline-flex;">
-                        <i class="fas fa-comment"></i> Chat
-                    </button>
-                </div>
-            </div>
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Profile Details</h3>
+          <button type="button" class="modal-close" id="closeProfileModal">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
+        <div class="modal-content">
+          <div class="profile-preview" id="profilePreview">
+            <!-- Profile details will be populated -->
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" id="closePreview">
+              Close
+            </button>
+            <button
+              type="button"
+              class="btn"
+              id="profileFromPreview"
+              style="display: inline-flex"
+            >
+              <i class="fas fa-user"></i> View Profile
+            </button>
+            <button
+              type="button"
+              class="btn"
+              id="connectFromPreview"
+              style="display: inline-flex"
+            >
+              <i class="fas fa-user-plus"></i> Connect
+            </button>
+            <button
+              type="button"
+              class="btn"
+              id="messageFromPreview"
+              style="display: inline-flex"
+            >
+              <i class="fas fa-comment"></i> Chat
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Pass data to JavaScript -->
     <script id="channels-data" type="application/json">
-        {{ {
-            "communities": communities or [],
-            "channels": channels or [],
-            "selectedCommunityId": selected_community_id,
-            "userId": user_id,
-            "currentUsername": session.username or "User",
-            "currentUserPfp": session.pfp_path or "",
-            "currentUserId": session.user_id
-        } | tojson | safe }}
+      {{ {
+          "communities": communities or [],
+          "channels": channels or [],
+          "selectedCommunityId": selected_community_id,
+          "userId": user_id,
+          "currentUsername": session.username or "User",
+          "currentUserPfp": session.pfp_path or "",
+          "currentUserId": session.user_id
+      } | tojson | safe }}
     </script>
     <script>
-        // Parse server data from JSON script tag
-        const serverData = JSON.parse(document.getElementById('channels-data').textContent);
-        window.channelsData = {
-            communities: serverData.communities,
-            channels: serverData.channels,
-            selectedCommunityId: serverData.selectedCommunityId,
-            userId: serverData.userId
-        };
-        
-        // Current user info for optimistic UI
-        window.currentUsername = serverData.currentUsername;
-        window.currentUserPfp = serverData.currentUserPfp;
-        window.currentUserId = serverData.currentUserId;
+      // Parse server data from JSON script tag
+      const serverData = JSON.parse(
+        document.getElementById("channels-data").textContent,
+      );
+      window.channelsData = {
+        communities: serverData.communities,
+        channels: serverData.channels,
+        selectedCommunityId: serverData.selectedCommunityId,
+        userId: serverData.userId,
+      };
+
+      // Current user info for optimistic UI
+      window.currentUsername = serverData.currentUsername;
+      window.currentUserPfp = serverData.currentUserPfp;
+      window.currentUserId = serverData.currentUserId;
     </script>
     <!-- Go WebSocket Client (replaces Socket.IO) -->
     <script src="{{ url_for('static', filename='js/go-websocket-client.js') }}"></script>
     <script src="{{ url_for('static', filename='js/channels.js') }}"></script>
-</body>
-
+  </body>
 </html>

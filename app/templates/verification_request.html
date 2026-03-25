@@ -1,172 +1,252 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verification Request - ALGO</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/verification.css') }}">
-</head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/verification.css') }}"
+    />
+  </head>
 
-<body>
+  <body>
     <!-- HEADER -->
     <header>
-        <div class="container">
-            <nav>
-                <a href="#" class="logo" id="home-link">algo</a>
-                <ul class="nav-links">
-                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
-                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                    <li><a href="#" data-section="jobs">Job Board</a></li>
-                    <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
-                    <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
-                </ul>
-                <div class="hamburger">
-                    <div class="line1"></div>
-                    <div class="line2"></div>
-                    <div class="line3"></div>
-                </div>
-            </nav>
-        </div>
+      <div class="container">
+        <nav>
+          <a href="#" class="logo" id="home-link">algo</a>
+          <ul class="nav-links">
+            <li>
+              <a href="{{ url_for('home')}}" class="active" data-section="home"
+                >Home</a
+              >
+            </li>
+            <li><a href="#" data-section="browse">Browse Alumni</a></li>
+            <li><a href="#" data-section="jobs">Job Board</a></li>
+            <li><a href="#" data-section="events">Events</a></li>
+            <li>
+              <a href="{{ url_for('contact') }}" class="active">Contact Us</a>
+            </li>
+            <li><a href="{{ url_for('about') }}">About Us</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li>
+              <a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a>
+            </li>
+          </ul>
+          <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <!-- VERIFICATION REQUEST SECTION -->
     <section class="verification-section">
-        <div class="container">
-            <div class="verification-box">
-                <div class="verification-header">
-                    <i class="fas fa-user-check"></i>
-                    <h2>Request Verification</h2>
-                    <p>Get verified to access college-specific features and connect with your alumni network</p>
-                </div>
+      <div class="container">
+        <div class="verification-box">
+          <div class="verification-header">
+            <i class="fas fa-user-check"></i>
+            <h2>Request Verification</h2>
+            <p>
+              Get verified to access college-specific features and connect with
+              your alumni network
+            </p>
+          </div>
 
-                <!-- Simplified form - no current request status display for now -->
-                <form method="POST" class="verification-form">
-                    <div class="form-section">
-                        <h3><i class="fas fa-university"></i> College Information</h3>
-                        
-                        <div class="form-group">
-                            <label for="college_id">Select Your College *</label>
-                            <select id="college_id" name="college_id" required>
-                                <option value="">Choose your college...</option>
-                                <option value="1">Sample University (Sample Location)</option>
-                            </select>
-                        </div>
+          <!-- Simplified form - no current request status display for now -->
+          <form method="POST" class="verification-form">
+            <div class="form-section">
+              <h3><i class="fas fa-university"></i> College Information</h3>
 
-                        <div class="form-group">
-                            <label for="requested_role">I am a *</label>
-                            <select id="requested_role" name="requested_role" required>
-                                <option value="">Select your status...</option>
-                                <option value="student" {% if form_data.requested_role == 'student' %}selected{% endif %}>Current Student</option>
-                                <option value="alumni" {% if form_data.requested_role == 'alumni' %}selected{% endif %}>Alumni/Graduate</option>
-                            </select>
-                        </div>
-                    </div>
+              <div class="form-group">
+                <label for="college_id">Select Your College *</label>
+                <select id="college_id" name="college_id" required>
+                  <option value="">Choose your college...</option>
+                  <option value="1">Sample University (Sample Location)</option>
+                </select>
+              </div>
 
-                    <div class="form-section">
-                        <h3><i class="fas fa-id-card"></i> Academic Information</h3>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="student_id">Student/Alumni ID</label>
-                                <input type="text" id="student_id" name="student_id" 
-                                       placeholder="e.g., 2021CS001, ALM2019001">
-                                <small>Your official student or alumni ID number</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="graduation_year">Graduation Year *</label>
-                                <select id="graduation_year" name="graduation_year" required>
-                                    <option value="">Select year...</option>
-                                    {% for year in range(1980, 2031) %}
-                                    <option value="{{ year }}" {% if form_data.graduation_year and form_data.graduation_year|string == year|string %}selected{% elif year == 2024 and not form_data.graduation_year %}selected{% endif %}>{{ year }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="department">Department/Major *</label>
-                            <input type="text" id="department" name="department" required
-                                   placeholder="e.g., Computer Science, Business Administration">
-                        </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h3><i class="fas fa-comment"></i> Additional Information</h3>
-                        
-                        <div class="form-group">
-                            <label for="request_message">Message to Admin (Optional)</label>
-                            <textarea id="request_message" name="request_message" rows="4"
-                                      placeholder="Any additional information that might help verify your identity..."></textarea>
-                        </div>
-                    </div>
-
-                    <div class="verification-info">
-                        <div class="info-card">
-                            <i class="fas fa-info-circle"></i>
-                            <div>
-                                <h4>Verification Process</h4>
-                                <ul>
-                                    <li>Your request will be reviewed by college administrators</li>
-                                    <li>Verification typically takes 1-3 business days</li>
-                                    <li>You'll receive an email notification once reviewed</li>
-                                    <li>Provide accurate information to avoid delays</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn">
-                        <i class="fas fa-paper-plane"></i>
-                        Submit Verification Request
-                    </button>
-                </form>
-
-                <div class="form-actions">
-                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i>
-                        Back to Dashboard
-                    </a>
-                </div>
+              <div class="form-group">
+                <label for="requested_role">I am a *</label>
+                <select id="requested_role" name="requested_role" required>
+                  <option value="">Select your status...</option>
+                  <option
+                    value="student"
+                    {%
+                    if
+                    form_data.requested_role=""
+                    ="student"
+                    %}selected{%
+                    endif
+                    %}
+                  >
+                    Current Student
+                  </option>
+                  <option
+                    value="alumni"
+                    {%
+                    if
+                    form_data.requested_role=""
+                    ="alumni"
+                    %}selected{%
+                    endif
+                    %}
+                  >
+                    Alumni/Graduate
+                  </option>
+                </select>
+              </div>
             </div>
+
+            <div class="form-section">
+              <h3><i class="fas fa-id-card"></i> Academic Information</h3>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="student_id">Student/Alumni ID</label>
+                  <input
+                    type="text"
+                    id="student_id"
+                    name="student_id"
+                    placeholder="e.g., 2021CS001, ALM2019001"
+                  />
+                  <small>Your official student or alumni ID number</small>
+                </div>
+                <div class="form-group">
+                  <label for="graduation_year">Graduation Year *</label>
+                  <select id="graduation_year" name="graduation_year" required>
+                    <option value="">Select year...</option>
+                    {% for year in range(1980, 2031) %}
+                    <option
+                      value="{{ year }}"
+                      {%
+                      if
+                      form_data.graduation_year
+                      and
+                      form_data.graduation_year|string=""
+                      ="year|string"
+                      %}selected{%
+                      elif
+                      year=""
+                      ="2024"
+                      and
+                      not
+                      form_data.graduation_year
+                      %}selected{%
+                      endif
+                      %}
+                    >
+                      {{ year }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="department">Department/Major *</label>
+                <input
+                  type="text"
+                  id="department"
+                  name="department"
+                  required
+                  placeholder="e.g., Computer Science, Business Administration"
+                />
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3><i class="fas fa-comment"></i> Additional Information</h3>
+
+              <div class="form-group">
+                <label for="request_message">Message to Admin (Optional)</label>
+                <textarea
+                  id="request_message"
+                  name="request_message"
+                  rows="4"
+                  placeholder="Any additional information that might help verify your identity..."
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="verification-info">
+              <div class="info-card">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                  <h4>Verification Process</h4>
+                  <ul>
+                    <li>
+                      Your request will be reviewed by college administrators
+                    </li>
+                    <li>Verification typically takes 1-3 business days</li>
+                    <li>You'll receive an email notification once reviewed</li>
+                    <li>Provide accurate information to avoid delays</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-paper-plane"></i>
+              Submit Verification Request
+            </button>
+          </form>
+
+          <div class="form-actions">
+            <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
+              <i class="fas fa-arrow-left"></i>
+              Back to Dashboard
+            </a>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- FOOTER -->
     <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <span class="logo">algo</span>
-                    <p>Connecting students and alumni for career growth and opportunities.</p>
-                </div>
-                <div class="footer-links">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="{{ url_for('home') }}">Home</a></li>
-                        <li><a href="{{ url_for('user_dashboard') }}">Dashboard</a></li>
-                        <li><a href="{{ url_for('profile_redirect') }}">Profile</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Support</h3>
-                    <ul>
-                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                    </ul>
-                </div>
-            </div>
-            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <span class="logo">algo</span>
+            <p>
+              Connecting students and alumni for career growth and
+              opportunities.
+            </p>
+          </div>
+          <div class="footer-links">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="{{ url_for('home') }}">Home</a></li>
+              <li><a href="{{ url_for('user_dashboard') }}">Dashboard</a></li>
+              <li><a href="{{ url_for('profile_redirect') }}">Profile</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Support</h3>
+            <ul>
+              <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+            </ul>
+          </div>
         </div>
+        <p class="copyright">
+          &copy; 2025 ALGO - Alumni Go. All rights reserved.
+        </p>
+      </div>
     </footer>
 
     <script src="{{ url_for('static', filename='js/verification.js') }}"></script>
-</body>
-
+  </body>
 </html>

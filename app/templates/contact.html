@@ -1,180 +1,268 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contact Us - ALGO</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../static/styles/home.css">
-    <link rel="stylesheet" href="../static/styles/contact.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../static/styles/home.css" />
+    <link rel="stylesheet" href="../static/styles/contact.css" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/output.css') }}"
+    />
+  </head>
+  <body>
     <!-- HEADER -->
     <header>
-        <div class="container">
-            <nav>
-                <a href="#" class="logo" id="home-link">algo</a>
-                <ul class="nav-links">
-                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
-                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                    <li><a href="#" data-section="jobs">Job Board</a></li>
-                    <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
-                    <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
-                </ul>
-                <div class="hamburger">
-                    <div class="line1"></div>
-                    <div class="line2"></div>
-                    <div class="line3"></div>
-                </div>
-            </nav>
-        </div>
+      <div class="container">
+        <nav>
+          <a href="#" class="logo" id="home-link">algo</a>
+          <ul class="nav-links">
+            <li>
+              <a href="{{ url_for('home')}}" class="active" data-section="home"
+                >Home</a
+              >
+            </li>
+            <li><a href="#" data-section="browse">Browse Alumni</a></li>
+            <li><a href="#" data-section="jobs">Job Board</a></li>
+            <li><a href="#" data-section="events">Events</a></li>
+            <li>
+              <a href="{{ url_for('contact') }}" class="active">Contact Us</a>
+            </li>
+            <li><a href="{{ url_for('about') }}">About Us</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li>
+              <a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a>
+            </li>
+          </ul>
+          <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <!-- CONTACT HERO SECTION -->
     <section class="contact-hero">
-        <div class="container">
-            <h1>Get in Touch With Us</h1>
-            <p>Whether you're a proud alumnus, a current student, or just interested in our initiative, we'd love to hear from you. Share your feedback, questions, or suggestions to help us build a stronger alumni network!</p>
-        </div>
+      <div class="container">
+        <h1>Get in Touch With Us</h1>
+        <p>
+          Whether you're a proud alumnus, a current student, or just interested
+          in our initiative, we'd love to hear from you. Share your feedback,
+          questions, or suggestions to help us build a stronger alumni network!
+        </p>
+      </div>
     </section>
 
     <!-- CONTACT CONTENT -->
     <section class="contact-content">
-        <div class="container">
-            <div class="contact-content-inner">
-                <!-- Feedback Form -->
-                <div class="form-section">
-                    <h2>Send Us a Message</h2>
+      <div class="container">
+        <div class="contact-content-inner">
+          <!-- Feedback Form -->
+          <div class="form-section">
+            <h2>Send Us a Message</h2>
 
-                    <form id="contactForm" method="POST" action="{{ url_for('contact') }}" class="contact-form">
-                        <div class="form-group">
-                            <label for="full_name">Full Name:</label>
-                            <input type="text" id="full_name" name="full_name" placeholder="Enter your name" required>
-                        </div>
+            <form
+              id="contactForm"
+              method="POST"
+              action="{{ url_for('contact') }}"
+              class="contact-form"
+            >
+              <div class="form-group">
+                <label for="full_name">Full Name:</label>
+                <input
+                  type="text"
+                  id="full_name"
+                  name="full_name"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
 
-                        <div class="form-group">
-                            <label for="email">Email Address:</label>
-                            <input type="email" id="email" name="email" placeholder="Enter your email" required>
-                        </div>
+              <div class="form-group">
+                <label for="email">Email Address:</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
 
-                        <div class="form-group">
-                            <label for="phone">Phone Number:</label>
-                            <input type="tel" id="phone" name="phone" placeholder="Enter your phone number">
-                        </div>
+              <div class="form-group">
+                <label for="phone">Phone Number:</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="Enter your phone number"
+                />
+              </div>
 
-                        <div class="form-group">
-                            <label for="subject">Subject:</label>
-                            <select id="subject" name="subject" required>
-                                <option value="">Select a subject</option>
-                                <option value="general">General Inquiry</option>
-                                <option value="feedback">Feedback</option>
-                                <option value="support">Technical Support</option>
-                                <option value="partnership">Partnership Opportunity</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
+              <div class="form-group">
+                <label for="subject">Subject:</label>
+                <select id="subject" name="subject" required>
+                  <option value="">Select a subject</option>
+                  <option value="general">General Inquiry</option>
+                  <option value="feedback">Feedback</option>
+                  <option value="support">Technical Support</option>
+                  <option value="partnership">Partnership Opportunity</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
 
-                        <div class="form-group">
-                            <label for="message">Message:</label>
-                            <textarea id="message" name="message" placeholder="Write your message here..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn-submit">Submit Message</button>
-                    </form>
-                    
-                    <div id="successMessage" class="success-message">
-                        <i class="fas fa-check-circle"></i> Thank you for your message! We'll get back to you soon.
-                    </div>
-                </div>
+              <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  placeholder="Write your message here..."
+                  required
+                ></textarea>
+              </div>
+              <button type="submit" class="btn-submit">Submit Message</button>
+            </form>
 
-                <!-- Contact Info & Map -->
-                <div class="info-section">
-                    <h2>Our Contact Details</h2>
-                    <ul>
-                        <li><i class="fas fa-map-marker-alt"></i> <strong>Address:</strong> Cluster Innovation Centre, University of Delhi, Delhi - 110007</li>
-                        <li><i class="fas fa-envelope"></i> <strong>Email:</strong> info@alumniconnect.com</li>
-                        <li><i class="fas fa-phone"></i> <strong>Phone:</strong> +91 9876543210</li>
-                        <li><i class="fas fa-globe"></i> <strong>Website:</strong> www.alumniconnect.com</li>
-                        <li><i class="fas fa-clock"></i> <strong>Hours:</strong> Monday - Friday: 9AM - 5PM</li>
-                    </ul>
-
-                    <div class="social-media">
-                        <h3>Follow Us</h3>
-                        <div class="social-icons">
-                            <a href="#"><i class="fab fa-facebook-f"></i></a>
-                            <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
-                        </div>
-                    </div>
-
-                    <div class="map-container">
-                        <h3>Find Us Here</h3>
-                        <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3501.366332321218!2d77.20872231508336!3d28.68864438240466!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0283c6fb5f2d%3A0xefb0b5ff1a89c0a3!2sCluster%20Innovation%20Centre%2C%20University%20of%20Delhi!5e0!3m2!1sen!2sin!4v1649840350935!5m2!1sen!2sin" 
-                            width="100%" 
-                            height="250" 
-                            style="border:0;" 
-                            allowfullscreen="" 
-                            loading="lazy">
-                        </iframe>
-                    </div>
-                </div>
+            <div id="successMessage" class="success-message">
+              <i class="fas fa-check-circle"></i> Thank you for your message!
+              We'll get back to you soon.
             </div>
+          </div>
+
+          <!-- Contact Info & Map -->
+          <div class="info-section">
+            <h2>Our Contact Details</h2>
+            <ul>
+              <li>
+                <i class="fas fa-map-marker-alt"></i>
+                <strong>Address:</strong> Cluster Innovation Centre, University
+                of Delhi, Delhi - 110007
+              </li>
+              <li>
+                <i class="fas fa-envelope"></i>
+                <strong>Email:</strong> info@alumniconnect.com
+              </li>
+              <li>
+                <i class="fas fa-phone"></i> <strong>Phone:</strong> +91
+                9876543210
+              </li>
+              <li>
+                <i class="fas fa-globe"></i>
+                <strong>Website:</strong> www.alumniconnect.com
+              </li>
+              <li>
+                <i class="fas fa-clock"></i> <strong>Hours:</strong> Monday -
+                Friday: 9AM - 5PM
+              </li>
+            </ul>
+
+            <div class="social-media">
+              <h3>Follow Us</h3>
+              <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://x.com/algo_pancho" target="_blank"
+                  ><i class="fab fa-twitter"></i
+                ></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a
+                  href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                  target="_blank"
+                  ><i class="fab fa-instagram"></i
+                ></a>
+              </div>
+            </div>
+
+            <div class="map-container">
+              <h3>Find Us Here</h3>
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3501.366332321218!2d77.20872231508336!3d28.68864438240466!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d0283c6fb5f2d%3A0xefb0b5ff1a89c0a3!2sCluster%20Innovation%20Centre%2C%20University%20of%20Delhi!5e0!3m2!1sen!2sin!4v1649840350935!5m2!1sen!2sin"
+                width="100%"
+                height="250"
+                style="border: 0"
+                allowfullscreen=""
+                loading="lazy"
+              >
+              </iframe>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- FOOTER -->
     <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <span class="logo">algo</span>
-                    <p>Connecting students and alumni for career growth and opportunities.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="{{ url_for('home') }}">Home</a></li>
-                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                        <li><a href="#" data-section="jobs">Job Board</a></li>
-                        <li><a href="#" data-section="events">Events</a></li>
-                        <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
-                        <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Resources</h3>
-                    <ul>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Career Tips</a></li>
-                        <li><a href="#">Success Stories</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Support</h3>
-                    <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
-                </div>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <span class="logo">algo</span>
+            <p>
+              Connecting students and alumni for career growth and
+              opportunities.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="https://x.com/algo_pancho" target="_blank"
+                ><i class="fab fa-twitter"></i
+              ></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+              <a
+                href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                target="_blank"
+                ><i class="fab fa-instagram"></i
+              ></a>
             </div>
-            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+          </div>
+          <div class="footer-links">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="{{ url_for('home') }}">Home</a></li>
+              <li><a href="#" data-section="browse">Browse Alumni</a></li>
+              <li><a href="#" data-section="jobs">Job Board</a></li>
+              <li><a href="#" data-section="events">Events</a></li>
+              <li>
+                <a href="{{ url_for('contact') }}" class="active">Contact Us</a>
+              </li>
+              <li><a href="{{ url_for('about') }}">About Us</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Career Tips</a></li>
+              <li><a href="#">Success Stories</a></li>
+              <li><a href="#">FAQ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Support</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
+          </div>
         </div>
+        <p class="copyright">
+          &copy; 2025 ALGO - Alumni Go. All rights reserved.
+        </p>
+      </div>
     </footer>
-    <script type="module" src="{{ url_for('static', filename='js/contact.js') }}"></script>
-</body>
+    <script
+      type="module"
+      src="{{ url_for('static', filename='js/contact.js') }}"
+    ></script>
+  </body>
 </html>
