@@ -83,75 +83,7 @@ def home():
         return render_template("home.html"), 500
 
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
 
-    if "user_id" in session:
-        return redirect(url_for("user_dashboard"))
-
-    cur = None
-    mydb = None
-
-    try:
-        if request.method == "POST":
-            email_or_username = request.form["email"]
-            password = request.form["password"]
-
-            mydb = connection.get_db_connection()
-            cur = mydb.cursor()
-
-            cur.execute(
-                "SELECT user_id, password, login_count, username, pfp_path, role FROM users WHERE email=%s OR username=%s",
-                (email_or_username, email_or_username),
-            )
-            row = cur.fetchone()
-
-            if row:
-                user_id, hashed_password, login_count, username, pfp_path, role = row
-                hashed = bcrypt.generate_password_hash(hashed_password).decode("utf-8")
-                print(hashed)
-                if bcrypt.check_password_hash(hashed_password, password):
-                    session["user_id"] = user_id
-                    session["username"] = username
-                    session["pfp_path"] = pfp_path
-                    session["role"] = role
-
-                    cur.execute(
-                        "UPDATE users SET last_login=%s, login_count=login_count+1 WHERE user_id=%s",
-                        (datetime.datetime.utcnow(), user_id),
-                    )
-                    mydb.commit()
-
-                    # Check for saved redirect URL
-                    next_url = session.pop("next_url", None)
-
-                    if login_count == 0:
-                        # First time login - must complete profile first
-                        # Save the next_url for after profile completion
-                        if next_url:
-                            session["post_profile_redirect"] = next_url
-                        return redirect(url_for("complete_profile"))
-                    else:
-                        # Regular login - redirect to intended page or dashboard
-                        if next_url and is_safe_url(next_url):
-                            return redirect(next_url)
-                        else:
-                            return redirect(url_for("user_dashboard"))
-
-            return render_template("login.html", error="Invalid Credentials")
-
-        return render_template("login.html")
-
-    except Exception as e:
-        app.logger.error(f"Error during login: {str(e)}")
-        flash("An unexpected error occurred. Please try again later.")
-        return render_template("login.html"), 500
-
-    finally:
-        if cur is not None:
-            cur.close()
-        if mydb is not None:
-            mydb.close()
 
 
 @app.route("/forgot-password", methods=["GET", "POST"])

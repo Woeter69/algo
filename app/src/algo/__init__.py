@@ -45,7 +45,7 @@ def create_app(test_config=None):
 
     # Register blueprints
     app.register_blueprint(core.bp)
-    # app.register_blueprint(auth.bp)
+    app.register_blueprint(auth.bp)
     # ... other blueprints
 
     # A simple hello route to test app factory
@@ -54,3 +54,4 @@ def create_app(test_config=None):
         return 'Hello, World!'
 
     return app
+urn app
