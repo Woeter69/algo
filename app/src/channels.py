@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify, session
 from psycopg2.extras import RealDictCursor
 import logging
 import requests
-import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

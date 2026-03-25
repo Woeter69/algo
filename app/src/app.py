@@ -5,7 +5,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import datetime
 import secrets
-import time
 from urllib.parse import urlparse
 
 from flask import (Flask, flash, jsonify, redirect, render_template, request,
