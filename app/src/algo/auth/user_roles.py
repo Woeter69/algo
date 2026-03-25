@@ -40,7 +40,7 @@ Last Modified: 2024
 
 from functools import wraps
 from flask import session, redirect, url_for, flash, request
-from connection import get_db_connection
+from algo.db import get_db as get_db_connection
 
 
 class UserRoles:

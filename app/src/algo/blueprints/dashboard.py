@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request
 from algo.db import get_db
 from algo.auth.decorators import login_required
-import user_roles
+from algo.auth import user_roles
 
 bp = Blueprint('dashboard', __name__)
 
