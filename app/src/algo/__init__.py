@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from algo import db
 # Import blueprints that will be registered
 # from .blueprints import core, auth, profile, profile, admin, connections, chat, settings
-from .blueprints import core, auth, profile, dashboard, connections, settings, chat, communities
+from .blueprints import core, auth, profile, dashboard, connections, settings, chat, communities, channels
 
 # Initialize extensions without an app
 bcrypt = Bcrypt()
@@ -53,8 +53,6 @@ def create_app(test_config=None):
     app.register_blueprint(settings.bp)
     app.register_blueprint(chat.bp)
     app.register_blueprint(communities.bp)
-    
-    import channels
     app.register_blueprint(channels.channels_bp, url_prefix="/api")
 
     import utils

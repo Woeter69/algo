@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 channels_bp = Blueprint("channels", __name__)
 
 # Import database connection from connection module
-import connection
+from algo.db import get_db
 
 
 # Function to broadcast messages to Go WebSocket server
@@ -46,7 +46,7 @@ def broadcast_to_go_websocket(channel_id, message_data):
 
 
 def get_db_connection():
-    return connection.get_db_connection()
+    return get_db()
 
 
 def require_auth(f):
@@ -97,7 +97,6 @@ def require_community_member(f):
             return f(*args, **kwargs)
         finally:
             cursor.close()
-            conn.close()
 
     decorated_function.__name__ = f.__name__
     return decorated_function
@@ -133,7 +132,6 @@ def get_communities():
         return jsonify({"error": "Failed to fetch communities"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 @channels_bp.route("/communities/<int:community_id>/join-request", methods=["POST"])
@@ -215,7 +213,6 @@ def request_join_community(community_id):
         return jsonify({"error": "Failed to submit join request"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 @channels_bp.route("/communities/<int:community_id>/invitations", methods=["POST"])
@@ -297,7 +294,6 @@ def invite_user_to_community(community_id):
         return jsonify({"error": "Failed to send invitation"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 @channels_bp.route("/communities/<int:community_id>/members", methods=["GET"])
@@ -365,7 +361,6 @@ def get_community_members(community_id):
         return jsonify({"error": "Failed to fetch members"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 # Channel Management Routes
@@ -399,7 +394,6 @@ def get_channels(community_id):
         return jsonify({"error": "Failed to fetch channels"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 @channels_bp.route("/communities/<int:community_id>/channels", methods=["POST"])
@@ -468,7 +462,6 @@ def create_channel(community_id):
         return jsonify({"error": "Failed to create channel"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 @channels_bp.route("/channels/<int:channel_id>/messages", methods=["GET"])
@@ -587,7 +580,6 @@ def get_channel_messages(channel_id):
         return jsonify({"error": "Failed to fetch messages"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 @channels_bp.route("/channels/<int:channel_id>/messages", methods=["POST"])
@@ -713,7 +705,6 @@ def send_message(channel_id):
         return jsonify({"error": "Failed to send message"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 @channels_bp.route("/channels/<int:channel_id>/members", methods=["GET"])
@@ -774,7 +765,6 @@ def get_channel_members(channel_id):
         return jsonify({"error": "Failed to get channel members"}), 500
     finally:
         cursor.close()
-        conn.close()
 
 
 @channels_bp.route("/messages/<int:message_id>/reactions", methods=["POST"])
@@ -866,4 +856,3 @@ def add_reaction(message_id):
         return jsonify({"error": "Failed to manage reaction"}), 500
     finally:
         cursor.close()
-        conn.close()
