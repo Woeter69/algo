@@ -1009,15 +1009,3 @@ if ((window as any).chatInitialized) {
     console.log("✅ Chat TypeScript initialization complete");
   });
 }
- "none" ? "flex" : "none";
-        console.log(
-          "Toggled emoji picker display to:",
-          emojiPicker.style.display,
-        );
-      }
-    };
-
-    // Initialize everything
-    console.log("✅ Chat TypeScript initialization complete");
-  });
-}

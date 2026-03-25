@@ -3,7 +3,13 @@
  * Handles Google Sign-In via Go backend
  */
 
+
+
 class GoOAuthClient {
+  baseURL: string;
+  user: any;
+  isAuthenticated: boolean;
+
   constructor() {
     this.baseURL = this.getBaseURL();
     this.user = null;
@@ -263,4 +269,4 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // Make available globally
-window.goOAuth = goOAuth;
+(window as any).goOAuth = goOAuth;

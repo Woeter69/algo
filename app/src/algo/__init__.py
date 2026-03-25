@@ -70,8 +70,3 @@ def create_app(test_config=None):
         return 'Hello, World!'
 
     return app
-urn app
-rld!'
-
-    return app
-urn app
