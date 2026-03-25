@@ -193,44 +193,7 @@
       </div>
     </section>
 
-    <!-- REVIEW MODAL -->
-    <div class="modal-overlay" id="reviewModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3 id="modalTitle">Review Request</h3>
-          <button class="modal-close" onclick="closeReviewModal()">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-content">
-          <form id="reviewForm" method="POST">
-            <input type="hidden" id="requestId" name="request_id" />
-            <input type="hidden" id="action" name="action" />
-
-            <div class="form-group">
-              <label for="reviewNotes">Review Notes (Optional)</label>
-              <textarea
-                id="reviewNotes"
-                name="review_notes"
-                rows="4"
-                placeholder="Add any notes for the user..."
-              ></textarea>
-            </div>
-
-            <div class="modal-actions">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                onclick="closeReviewModal()"
-              >
-                Cancel
-              </button>
-              <button type="submit" class="btn" id="submitBtn">Confirm</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    {% include 'partials/review_modal.html' %}
 
     <!-- FOOTER -->
     <footer>
