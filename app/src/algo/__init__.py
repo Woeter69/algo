@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from algo import db
 # Import blueprints that will be registered
 # from .blueprints import core, auth, profile, profile, admin, connections, chat, settings
+from .blueprints import core, auth, profile, dashboard
 
 # Initialize extensions without an app
 bcrypt = Bcrypt()
@@ -46,8 +47,8 @@ def create_app(test_config=None):
     # Register blueprints
     app.register_blueprint(core.bp)
     app.register_blueprint(auth.bp)
-    # ... other blueprints
-
+    app.register_blueprint(profile.bp)
+    app.register_blueprint(dashboard.bp)
     # A simple hello route to test app factory
     @app.route('/hello')
     def hello():
