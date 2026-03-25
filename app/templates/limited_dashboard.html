@@ -23,11 +23,11 @@
     <header>
       <div class="container">
         <nav>
-          <a href="{{ url_for('home') }}" class="logo">algo</a>
+          <a href="{{ url_for('core.home') }}" class="logo">algo</a>
           <ul class="nav-links">
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('about') }}">About Us</a></li>
-            <li><a href="{{ url_for('contact') }}">Contact</a></li>
+            <li><a href="{{ url_for('core.home') }}">Home</a></li>
+            <li><a href="{{ url_for('core.about') }}">About Us</a></li>
+            <li><a href="{{ url_for('core.contact') }}">Contact</a></li>
             <li><a href="{{ url_for('profile_redirect') }}">Profile</a></li>
           </ul>
           <div class="user-profile" id="userprofile">
@@ -284,7 +284,7 @@
             <div class="available-content">
               <h3>Platform Information</h3>
               <p>Learn more about ALGO and how it can help your career.</p>
-              <a href="{{ url_for('about') }}" class="action-btn">
+              <a href="{{ url_for('core.about') }}" class="action-btn">
                 <i class="fas fa-arrow-right"></i>
                 Learn More
               </a>
@@ -300,7 +300,7 @@
               <p>
                 Get help with your account or ask questions about verification.
               </p>
-              <a href="{{ url_for('contact') }}" class="action-btn">
+              <a href="{{ url_for('core.contact') }}" class="action-btn">
                 <i class="fas fa-envelope"></i>
                 Contact Support
               </a>
@@ -369,15 +369,15 @@
           <div class="footer-links">
             <h3>Quick Links</h3>
             <ul>
-              <li><a href="{{ url_for('home') }}">Home</a></li>
-              <li><a href="{{ url_for('about') }}">About Us</a></li>
-              <li><a href="{{ url_for('contact') }}">Contact</a></li>
+              <li><a href="{{ url_for('core.home') }}">Home</a></li>
+              <li><a href="{{ url_for('core.about') }}">About Us</a></li>
+              <li><a href="{{ url_for('core.contact') }}">Contact</a></li>
             </ul>
           </div>
           <div class="footer-links">
             <h3>Support</h3>
             <ul>
-              <li><a href="{{ url_for('contact') }}">Help Center</a></li>
+              <li><a href="{{ url_for('core.contact') }}">Help Center</a></li>
               <li><a href="#">Privacy Policy</a></li>
               <li><a href="#">Terms of Service</a></li>
             </ul>

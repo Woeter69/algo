@@ -26,13 +26,13 @@
         <nav>
           <a href="#" class="logo" id="home-link">algo</a>
           <ul class="nav-links">
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('connect') }}">Connect</a></li>
-            <li><a href="{{ url_for('channels') }}">Channels</a></li>
-            <li><a href="{{ url_for('chat_list') }}">Chat</a></li>
-            <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+            <li><a href="{{ url_for('core.home') }}">Home</a></li>
+            <li><a href="{{ url_for('connections.connect') }}">Connect</a></li>
+            <li><a href="{{ url_for('communities.channels') }}">Channels</a></li>
+            <li><a href="{{ url_for('chat.chat_list') }}">Chat</a></li>
+            <li><a href="{{ url_for('core.contact') }}">Contact Us</a></li>
             <li>
-              <a href="{{ url_for('user_dashboard') }}" class="nav-signup"
+              <a href="{{ url_for('dashboard.user_dashboard') }}" class="nav-signup"
                 >Dashboard</a
               >
             </li>

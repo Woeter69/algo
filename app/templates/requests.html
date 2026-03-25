@@ -26,20 +26,20 @@
     <header>
       <div class="container">
         <nav>
-          <a href="{{ url_for('home') }}" class="logo">algo</a>
+          <a href="{{ url_for('core.home') }}" class="logo">algo</a>
           <ul class="nav-links">
-            <li><a href="{{ url_for('home') }}">home</a></li>
-            <li><a href="{{ url_for('connect') }}">connect</a></li>
+            <li><a href="{{ url_for('core.home') }}">home</a></li>
+            <li><a href="{{ url_for('connections.connect') }}">connect</a></li>
             <li>
-              <a href="{{ url_for('requests') }}" class="active">requests</a>
+              <a href="{{ url_for('connections.requests_page') }}" class="active">requests</a>
             </li>
-            <li><a href="{{ url_for('chat_list') }}">chat</a></li>
-            <li><a href="{{ url_for('contact') }}">contact us</a></li>
-            <li><a href="{{ url_for('channels') }}">channels</a></li>
-            <li><a href="{{ url_for('about') }}">about us</a></li>
+            <li><a href="{{ url_for('chat.chat_list') }}">chat</a></li>
+            <li><a href="{{ url_for('core.contact') }}">contact us</a></li>
+            <li><a href="{{ url_for('communities.channels') }}">channels</a></li>
+            <li><a href="{{ url_for('core.about') }}">about us</a></li>
             {% if current_user and current_user[3] == 'admin' %}
             <li>
-              <a href="{{ url_for('admin_dashboard') }}" class="admin-btn">
+              <a href="{{ url_for('dashboard.admin_dashboard') }}" class="admin-btn">
                 <i class="fas fa-shield-alt"></i> admin
               </a>
             </li>
@@ -239,7 +239,7 @@
                 <p>
                   You don't have any pending connection requests at the moment.
                 </p>
-                <a href="{{ url_for('connect') }}" class="btn">Browse Alumni</a>
+                <a href="{{ url_for('connections.connect') }}" class="btn">Browse Alumni</a>
               </div>
               {% endif %}
             </div>
@@ -307,7 +307,7 @@
                 <i class="fas fa-paper-plane"></i>
                 <h3>No Sent Requests</h3>
                 <p>You haven't sent any connection requests yet.</p>
-                <a href="{{ url_for('connect') }}" class="btn"
+                <a href="{{ url_for('connections.connect') }}" class="btn"
                   >Find Alumni to Connect</a
                 >
               </div>
@@ -372,7 +372,7 @@
                 <i class="fas fa-users"></i>
                 <h3>No Connections Yet</h3>
                 <p>Start connecting with alumni to build your network.</p>
-                <a href="{{ url_for('connect') }}" class="btn">Browse Alumni</a>
+                <a href="{{ url_for('connections.connect') }}" class="btn">Browse Alumni</a>
               </div>
               {% endif %}
             </div>

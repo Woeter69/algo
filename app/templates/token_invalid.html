@@ -39,7 +39,7 @@
           <a href="#" class="logo" id="home-link">algo</a>
           <ul class="nav-links">
             <li>
-              <a href="{{ url_for('home')}}" class="active" data-section="home"
+              <a href="{{ url_for('core.home')}}" class="active" data-section="home"
                 >Home</a
               >
             </li>
@@ -47,12 +47,12 @@
             <li><a href="#" data-section="jobs">Job Board</a></li>
             <li><a href="#" data-section="events">Events</a></li>
             <li>
-              <a href="{{ url_for('contact') }}" class="active">Contact Us</a>
+              <a href="{{ url_for('core.contact') }}" class="active">Contact Us</a>
             </li>
-            <li><a href="{{ url_for('about') }}">About Us</a></li>
-            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('core.about') }}">About Us</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
             <li>
-              <a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a>
+              <a href="{{ url_for('auth.register') }}" class="nav-signup">Sign Up</a>
             </li>
           </ul>
           <div class="hamburger">
@@ -81,11 +81,11 @@
           </p>
         </div>
         <div class="action-buttons">
-          <a href="{{ url_for('login') }}" class="action-button">
+          <a href="{{ url_for('auth.login') }}" class="action-button">
             <i class="fas fa-sign-in-alt"></i> Go to Login
           </a>
           <a
-            href="{{ url_for('home') }}"
+            href="{{ url_for('core.home') }}"
             class="btn btn-accent"
             style="text-align: center; display: block"
           >
@@ -121,7 +121,7 @@
           <div class="footer-links">
             <h3>Quick Links</h3>
             <ul>
-              <li><a href="{{ url_for('home') }}">Home</a></li>
+              <li><a href="{{ url_for('core.home') }}">Home</a></li>
               <li><a href="#" data-section="browse">Browse Alumni</a></li>
               <li><a href="#" data-section="jobs">Job Board</a></li>
               <li><a href="#" data-section="events">Events</a></li>
@@ -140,7 +140,7 @@
             <h3>Support</h3>
             <ul>
               <li><a href="#">Help Center</a></li>
-              <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+              <li><a href="{{ url_for('core.contact') }}">Contact Us</a></li>
               <li><a href="#">Privacy Policy</a></li>
               <li><a href="#">Terms of Service</a></li>
             </ul>

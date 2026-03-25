@@ -22,19 +22,19 @@
     <header>
       <div class="container">
         <nav>
-          <a href="{{ url_for('home') }}" class="logo" id="home-link">algo</a>
+          <a href="{{ url_for('core.home') }}" class="logo" id="home-link">algo</a>
           <ul class="nav-links">
-            <li><a href="{{ url_for('home') }}">home</a></li>
+            <li><a href="{{ url_for('core.home') }}">home</a></li>
             <li>
-              <a href="{{ url_for('connect') }}" class="active">connect</a>
+              <a href="{{ url_for('connections.connect') }}" class="active">connect</a>
             </li>
-            <li><a href="{{ url_for('requests') }}">requests</a></li>
-            <li><a href="{{ url_for('chat_list') }}">chat</a></li>
-            <li><a href="{{ url_for('contact') }}">contact us</a></li>
-            <li><a href="{{ url_for('channels') }}">channels</a></li>
-            <li><a href="{{ url_for('about') }}">about us</a></li>
+            <li><a href="{{ url_for('connections.requests_page') }}">requests</a></li>
+            <li><a href="{{ url_for('chat.chat_list') }}">chat</a></li>
+            <li><a href="{{ url_for('core.contact') }}">contact us</a></li>
+            <li><a href="{{ url_for('communities.channels') }}">channels</a></li>
+            <li><a href="{{ url_for('core.about') }}">about us</a></li>
             <li>
-              <a href="{{ url_for('user_dashboard') }}" class="nav-signup"
+              <a href="{{ url_for('dashboard.user_dashboard') }}" class="nav-signup"
                 >Dashboard</a
               >
             </li>
@@ -290,12 +290,12 @@
           <div class="footer-links">
             <h3>Quick Links</h3>
             <ul>
-              <li><a href="{{ url_for('home') }}">Home</a></li>
+              <li><a href="{{ url_for('core.home') }}">Home</a></li>
               <li>
-                <a href="{{ url_for('connect') }}" class="active">Connect</a>
+                <a href="{{ url_for('connections.connect') }}" class="active">Connect</a>
               </li>
-              <li><a href="{{ url_for('channels') }}">Channels</a></li>
-              <li><a href="{{ url_for('chat_list') }}">Chat</a></li>
+              <li><a href="{{ url_for('communities.channels') }}">Channels</a></li>
+              <li><a href="{{ url_for('chat.chat_list') }}">Chat</a></li>
             </ul>
           </div>
           <div class="footer-links">
@@ -311,7 +311,7 @@
             <h3>Support</h3>
             <ul>
               <li><a href="#">Help Center</a></li>
-              <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+              <li><a href="{{ url_for('core.contact') }}">Contact Us</a></li>
               <li><a href="#">Privacy Policy</a></li>
               <li><a href="#">Terms of Service</a></li>
             </ul>

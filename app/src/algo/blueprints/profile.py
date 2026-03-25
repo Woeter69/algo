@@ -394,7 +394,7 @@ def interests():
             if post_profile_redirect and is_safe_url(post_profile_redirect):
                 return redirect(post_profile_redirect)
             else:
-                return redirect(url_for("user_dashboard"))
+                return redirect(url_for("dashboard.user_dashboard"))
         return render_template("interests.html", db_interests=db_interests)
 
     except Exception as e:

@@ -27,7 +27,7 @@
           <a href="#" class="logo" id="home-link">algo</a>
           <ul class="nav-links">
             <li>
-              <a href="{{ url_for('home')}}" class="active" data-section="home"
+              <a href="{{ url_for('core.home')}}" class="active" data-section="home"
                 >Home</a
               >
             </li>
@@ -35,12 +35,12 @@
             <li><a href="#" data-section="jobs">Job Board</a></li>
             <li><a href="#" data-section="events">Events</a></li>
             <li>
-              <a href="{{ url_for('contact') }}" class="active">Contact Us</a>
+              <a href="{{ url_for('core.contact') }}" class="active">Contact Us</a>
             </li>
-            <li><a href="{{ url_for('about') }}">About Us</a></li>
-            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('core.about') }}">About Us</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
             <li>
-              <a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a>
+              <a href="{{ url_for('auth.register') }}" class="nav-signup">Sign Up</a>
             </li>
           </ul>
           <div class="hamburger">
@@ -75,7 +75,7 @@
             <form
               id="contactForm"
               method="POST"
-              action="{{ url_for('contact') }}"
+              action="{{ url_for('core.contact') }}"
               class="contact-form"
             >
               <div class="form-group">
@@ -226,14 +226,14 @@
           <div class="footer-links">
             <h3>Quick Links</h3>
             <ul>
-              <li><a href="{{ url_for('home') }}">Home</a></li>
+              <li><a href="{{ url_for('core.home') }}">Home</a></li>
               <li><a href="#" data-section="browse">Browse Alumni</a></li>
               <li><a href="#" data-section="jobs">Job Board</a></li>
               <li><a href="#" data-section="events">Events</a></li>
               <li>
-                <a href="{{ url_for('contact') }}" class="active">Contact Us</a>
+                <a href="{{ url_for('core.contact') }}" class="active">Contact Us</a>
               </li>
-              <li><a href="{{ url_for('about') }}">About Us</a></li>
+              <li><a href="{{ url_for('core.about') }}">About Us</a></li>
             </ul>
           </div>
           <div class="footer-links">
@@ -249,7 +249,7 @@
             <h3>Support</h3>
             <ul>
               <li><a href="#">Help Center</a></li>
-              <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
+              <li><a href="{{ url_for('core.contact') }}">Contact Us</a></li>
               <li><a href="#">Privacy Policy</a></li>
               <li><a href="#">Terms of Service</a></li>
             </ul>
