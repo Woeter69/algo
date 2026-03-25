@@ -1,27 +1,22 @@
-import sys, os
+import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from flask import (
-    Flask,
-    render_template,
-    request,
-    session,
-    redirect,
-    url_for,
-    flash,
-    jsonify,
-)
-import secrets, datetime, time
+import datetime
+import secrets
+import time
+from urllib.parse import urlparse
+
+from flask import (Flask, flash, jsonify, redirect, render_template, request,
+                   session, url_for)
 from flask_bcrypt import Bcrypt
-from urllib.parse import urlparse, urljoin
 
 # Local imports (fixed paths for standalone Flask)
 import connection
+import user_roles
 import utils
 import validators
-import user_roles
-
 # Import channels blueprint
 from channels import channels_bp
 
@@ -1369,8 +1364,8 @@ def upload_image():
 
         if file and file.content_type.startswith("image/"):
 
-            import uuid
             import os
+            import uuid
 
             file_extension = file.filename.rsplit(".", 1)[1].lower()
             unique_filename = f"{uuid.uuid4()}.{file_extension}"
@@ -2956,3 +2951,4 @@ if __name__ == "__main__":
     print("🚀 Real-time features handled by Go WebSocket server")
 
     app.run(host="0.0.0.0", port=port, debug=debug)
+g)

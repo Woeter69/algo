@@ -2,8 +2,6 @@ from flask import Blueprint, request, jsonify, session
 from psycopg2.extras import RealDictCursor
 import logging
 import requests
-import json
-from datetime import datetime, timedelta
 import logging
 
 # Configure logging
