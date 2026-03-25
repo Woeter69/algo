@@ -11,7 +11,7 @@ echo ""
 echo "🔍 Checking for port conflicts..."
 if lsof -ti:8080 >/dev/null 2>&1 || lsof -ti:5000 >/dev/null 2>&1; then
     echo "🧹 Ports in use - running automatic cleanup..."
-    ./cleanup.sh
+    ./scripts/cleanup.sh
     echo "✅ Cleanup complete - continuing startup..."
     echo ""
 fi
