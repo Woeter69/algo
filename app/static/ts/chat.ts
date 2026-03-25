@@ -1,4 +1,7 @@
 import { emojiData } from "./chat-emoji-data.js";
+import { createMessageElement, scrollToBottom, showTypingIndicator, hideTypingIndicator } from "./chat-ui.js";
+import { showNotification } from "./chat-notifications.js";
+
 // Using global io from CDN instead of imports
 declare const io: any;
 
@@ -281,7 +284,7 @@ if ((window as any).chatInitialized) {
 
         if (messagesArea) {
           messagesArea.appendChild(messageElement);
-          scrollToBottom();
+          scrollToBottom(messagesArea);
         }
 
         // Update conversation list
@@ -302,13 +305,13 @@ if ((window as any).chatInitialized) {
     // Typing indicators
     socket.on("typing_start", (data: { user_id: number }) => {
       if (String(data.user_id) === String(currentConversationUserId)) {
-        showTypingIndicator();
+        showTypingIndicator(typingIndicator);
       }
     });
 
     socket.on("typing_stop", (data: { user_id: number }) => {
       if (String(data.user_id) === String(currentConversationUserId)) {
-        hideTypingIndicator();
+        hideTypingIndicator(typingIndicator);
       }
     });
 
@@ -345,7 +348,7 @@ if ((window as any).chatInitialized) {
         const messageElement = createMessageElement(message, true);
         if (messagesArea) {
           messagesArea.appendChild(messageElement);
-          scrollToBottom();
+          scrollToBottom(messagesArea);
         }
 
         const clientMessageId = `${currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -404,71 +407,6 @@ if ((window as any).chatInitialized) {
       });
     }
 
-
-
-    function createMessageElement(
-      text: string,
-      isSent: boolean = false,
-      options?: {
-        senderUsername?: string;
-        senderPfp?: string;
-      },
-    ): HTMLElement {
-      const messageDiv = document.createElement("div");
-      messageDiv.className = `message ${isSent ? "sent" : "received"}`;
-
-      const currentTime = new Date().toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-
-      if (isSent) {
-        messageDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="message-bubble">
-                        <p>${escapeHtml(text)}</p>
-                    </div>
-                    <div class="message-time">${currentTime}</div>
-                </div>
-            `;
-      } else {
-        const avatarSrc = otherUserPfp || "https://via.placeholder.com/50";
-        messageDiv.innerHTML = `
-                <div class="message-avatar">
-                    <img src="${escapeHtml(avatarSrc)}" alt="">
-                </div>
-                <div class="message-content">
-                    <div class="message-bubble">
-                        <p>${escapeHtml(text)}</p>
-                    </div>
-                    <div class="message-time">${currentTime}</div>
-                </div>
-            `;
-      }
-
-      return messageDiv;
-    }
-
-    function showTypingIndicator(): void {
-      if (typingIndicator) {
-        typingIndicator.style.display = "flex";
-        // No need to scroll when showing typing indicator since it's at bottom
-      }
-    }
-
-    function hideTypingIndicator(): void {
-      if (typingIndicator) {
-        typingIndicator.style.display = "none";
-      }
-    }
-
-    function scrollToBottom(): void {
-      if (!messagesArea) return;
-      requestAnimationFrame(() => {
-        messagesArea.scrollTop = messagesArea.scrollHeight;
-      });
-    }
-
     function updateConversationLastMessage(
       userId: number,
       message: string,
@@ -509,12 +447,12 @@ if ((window as any).chatInitialized) {
       wrapper.setAttribute("data-user-id", String(userId));
       wrapper.innerHTML = `
             <div class="conversation-avatar">
-                <img src="${escapeHtml(avatarUrl || "https://via.placeholder.com/50")}" alt="">
+                <img src="${avatarUrl || "https://via.placeholder.com/50"}" alt="">
                 <div class="online-status"></div>
             </div>
             <div class="conversation-info">
                 <div class="conversation-header">
-                    <h4>${escapeHtml(name || `User ${userId}`)}</h4>
+                    <h4>${name || `User ${userId}`}</h4>
                     <span class="conversation-time">now</span>
                 </div>
                 <p class="last-message"></p>
@@ -533,43 +471,6 @@ if ((window as any).chatInitialized) {
       });
 
       return wrapper;
-    }
-
-    function showNotification(
-      message: string,
-      type: "info" | "success" | "error" = "info",
-    ): void {
-      const notification = document.createElement("div");
-      notification.className = `notification notification-${type}`;
-      let icon = "fas fa-info-circle";
-      let bgColor = "#6D28D9";
-
-      if (type === "success") {
-        icon = "fas fa-check-circle";
-        bgColor = "#10b981";
-      } else if (type === "error") {
-        icon = "fas fa-exclamation-circle";
-        bgColor = "#ef4444";
-      }
-
-      notification.innerHTML = `
-            <i class="${icon}"></i>
-            <span>${escapeHtml(message)}</span>
-        `;
-
-      notification.style.cssText = `
-            position: fixed; top: 20px; right: 20px; z-index: 10000;
-            background: ${bgColor}; color: white; padding: 1rem 1.5rem;
-            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: flex; align-items: center; gap: 0.5rem;
-            font-weight: 500; max-width: 400px;
-        `;
-
-      document.body.appendChild(notification);
-
-      setTimeout(() => {
-        notification.remove();
-      }, 5000);
     }
 
     function loadOnlineStatus(): void {
