@@ -175,3 +175,112 @@ def limited_dashboard():
     finally:
         if cur:
             cur.close()
+
+@bp.route("/verification_request", methods=["GET", "POST"])
+@login_required
+def verification_request():
+    """Handle verification requests from users"""
+    try:
+        user_id = session["user_id"]
+        if request.method == "POST":
+            flash(
+                "Your verification request has been submitted successfully! An admin will review it soon.",
+                "success",
+            )
+            return redirect(url_for("dashboard.limited_dashboard"))
+        db = get_db()
+        cur = db.cursor()
+        cur.execute(
+            """
+            SELECT firstname, lastname, email, role, university_name, graduation_year
+            FROM users WHERE user_id = %s
+            """,
+            (user_id,),
+        )
+        user_info = cur.fetchone()
+        if not user_info:
+            flash("User information not found", "error")
+            return redirect(url_for("dashboard.limited_dashboard"))
+        firstname, lastname, email, user_role, uni_name, grad_year = user_info
+        form_data = {
+            "firstname": firstname,
+            "lastname": lastname,
+            "email": email,
+            "requested_role": user_role or "student",
+            "graduation_year": grad_year,
+            "university_name": uni_name,
+        }
+        return render_template("verification_request.html", form_data=form_data)
+    except Exception as e:
+        flash("An error occurred. Please try again.", "error")
+        return redirect(url_for("dashboard.user_dashboard"))
+    finally:
+        cur.close()
+
+@bp.route("/api/handle_verification_request", methods=["POST"])
+@login_required
+@user_roles.admin_required
+def handle_verification_request():
+    """Handle approve/reject verification requests"""
+    try:
+        data = request.get_json()
+        user_id = data.get("user_id")
+        action = data.get("action")
+        if not user_id or action not in ["approve", "reject"]:
+            return ({"success": False, "message": "Invalid request data"}, 400)
+        admin_id = session["user_id"]
+        db = get_db()
+        cur = db.cursor()
+        cur.execute(
+            """
+            SELECT username, email, role FROM users 
+            WHERE user_id = %s AND verification_status = 'pending'
+            """,
+            (user_id,),
+        )
+        user_info = cur.fetchone()
+        if not user_info:
+            return (
+                {
+                    "success": False,
+                    "message": "User not found or not pending verification",
+                },
+                404,
+            )
+        username, email, current_role = user_info
+        if action == "approve":
+            cur.execute(
+                """
+                UPDATE users 
+                SET verification_status = 'verified', 
+                    verified_by = %s, 
+                    verified_at = NOW()
+                WHERE user_id = %s
+                """,
+                (admin_id, user_id),
+            )
+            message = f"Verification request approved for {username}"
+        else:
+            cur.execute(
+                """
+                UPDATE users 
+                SET verification_status = 'rejected',
+                    role = 'unverified',
+                    verified_by = %s,
+                    verified_at = NOW()
+                WHERE user_id = %s
+                """,
+                (admin_id, user_id),
+            )
+            message = f"Verification request rejected for {username}"
+        db.commit()
+        return {
+            "success": True,
+            "message": message,
+            "action": action,
+            "user_id": user_id,
+        }
+    except Exception as e:
+        return ({"success": False, "message": "Internal server error"}, 500)
+    finally:
+        cur.close()

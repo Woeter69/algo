@@ -270,3 +270,77 @@ def logout_all_sessions():
         return {"success": True, "message": "Logged out from all sessions"}
     except Exception as e:
         return {"success": False, "message": "Error logging out sessions"}, 500
+
+@bp.route("/api/export_data", methods=["POST"])
+@login_required
+def export_data():
+    """Export user data"""
+    import datetime
+    import json
+    from flask import current_app
+    try:
+        user_id = session["user_id"]
+        db = get_db()
+        cur = db.cursor()
+        cur.execute(
+            """
+            SELECT firstname, lastname, email, username, dob,
+                   university_name, college, graduation_year, current_city,
+                   registration_date, role
+            FROM users WHERE user_id = %s
+            """,
+            (user_id,),
+        )
+        user_data = cur.fetchone()
+        cur.execute(
+            """
+            SELECT u.firstname, u.lastname, u.email
+            FROM connections c
+            JOIN users u ON (c.con_user_id = u.user_id OR c.user_id = u.user_id)
+            WHERE (c.user_id = %s OR c.con_user_id = %s) 
+            AND c.status = 'accepted' AND u.user_id != %s
+            """,
+            (user_id, user_id, user_id),
+        )
+        connections = cur.fetchall()
+        export_data = {
+            "user_info": {
+                "firstname": user_data[0] if user_data else None,
+                "lastname": user_data[1] if user_data else None,
+                "email": user_data[2] if user_data else None,
+                "username": user_data[3] if user_data else None,
+                "dob": str(user_data[4]) if user_data and user_data[4] else None,
+                "university": user_data[5] if user_data else None,
+                "college": user_data[6] if user_data else None,
+                "graduation_year": user_data[7] if user_data else None,
+                "city": user_data[8] if user_data else None,
+                "registration_date": (
+                    str(user_data[9]) if user_data and user_data[9] else None
+                ),
+                "role": user_data[10] if user_data else None,
+            },
+            "connections": [
+                {
+                    "name": f"{conn[0]} {conn[1]}",
+                    "email": conn[2],
+                    "connected_date": str(conn[3]) if conn[3] else None,
+                }
+                for conn in connections
+            ],
+            "export_date": datetime.datetime.utcnow().isoformat(),
+        }
+
+        json_data = json.dumps(export_data, indent=2)
+        response = current_app.response_class(
+            response=json_data,
+            status=200,
+            mimetype="application/json",
+            headers={
+                "Content-Disposition": "attachment; filename=algo_data_export.json"
+            },
+        )
+        return response
+    except Exception as e:
+        return ({"success": False, "message": "Error exporting data"}, 500)
+    finally:
+        cur.close()

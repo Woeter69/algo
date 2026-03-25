@@ -53,6 +53,19 @@ def create_app(test_config=None):
     app.register_blueprint(settings.bp)
     app.register_blueprint(chat.bp)
     app.register_blueprint(communities.bp)
+    
+    import channels
+    app.register_blueprint(channels.channels_bp, url_prefix="/api")
+
+    import utils
+    @app.context_processor
+    def inject_time_functions():
+        return {
+            "to_ist": utils.to_ist,
+            "format_ist_time": utils.format_ist_time,
+            "generate_default_avatar": utils.generate_default_avatar,
+        }
+
     # A simple hello route to test app factory
     @app.route('/hello')
     def hello():

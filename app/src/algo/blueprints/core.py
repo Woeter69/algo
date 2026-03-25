@@ -26,3 +26,7 @@ def thanks():
     if request.method == "POST":
         return redirect(url_for("core.home"))
     return render_template("thanks.html")
+
+@bp.route("/recommendations")
+def recommendations():
+    return render_template("recommendations.html")
