@@ -273,253 +273,7 @@ def confirmation():
         return "<h1>Error loading confirmation page. Please try again later.</h1>", 500
 
 
-@app.route("/complete_profile", methods=["GET", "POST"])
-@validators.login_required
-def complete_profile():
-    mydb = None
-    cur = None
-    try:
-        cutoff_date = (
-            datetime.datetime.utcnow()
-            .date()
-            .replace(year=datetime.datetime.utcnow().year - 16)
-        )
-        cities = utils.load_cities()
-        if request.method == "POST":
-            # Personal Information
-            first_name = request.form.get("first_name", "")
-            last_name = request.form.get("last_name", "")
-            dob = request.form["dob"]
-            bio = request.form.get("bio", "")
 
-            # Role Information
-            role = request.form.get("role")
-            student_id = request.form.get("student_id", "")
-            alumni_id = request.form.get("alumni_id", "")
-            employee_id = request.form.get("employee_id", "")
-            department_role = request.form.get("department_role", "")
-
-            # Education Information
-            uni_name = request.form["uni_name"]
-            clg_name = request.form.get("clg_name", "")
-            degree = request.form.get("degree", "")
-            major = request.form.get("major", "")
-            grad_year = request.form["grad_year"]
-            gpa = request.form.get("gpa", "")
-
-            # Location
-            city = request.form["city"]
-
-            # Work Experience
-            company = request.form.get("company", "")
-            job_title = request.form.get("job_title", "")
-            join_year = request.form.get("join_year", "")
-            leave_year = request.form.get("leave_year", "")
-
-            # Skills and Interests
-            skills = request.form.get("skills", "")
-            interests = request.form.get("interests", "")
-
-            # Social Links
-            linkedin = request.form.get("linkedin", "")
-            github = request.form.get("github", "")
-            twitter = request.form.get("twitter", "")
-            website = request.form.get("website", "")
-
-            # Privacy Settings
-            profile_visibility = request.form.get("profile_visibility", "")
-            email_notifications = request.form.get("email_notifications", "")
-            job_alerts = request.form.get("job_alerts", "")
-
-            # Handle profile picture upload
-            pfp_file = request.files.get("pfp")
-            pfp_url = None
-            if pfp_file and validators.allowed_file(pfp_file.filename):
-                pfp_url = utils.upload_to_imgbb(pfp_file, os.getenv("PFP_API"))
-
-            # Validate age
-            dob_date = datetime.datetime.strptime(dob, "%Y-%m-%d").date()
-            today = datetime.date.today()
-            age = (
-                today.year
-                - dob_date.year
-                - ((today.month, today.day) < (dob_date.month, dob_date.day))
-            )
-
-            if age < 16:
-                return render_template(
-                    "complete_profile.html",
-                    cities=cities,
-                    error="You must be atleast 16",
-                )
-
-            mydb = connection.get_db_connection()
-            cur = mydb.cursor()
-            user_id = session.get("user_id")
-
-            # Validate role selection
-            if not role or role not in ["student", "alumni", "staff"]:
-                return render_template(
-                    "complete_profile.html",
-                    cities=cities,
-                    cutoff_date=cutoff_date,
-                    error="Please select a valid role",
-                )
-
-            # Validate role-specific fields
-            if role == "student" and not student_id:
-                return render_template(
-                    "complete_profile.html",
-                    cities=cities,
-                    cutoff_date=cutoff_date,
-                    error="Student ID is required for student role",
-                )
-            elif role == "staff" and (not employee_id or not department_role):
-                return render_template(
-                    "complete_profile.html",
-                    cities=cities,
-                    cutoff_date=cutoff_date,
-                    error="Employee ID and Department/Position are required for staff role",
-                )
-
-            # Update users table with basic info and role
-            cur.execute(
-                """
-                UPDATE users SET 
-                    firstname=%s, lastname=%s, dob=%s,
-                    university_name=%s, college=%s, graduation_year=%s, current_city=%s, 
-                    pfp_path=%s, role=%s, verification_status=%s
-                WHERE user_id=%s
-            """,
-                (
-                    first_name,
-                    last_name,
-                    dob,
-                    uni_name,
-                    clg_name,
-                    grad_year,
-                    city,
-                    pfp_url,
-                    role,
-                    "verified" if role == "admin" else "pending",
-                    user_id,
-                ),
-            )
-
-            # Insert education details if provided
-            if degree or major or gpa:
-                # Check if education record exists
-                cur.execute(
-                    "SELECT COUNT(*) FROM education_details WHERE user_id = %s",
-                    (user_id,),
-                )
-                if cur.fetchone()[0] > 0:
-                    # Update existing record
-                    cur.execute(
-                        """
-                        UPDATE education_details SET 
-                            degree_type=%s, major=%s, university_name=%s, college_name=%s, 
-                            graduation_year=%s, gpa=%s
-                        WHERE user_id=%s
-                    """,
-                        (
-                            degree,
-                            major,
-                            uni_name,
-                            clg_name,
-                            grad_year,
-                            float(gpa) if gpa else None,
-                            user_id,
-                        ),
-                    )
-                else:
-                    # Insert new record
-                    cur.execute(
-                        """
-                        INSERT INTO education_details 
-                        (user_id, degree_type, major, university_name, college_name, graduation_year, gpa)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """,
-                        (
-                            user_id,
-                            degree,
-                            major,
-                            uni_name,
-                            clg_name,
-                            grad_year,
-                            float(gpa) if gpa else None,
-                        ),
-                    )
-
-            # Insert work experience if provided (and not "None" or empty)
-            if company and company.lower() not in ["none", "n/a", ""] and job_title:
-                # Check if work experience record exists
-                cur.execute(
-                    "SELECT COUNT(*) FROM work_experience WHERE user_id = %s",
-                    (user_id,),
-                )
-                if cur.fetchone()[0] > 0:
-                    # Update existing record
-                    cur.execute(
-                        """
-                        UPDATE work_experience SET 
-                            company_name=%s, job_title=%s, join_year=%s, leave_year=%s
-                        WHERE user_id=%s
-                    """,
-                        (
-                            company,
-                            job_title,
-                            int(join_year) if join_year else None,
-                            int(leave_year) if leave_year else None,
-                            user_id,
-                        ),
-                    )
-                else:
-                    # Insert new record
-                    cur.execute(
-                        """
-                        INSERT INTO work_experience 
-                        (user_id, company_name, job_title, join_year, leave_year)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """,
-                        (
-                            user_id,
-                            company,
-                            job_title,
-                            int(join_year) if join_year else None,
-                            int(leave_year) if leave_year else None,
-                        ),
-                    )
-
-            # Update session with new profile picture and name
-            if pfp_url:
-                session["pfp_path"] = pfp_url
-            if first_name and last_name:
-                session["username"] = f"{first_name} {last_name}"
-
-            # Update session with role information
-            session["role"] = role
-            session["verification_status"] = (
-                "verified" if role == "admin" else "pending"
-            )
-
-            mydb.commit()
-
-            # Redirect to interests page to complete profile setup
-            return redirect(url_for("interests"))
-        return render_template(
-            "complete_profile.html", cities=cities, cutoff_date=cutoff_date
-        )
-    except Exception as e:
-        app.logger.error(f"Error during register: {str(e)}")
-        flash("An unexpected error occurred while registering. Please try again.")
-        session.pop("register_data", None)
-        return render_template("register.html"), 500
-    finally:
-        if cur is not None:
-            cur.close()
-        if mydb is not None:
-            mydb.close()
 
 
 
@@ -2673,6 +2427,244 @@ def delete_account():
             (user_id, user_id),
         )
         cur.execute(
+            "DELETE FROM messages WHERE sender_id = %s OR receiver_id = %s",
+            (user_id, user_id),
+        )
+        cur.execute("DELETE FROM education_details WHERE user_id = %s", (user_id,))
+        cur.execute("DELETE FROM work_experience WHERE user_id = %s", (user_id,))
+        cur.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
+
+        mydb.commit()
+
+        # Clear session
+        session.clear()
+
+        return {"success": True, "message": "Account deleted successfully"}
+
+    except Exception as e:
+        app.logger.error(f"Error deleting account: {str(e)}")
+        return {"success": False, "message": "Error deleting account"}, 500
+
+    finally:
+        if "cur" in locals() and cur:
+            cur.close()
+        if "mydb" in locals() and mydb:
+            mydb.close()
+
+
+@app.route("/api/logout_all_sessions", methods=["POST"])
+@validators.login_required
+def logout_all_sessions():
+    """Logout from all sessions"""
+    try:
+        # In a real app, you would invalidate all session tokens
+        # For now, just clear the current session
+        session.clear()
+
+        return {"success": True, "message": "Logged out from all sessions"}
+
+    except Exception as e:
+        app.logger.error(f"Error logging out sessions: {str(e)}")
+        return {"success": False, "message": "Error logging out sessions"}, 500
+
+
+@app.route("/logout")
+def logout():
+    """Logout user"""
+    session.clear()
+    flash("You have been logged out successfully")
+    return redirect(url_for("home"))
+
+
+# ====================== REAL-TIME FEATURES MOVED TO GO ======================
+# All WebSocket functionality is now handled by the Go server
+# This provides much better performance and can handle more users
+# Go WebSocket server runs on a separate port and handles:
+# - Real-time messaging
+# - Typing indicators
+# - User presence
+# - Channel management
+# - Much faster than Socket.IO!
+# ====================== END REAL-TIME FEATURES ======================
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 5000))
+    debug = os.getenv("DEBUG", "True") == "True"
+
+    print("🐍 Starting Python Flask Server...")
+    print("📡 Web pages and API endpoints")
+    print("🚀 Real-time features handled by Go WebSocket server")
+
+    app.run(host="0.0.0.0", port=port, debug=debug)
+      export_data = {
+            "user_info": {
+                "firstname": user_data[0] if user_data else None,
+                "lastname": user_data[1] if user_data else None,
+                "email": user_data[2] if user_data else None,
+                "username": user_data[3] if user_data else None,
+                "dob": str(user_data[4]) if user_data and user_data[4] else None,
+                "university": user_data[5] if user_data else None,
+                "college": user_data[6] if user_data else None,
+                "graduation_year": user_data[7] if user_data else None,
+                "city": user_data[8] if user_data else None,
+                "registration_date": (
+                    str(user_data[9]) if user_data and user_data[9] else None
+                ),
+                "role": user_data[10] if user_data else None,
+            },
+            "connections": [
+                {
+                    "name": f"{conn[0]} {conn[1]}",
+                    "email": conn[2],
+                    "connected_date": str(conn[3]) if conn[3] else None,
+                }
+                for conn in connections
+            ],
+            "export_date": datetime.datetime.utcnow().isoformat(),
+        }
+
+        # Create JSON response
+        import json
+
+        json_data = json.dumps(export_data, indent=2)
+
+        response = app.response_class(
+            response=json_data,
+            status=200,
+            mimetype="application/json",
+            headers={
+                "Content-Disposition": "attachment; filename=algo_data_export.json"
+            },
+        )
+
+        return response
+
+    except Exception as e:
+        app.logger.error(f"Error exporting data: {str(e)}")
+        return {"success": False, "message": "Error exporting data"}, 500
+
+    finally:
+        if "cur" in locals() and cur:
+            cur.close()
+        if "mydb" in locals() and mydb:
+            mydb.close()
+
+
+@app.route("/api/deactivate_account", methods=["POST"])
+@validators.login_required
+def deactivate_account():
+    """Deactivate user account"""
+    try:
+        user_id = session["user_id"]
+        mydb = connection.get_db_connection()
+        cur = mydb.cursor()
+
+        # Set account as deactivated (you might want to add a deactivated column)
+        cur.execute("UPDATE users SET verified = FALSE WHERE user_id = %s", (user_id,))
+        mydb.commit()
+
+        # Clear session
+        session.clear()
+
+        return {"success": True, "message": "Account deactivated successfully"}
+
+    except Exception as e:
+        app.logger.error(f"Error deactivating account: {str(e)}")
+        return {"success": False, "message": "Error deactivating account"}, 500
+
+    finally:
+        if "cur" in locals() and cur:
+            cur.close()
+        if "mydb" in locals() and mydb:
+            mydb.close()
+
+
+@app.route("/api/delete_account", methods=["POST"])
+@validators.login_required
+def delete_account():
+    """Delete user account permanently"""
+    try:
+        user_id = session["user_id"]
+        mydb = connection.get_db_connection()
+        cur = mydb.cursor()
+
+        # Delete user data (in a real app, you might want to anonymize instead of delete)
+        cur.execute("DELETE FROM user_interests WHERE user_id = %s", (user_id,))
+        cur.execute(
+            "DELETE FROM connections WHERE user_id = %s OR con_user_id = %s",
+            (user_id, user_id),
+        )
+        cur.execute(
+            "DELETE FROM messages WHERE sender_id = %s OR receiver_id = %s",
+            (user_id, user_id),
+        )
+        cur.execute("DELETE FROM education_details WHERE user_id = %s", (user_id,))
+        cur.execute("DELETE FROM work_experience WHERE user_id = %s", (user_id,))
+        cur.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
+
+        mydb.commit()
+
+        # Clear session
+        session.clear()
+
+        return {"success": True, "message": "Account deleted successfully"}
+
+    except Exception as e:
+        app.logger.error(f"Error deleting account: {str(e)}")
+        return {"success": False, "message": "Error deleting account"}, 500
+
+    finally:
+        if "cur" in locals() and cur:
+            cur.close()
+        if "mydb" in locals() and mydb:
+            mydb.close()
+
+
+@app.route("/api/logout_all_sessions", methods=["POST"])
+@validators.login_required
+def logout_all_sessions():
+    """Logout from all sessions"""
+    try:
+        # In a real app, you would invalidate all session tokens
+        # For now, just clear the current session
+        session.clear()
+
+        return {"success": True, "message": "Logged out from all sessions"}
+
+    except Exception as e:
+        app.logger.error(f"Error logging out sessions: {str(e)}")
+        return {"success": False, "message": "Error logging out sessions"}, 500
+
+
+@app.route("/logout")
+def logout():
+    """Logout user"""
+    session.clear()
+    flash("You have been logged out successfully")
+    return redirect(url_for("home"))
+
+
+# ====================== REAL-TIME FEATURES MOVED TO GO ======================
+# All WebSocket functionality is now handled by the Go server
+# This provides much better performance and can handle more users
+# Go WebSocket server runs on a separate port and handles:
+# - Real-time messaging
+# - Typing indicators
+# - User presence
+# - Channel management
+# - Much faster than Socket.IO!
+# ====================== END REAL-TIME FEATURES ======================
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 5000))
+    debug = os.getenv("DEBUG", "True") == "True"
+
+    print("🐍 Starting Python Flask Server...")
+    print("📡 Web pages and API endpoints")
+    print("🚀 Real-time features handled by Go WebSocket server")
+
+    app.run(host="0.0.0.0", port=port, debug=debug)
+r.execute(
             "DELETE FROM messages WHERE sender_id = %s OR receiver_id = %s",
             (user_id, user_id),
         )
