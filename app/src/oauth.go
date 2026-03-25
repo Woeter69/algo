@@ -53,7 +53,7 @@ type GoogleUserInfo struct {
 func NewGoogleOAuth(db *sql.DB) *GoogleOAuth {
 	clientID := os.Getenv("GOOGLE_CLIENT_ID")
 	clientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
-	
+
 	if clientID == "" || clientSecret == "" {
 		log.Println("⚠️  Google OAuth credentials not found in environment variables")
 		log.Println("📝 Please set the following environment variables:")
@@ -87,7 +87,7 @@ func (oauth *GoogleOAuth) setupOAuthRoutes() {
 	http.HandleFunc("/auth/google/callback", oauth.handleGoogleCallback)
 	http.HandleFunc("/auth/logout", oauth.handleLogout)
 	http.HandleFunc("/auth/user", oauth.handleGetUser)
-	
+
 	log.Println("🔐 OAuth endpoints configured:")
 	log.Println("   🚀 /auth/google - Start Google OAuth")
 	log.Println("   🔄 /auth/google/callback - OAuth callback")
@@ -98,7 +98,7 @@ func (oauth *GoogleOAuth) setupOAuthRoutes() {
 // handleGoogleLogin initiates Google OAuth flow
 func (oauth *GoogleOAuth) handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	setCORSHeaders(w)
-	
+
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -106,10 +106,10 @@ func (oauth *GoogleOAuth) handleGoogleLogin(w http.ResponseWriter, r *http.Reque
 
 	// Set redirect URL based on current request
 	oauth.Config.RedirectURL = oauth.getRedirectURL(r)
-	
+
 	// Generate random state for security
 	state := oauth.generateState()
-	
+
 	// Store state in a simple way (in production, use secure session storage)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "oauth_state",
@@ -123,9 +123,9 @@ func (oauth *GoogleOAuth) handleGoogleLogin(w http.ResponseWriter, r *http.Reque
 
 	// Get authorization URL
 	authURL := oauth.Config.AuthCodeURL(state, oauth2.AccessTypeOffline)
-	
+
 	log.Printf("🚀 OAuth login initiated for %s", r.RemoteAddr)
-	
+
 	// Return JSON response with auth URL
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
@@ -137,7 +137,7 @@ func (oauth *GoogleOAuth) handleGoogleLogin(w http.ResponseWriter, r *http.Reque
 // handleGoogleCallback handles OAuth callback
 func (oauth *GoogleOAuth) handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	setCORSHeaders(w)
-	
+
 	// Get state from cookie
 	stateCookie, err := r.Cookie("oauth_state")
 	if err != nil {
@@ -227,7 +227,7 @@ func (oauth *GoogleOAuth) handleGoogleCallback(w http.ResponseWriter, r *http.Re
 // handleLogout logs out the user
 func (oauth *GoogleOAuth) handleLogout(w http.ResponseWriter, r *http.Request) {
 	setCORSHeaders(w)
-	
+
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -257,7 +257,7 @@ func (oauth *GoogleOAuth) handleLogout(w http.ResponseWriter, r *http.Request) {
 // handleGetUser returns current user info
 func (oauth *GoogleOAuth) handleGetUser(w http.ResponseWriter, r *http.Request) {
 	setCORSHeaders(w)
-	
+
 	if r.Method == "OPTIONS" {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -318,7 +318,7 @@ func (oauth *GoogleOAuth) createOrUpdateUser(userInfo *GoogleUserInfo) (*UserSes
 	// Check if user exists by Google ID
 	var userID int
 	var username, email string
-	
+
 	err := oauth.DB.QueryRow(
 		"SELECT user_id, username, email FROM users WHERE google_id = $1",
 		userInfo.ID,
@@ -339,11 +339,11 @@ func (oauth *GoogleOAuth) createOrUpdateUser(userInfo *GoogleUserInfo) (*UserSes
 				VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
 				RETURNING user_id
 			`, username, userInfo.Email, userInfo.ID, userInfo.Picture).Scan(&userID)
-			
+
 			if err != nil {
 				return nil, fmt.Errorf("failed to create user: %v", err)
 			}
-			
+
 			log.Printf("👤 Created new user: %s (ID: %d)", username, userID)
 		} else if err != nil {
 			return nil, fmt.Errorf("database error: %v", err)
@@ -354,11 +354,11 @@ func (oauth *GoogleOAuth) createOrUpdateUser(userInfo *GoogleUserInfo) (*UserSes
 				SET google_id = $1, pfp_path = $2, updated_at = CURRENT_TIMESTAMP
 				WHERE user_id = $3
 			`, userInfo.ID, userInfo.Picture, userID)
-			
+
 			if err != nil {
 				return nil, fmt.Errorf("failed to link account: %v", err)
 			}
-			
+
 			log.Printf("🔗 Linked Google account to existing user: %s (ID: %d)", username, userID)
 		}
 	} else if err != nil {
@@ -370,11 +370,11 @@ func (oauth *GoogleOAuth) createOrUpdateUser(userInfo *GoogleUserInfo) (*UserSes
 			SET email = $1, pfp_path = $2, updated_at = CURRENT_TIMESTAMP
 			WHERE google_id = $3
 		`, userInfo.Email, userInfo.Picture, userInfo.ID)
-		
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to update user: %v", err)
 		}
-		
+
 		log.Printf("🔄 Updated existing user: %s (ID: %d)", username, userID)
 	}
 
@@ -393,7 +393,7 @@ func (oauth *GoogleOAuth) generateUsername(email string) string {
 	// Extract base username from email
 	parts := strings.Split(email, "@")
 	baseUsername := strings.ToLower(parts[0])
-	
+
 	// Remove special characters and limit length
 	reg := regexp.MustCompile(`[^a-z0-9_]`)
 	baseUsername = reg.ReplaceAllString(baseUsername, "")
@@ -450,7 +450,7 @@ func (oauth *GoogleOAuth) RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "Authentication required", http.StatusUnauthorized)
 			return
 		}
-		
+
 		// Add user to request context (optional)
 		ctx := context.WithValue(r.Context(), "user", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
