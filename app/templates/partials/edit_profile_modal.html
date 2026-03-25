@@ -1,0 +1,344 @@
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Edit Profile</h2>
+      <button class="modal-close" id="closeModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-content">
+      <form id="profileForm">
+        <!-- Form Tabs -->
+        <div class="form-tabs">
+          <button type="button" class="tab-btn active" data-tab="personal">
+            Personal Info
+          </button>
+          <button type="button" class="tab-btn" data-tab="education">
+            Education
+          </button>
+          <button type="button" class="tab-btn" data-tab="social">
+            Social & Skills
+          </button>
+          <button type="button" class="tab-btn" data-tab="security">
+            Security
+          </button>
+        </div>
+
+        <!-- Personal Info Tab -->
+        <div class="tab-content active" id="personal-tab">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="firstName">First Name</label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value="{{ user_data[1] if user_data[1] else '' }}"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name</label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value="{{ user_data[2] if user_data[2] else '' }}"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value="{{ user_data[4] if user_data[4] else '' }}"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{ user_data[3] if user_data[3] else '' }}"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value="{{ user_phone if user_phone else '' }}"
+              />
+            </div>
+            <div class="form-group">
+              <label for="currentCity">Current City</label>
+              <input
+                type="text"
+                id="currentCity"
+                name="currentCity"
+                value="{{ user_data[10] if user_data[10] else '' }}"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="bio">Bio</label>
+            <textarea
+              id="bio"
+              name="bio"
+              rows="4"
+              placeholder="Tell us about yourself..."
+            >
+{{ user_bio if user_bio else '' }}</textarea
+            >
+          </div>
+
+          <div class="form-group full-width">
+            <label for="profilePictureUpload">Profile Picture</label>
+            <input
+              type="file"
+              id="profilePictureUpload"
+              name="profilePicture"
+              accept="image/*"
+            />
+            <small
+              >Upload a new profile picture (JPG, PNG, GIF - Max 5MB)</small
+            >
+          </div>
+        </div>
+
+        <!-- Education Tab -->
+        <div class="tab-content" id="education-tab">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="universityName">University</label>
+              <input
+                type="text"
+                id="universityName"
+                name="universityName"
+                value="Harvard University"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="graduationYear">Graduation Year</label>
+              <input
+                type="number"
+                id="graduationYear"
+                name="graduationYear"
+                value="2023"
+                min="1950"
+                max="2030"
+              />
+            </div>
+            <div class="form-group">
+              <label for="degree">Degree</label>
+              <input
+                type="text"
+                id="degree"
+                name="degree"
+                value="Bachelor of Science"
+                placeholder="e.g., Bachelor of Science"
+              />
+            </div>
+            <div class="form-group">
+              <label for="major">Major/Field of Study</label>
+              <input
+                type="text"
+                id="major"
+                name="major"
+                value="Computer Science"
+                placeholder="e.g., Computer Science"
+              />
+            </div>
+            <div class="form-group">
+              <label for="gpa">GPA (Optional)</label>
+              <input
+                type="number"
+                id="gpa"
+                name="gpa"
+                step="0.01"
+                min="0"
+                max="4"
+                placeholder="3.85"
+              />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="interests">Interests (comma-separated)</label>
+            <textarea
+              id="interests"
+              name="interests"
+              rows="3"
+              placeholder="Technology, AI, Web Development, etc."
+            >
+Technology, Artificial Intelligence, Web Development, Machine Learning, Entrepreneurship</textarea
+            >
+          </div>
+        </div>
+
+        <!-- Social & Skills Tab -->
+        <div class="tab-content" id="social-tab">
+          <div class="form-section">
+            <h3>Social Links</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="linkedIn">LinkedIn</label>
+                <input
+                  type="url"
+                  id="linkedIn"
+                  name="linkedIn"
+                  value="https://linkedin.com/in/johndoe"
+                  placeholder="https://linkedin.com/in/username"
+                />
+              </div>
+              <div class="form-group">
+                <label for="github">GitHub</label>
+                <input
+                  type="url"
+                  id="github"
+                  name="github"
+                  value="https://github.com/johndoe"
+                  placeholder="https://github.com/username"
+                />
+              </div>
+              <div class="form-group">
+                <label for="twitter">Twitter</label>
+                <input
+                  type="text"
+                  id="twitter"
+                  name="twitter"
+                  value="@johndoe"
+                  placeholder="@username"
+                />
+              </div>
+              <div class="form-group">
+                <label for="website">Personal Website</label>
+                <input
+                  type="url"
+                  id="website"
+                  name="website"
+                  value="https://johndoe.dev"
+                  placeholder="https://yourwebsite.com"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Skills</h3>
+            <div class="form-group full-width">
+              <label for="skills">Skills (comma-separated)</label>
+              <textarea
+                id="skills"
+                name="skills"
+                rows="3"
+                placeholder="JavaScript, Python, React, Node.js, etc."
+              >
+JavaScript, Python, React, Node.js, SQL, Git</textarea
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div class="tab-content" id="security-tab">
+          <div class="form-section">
+            <h3>Change Password</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="currentPassword">Current Password</label>
+                <input
+                  type="password"
+                  id="currentPassword"
+                  name="currentPassword"
+                  placeholder="Enter current password"
+                />
+              </div>
+              <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  name="newPassword"
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div class="form-group full-width">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  placeholder="Confirm new password"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Account Settings</h3>
+            <div class="settings-grid">
+              <div class="setting-item">
+                <label class="switch">
+                  <input
+                    type="checkbox"
+                    id="emailNotifications"
+                    name="emailNotifications"
+                    checked
+                  />
+                  <span class="slider"></span>
+                </label>
+                <div class="setting-info">
+                  <strong>Email Notifications</strong>
+                  <p>Receive updates about job opportunities and events</p>
+                </div>
+              </div>
+              <div class="setting-item">
+                <label class="switch">
+                  <input
+                    type="checkbox"
+                    id="profileVisibility"
+                    name="profileVisibility"
+                    checked
+                  />
+                  <span class="slider"></span>
+                </label>
+                <div class="setting-info">
+                  <strong>Public Profile</strong>
+                  <p>Make your profile visible to other users</p>
+                </div>
+              </div>
+              <div class="setting-item">
+                <label class="switch">
+                  <input type="checkbox" id="jobAlerts" name="jobAlerts" />
+                  <span class="slider"></span>
+                </label>
+                <div class="setting-info">
+                  <strong>Job Alerts</strong>
+                  <p>Get notified about relevant job opportunities</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelBtn">
+            Cancel
+          </button>
+          <button type="submit" class="btn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+<div class="modal-overlay" id="connectionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Send Connection Request</h2>
+      <button class="modal-close" id="closeConnectionModal">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-content">
+      <div class="person-preview" id="personPreview">
+        <!-- Person details will be populated -->
+      </div>
+      <form id="connectionForm">
+        <div class="form-group">
+          <label for="connectionMessage">Personal Message (Optional)</label>
+          <textarea
+            id="connectionMessage"
+            name="message"
+            placeholder="Hi! I'd love to connect with you and learn more about your experience..."
+            rows="4"
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="cancelConnection" type="button">
+            Cancel
+          </button>
+          <button class="btn" type="submit">Send Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

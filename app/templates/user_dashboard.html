@@ -1,430 +1,488 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - algo</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/user_dashboard.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
-</head>
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/user_dashboard.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/output.css') }}"
+    />
+  </head>
 
-<body>
+  <body>
     <!-- header -->
     <header>
-        <div class="container">
-            <nav>
-                <a href="{{ url_for('home') }}" class="logo">algo</a>
-                <ul class="nav-links">
-                    <li><a href="{{ url_for('home') }}">home</a></li>
-                    <li><a href="{{ url_for('connect') }}">connect</a></li>
-                    <li><a href="{{ url_for('requests') }}">requests</a></li>
-                    <li><a href="{{ url_for('chat_list') }}">chat</a></li>
-                    <li><a href="{{ url_for('contact') }}">contact us</a></li>
-                    <li><a href="{{ url_for('channels') }}">channels</a></li>
-                    <li><a href="{{ url_for('about') }}">about us</a></li>
-                    {% if role == 'admin' %}
-                    <li><a href="{{ url_for('admin_dashboard') }}" class="admin-btn">
-                        <i class="fas fa-shield-alt"></i> admin
-                    </a></li>
-                    {% endif %}
-                </ul>
-                <div class="user-profile" id="userprofile">
-                    <img src="{% if pfp_path %}{{ pfp_path }}{% else %}{{ generate_default_avatar(username) }}{% endif %}" alt="profile" onerror="this.src='{{ generate_default_avatar(username) }}'">
-                    <div class="user-info">
-                        <div class="user-name">{{username}}</div>
-                        <div class="user-role">{{role}}</div>
-                    </div>
-                    <i class="fas fa-chevron-down dropdown-arrow" id="dropdownarrow"></i>
-                    <div class="user-dropdown" id="userdropdown">
-                        <div class="dropdown-item">
-                            <i class="fas fa-user"></i>
-                            <span>view profile</span>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="fas fa-edit"></i>
-                            <span>edit profile</span>
-                        </div>
-                        <div class="dropdown-item" onclick="window.location.href='/settings'">
-                            <i class="fas fa-cog"></i>
-                            <span>settings</span>
-                        </div>
-                        <div class="dropdown-item" onclick="window.location.href='/forgot-password'">
-                            <i class="fas fa-key"></i>
-                            <span>change password</span>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="fas fa-bell"></i>
-                            <span>notifications</span>
-                        </div>
-                        <div class="dropdown-item" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>logout</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="hamburger">
-                    <div class="line1"></div>
-                    <div class="line2"></div>
-                    <div class="line3"></div>
-                </div>
-            </nav>
-        </div>
+      <div class="container">
+        <nav>
+          <a href="{{ url_for('core.home') }}" class="logo">algo</a>
+          <ul class="nav-links">
+            <li><a href="{{ url_for('core.home') }}">home</a></li>
+            <li><a href="{{ url_for('connections.connect') }}">connect</a></li>
+            <li><a href="{{ url_for('connections.requests_page') }}">requests</a></li>
+            <li><a href="{{ url_for('chat.chat_list') }}">chat</a></li>
+            <li><a href="{{ url_for('core.contact') }}">contact us</a></li>
+            <li><a href="{{ url_for('communities.channels') }}">channels</a></li>
+            <li><a href="{{ url_for('core.about') }}">about us</a></li>
+            {% if role == 'admin' %}
+            <li>
+              <a href="{{ url_for('dashboard.admin_dashboard') }}" class="admin-btn">
+                <i class="fas fa-shield-alt"></i> admin
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+          <div class="user-profile" id="userprofile">
+            <img
+              src="{% if pfp_path %}{{ pfp_path }}{% else %}{{ generate_default_avatar(username) }}{% endif %}"
+              alt="profile"
+              onerror="this.src='{{ generate_default_avatar(username) }}'"
+            />
+            <div class="user-info">
+              <div class="user-name">{{username}}</div>
+              <div class="user-role">{{role}}</div>
+            </div>
+            <i
+              class="fas fa-chevron-down dropdown-arrow"
+              id="dropdownarrow"
+            ></i>
+            <div class="user-dropdown" id="userdropdown">
+              <div class="dropdown-item">
+                <i class="fas fa-user"></i>
+                <span>view profile</span>
+              </div>
+              <div class="dropdown-item">
+                <i class="fas fa-edit"></i>
+                <span>edit profile</span>
+              </div>
+              <div
+                class="dropdown-item"
+                onclick="window.location.href = '/settings'"
+              >
+                <i class="fas fa-cog"></i>
+                <span>settings</span>
+              </div>
+              <div
+                class="dropdown-item"
+                onclick="window.location.href = '/forgot-password'"
+              >
+                <i class="fas fa-key"></i>
+                <span>change password</span>
+              </div>
+              <div class="dropdown-item">
+                <i class="fas fa-bell"></i>
+                <span>notifications</span>
+              </div>
+              <div class="dropdown-item" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>logout</span>
+              </div>
+            </div>
+          </div>
+          <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <!-- main content -->
     <main>
-        <!-- hero section -->
-        <section class="hero-section">
-            <div class="container">
-                <div class="hero-content">
-                    <h1>welcome back, {{username}}</h1>
-                    <p>Your alumni network dashboard - connect, grow, and succeed together.</p>
-                </div>
-            </div>
-        </section>
+      <!-- hero section -->
+      <section class="hero-section">
+        <div class="container">
+          <div class="hero-content">
+            <h1>welcome back, {{username}}</h1>
+            <p>
+              Your alumni network dashboard - connect, grow, and succeed
+              together.
+            </p>
+          </div>
+        </div>
+      </section>
 
-        <!-- DASHBOARD STATS -->
-        <section class="dashboard-stats">
-            <div class="container">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-number">1,247</div>
-                        <div class="stat-label">Total Alumni</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <div class="stat-number">89</div>
-                        <div class="stat-label">Job Opportunities</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="stat-number">23</div>
-                        <div class="stat-label">Upcoming Events</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <div class="stat-number">156</div>
-                        <div class="stat-label">Active Conversations</div>
-                    </div>
-                </div>
+      <!-- DASHBOARD STATS -->
+      <section class="dashboard-stats">
+        <div class="container">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="stat-number">1,247</div>
+              <div class="stat-label">Total Alumni</div>
             </div>
-        </section>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-briefcase"></i>
+              </div>
+              <div class="stat-number">89</div>
+              <div class="stat-label">Job Opportunities</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-calendar"></i>
+              </div>
+              <div class="stat-number">23</div>
+              <div class="stat-label">Upcoming Events</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">
+                <i class="fas fa-comments"></i>
+              </div>
+              <div class="stat-number">156</div>
+              <div class="stat-label">Active Conversations</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <!-- QUICK ACTIONS -->
-        <section class="quick-actions">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Quick Actions</h2>
-                    <p>Get started with these popular features</p>
-                </div>
-                <div class="actions-grid">
-                    <div class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <h3>Find Alumni</h3>
-                        <p>Search and connect with alumni from your field or location</p>
-                        <a href="#" class="btn" data-section="browse">Browse Alumni</a>
-                    </div>
-                    <div class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <h3>Job Board</h3>
-                        <p>Discover career opportunities posted by alumni and companies</p>
-                        <a href="#" class="btn" data-section="jobs">View Jobs</a>
-                    </div>
-                    <div class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <h3>Events</h3>
-                        <p>Join networking events, workshops, and alumni meetups</p>
-                        <a href="#" class="btn" data-section="events">View Events</a>
-                    </div>
-                    <div class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <h3>Messages</h3>
-                        <p>Start conversations with fellow alumni and build your network</p>
-                        <a href="{{ url_for('chat_list') }}" class="btn">Open Chat</a>
-                    </div>
-                </div>
+      <!-- QUICK ACTIONS -->
+      <section class="quick-actions">
+        <div class="container">
+          <div class="section-header">
+            <h2>Quick Actions</h2>
+            <p>Get started with these popular features</p>
+          </div>
+          <div class="actions-grid">
+            <div class="action-card">
+              <div class="action-icon">
+                <i class="fas fa-search"></i>
+              </div>
+              <h3>Find Alumni</h3>
+              <p>Search and connect with alumni from your field or location</p>
+              <a href="#" class="btn" data-section="browse">Browse Alumni</a>
             </div>
-        </section>
+            <div class="action-card">
+              <div class="action-icon">
+                <i class="fas fa-briefcase"></i>
+              </div>
+              <h3>Job Board</h3>
+              <p>
+                Discover career opportunities posted by alumni and companies
+              </p>
+              <a href="#" class="btn" data-section="jobs">View Jobs</a>
+            </div>
+            <div class="action-card">
+              <div class="action-icon">
+                <i class="fas fa-calendar-alt"></i>
+              </div>
+              <h3>Events</h3>
+              <p>Join networking events, workshops, and alumni meetups</p>
+              <a href="#" class="btn" data-section="events">View Events</a>
+            </div>
+            <div class="action-card">
+              <div class="action-icon">
+                <i class="fas fa-comments"></i>
+              </div>
+              <h3>Messages</h3>
+              <p>
+                Start conversations with fellow alumni and build your network
+              </p>
+              <a href="{{ url_for('chat.chat_list') }}" class="btn">Open Chat</a>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <!-- RECENT ACTIVITY -->
-        <section class="recent-activity">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Recent Activity</h2>
-                    <p>Stay updated with the latest from your network</p>
+      <!-- RECENT ACTIVITY -->
+      <section class="recent-activity">
+        <div class="container">
+          <div class="section-header">
+            <h2>Recent Activity</h2>
+            <p>Stay updated with the latest from your network</p>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">
+                  New connection request from Sarah Johnson
                 </div>
-                <div class="activity-list">
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">New connection request from Sarah Johnson</div>
-                            <div class="activity-time">2 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">New job posting in Software Engineering</div>
-                            <div class="activity-time">4 hours ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Tech Talk: AI in Healthcare - Tomorrow at 6 PM</div>
-                            <div class="activity-time">1 day ago</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">New message from Michael Chen</div>
-                            <div class="activity-time">2 days ago</div>
-                        </div>
-                    </div>
-                </div>
+                <div class="activity-time">2 hours ago</div>
+              </div>
             </div>
-        </section>
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-briefcase"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">
+                  New job posting in Software Engineering
+                </div>
+                <div class="activity-time">4 hours ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-calendar"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">
+                  Tech Talk: AI in Healthcare - Tomorrow at 6 PM
+                </div>
+                <div class="activity-time">1 day ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon">
+                <i class="fas fa-comments"></i>
+              </div>
+              <div class="activity-content">
+                <div class="activity-title">New message from Michael Chen</div>
+                <div class="activity-time">2 days ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <!-- PROFILE SECTION -->
-        <section class="profile-section">
-            <div class="container">
-                <div class="profile-card">
-                    <img src="{% if pfp_path %}{{ pfp_path }}{% else %}{{ generate_default_avatar(username) }}{% endif %}" alt="Profile Picture" class="profile-avatar" onerror="this.src='{{ generate_default_avatar(username) }}'">
-                    <h3 class="profile-name">{{username}}</h3>
-                    <p class="profile-role">{{role}}</p>
-                    <p class="profile-bio">Building connections and creating opportunities in the alumni network.</p>
-                    <div class="profile-stats">
-                        <div class="profile-stat">
-                            <span class="profile-stat-number">45</span>
-                            <span class="profile-stat-label">Connections</span>
-                        </div>
-                        <div class="profile-stat">
-                            <span class="profile-stat-number">12</span>
-                            <span class="profile-stat-label">Events Attended</span>
-                        </div>
-                        <div class="profile-stat">
-                            <span class="profile-stat-number">8</span>
-                            <span class="profile-stat-label">Jobs Applied</span>
-                        </div>
-                    </div>
-                </div>
+      <!-- PROFILE SECTION -->
+      <section class="profile-section">
+        <div class="container">
+          <div class="profile-card">
+            <img
+              src="{% if pfp_path %}{{ pfp_path }}{% else %}{{ generate_default_avatar(username) }}{% endif %}"
+              alt="Profile Picture"
+              class="profile-avatar"
+              onerror="this.src='{{ generate_default_avatar(username) }}'"
+            />
+            <h3 class="profile-name">{{username}}</h3>
+            <p class="profile-role">{{role}}</p>
+            <p class="profile-bio">
+              Building connections and creating opportunities in the alumni
+              network.
+            </p>
+            <div class="profile-stats">
+              <div class="profile-stat">
+                <span class="profile-stat-number">45</span>
+                <span class="profile-stat-label">Connections</span>
+              </div>
+              <div class="profile-stat">
+                <span class="profile-stat-number">12</span>
+                <span class="profile-stat-label">Events Attended</span>
+              </div>
+              <div class="profile-stat">
+                <span class="profile-stat-number">8</span>
+                <span class="profile-stat-label">Jobs Applied</span>
+              </div>
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- FOOTER -->
     <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <span class="logo">ALGO</span>
-                    <p>Connecting students and alumni for career growth and opportunities.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="{{ url_for('home') }}">Home</a></li>
-                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                        <li><a href="#" data-section="jobs">Job Board</a></li>
-                        <li><a href="#" data-section="events">Events</a></li>
-                        <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Resources</h3>
-                    <ul>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Career Tips</a></li>
-                        <li><a href="#">Success Stories</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Support</h3>
-                    <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
-                </div>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <span class="logo">ALGO</span>
+            <p>
+              Connecting students and alumni for career growth and
+              opportunities.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="https://x.com/algo_pancho" target="_blank"
+                ><i class="fab fa-twitter"></i
+              ></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+              <a
+                href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                target="_blank"
+                ><i class="fab fa-instagram"></i
+              ></a>
             </div>
-            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+          </div>
+          <div class="footer-links">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="{{ url_for('core.home') }}">Home</a></li>
+              <li><a href="#" data-section="browse">Browse Alumni</a></li>
+              <li><a href="#" data-section="jobs">Job Board</a></li>
+              <li><a href="#" data-section="events">Events</a></li>
+              <li><a href="{{ url_for('core.about') }}">About Us</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Career Tips</a></li>
+              <li><a href="#">Success Stories</a></li>
+              <li><a href="#">FAQ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Support</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="{{ url_for('core.contact') }}">Contact Us</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
+          </div>
         </div>
+        <p class="copyright">
+          &copy; 2025 ALGO - Alumni Go. All rights reserved.
+        </p>
+      </div>
     </footer>
 
-    <script type="module" src="{{ url_for('static', filename='js/user_dashboard.js') }}"></script>
-    
+    <script
+      type="module"
+      src="{{ url_for('static', filename='js/user_dashboard.js') }}"
+    ></script>
+
     <!-- User Dropdown Styles -->
     <style>
-        /* User Profile Dropdown Styles */
+      /* User Profile Dropdown Styles */
+      .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        margin-left: 1rem;
+      }
+
+      .user-profile:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .user-profile img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .user-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .user-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #1f2937;
+        line-height: 1.2;
+      }
+
+      .user-role {
+        font-size: 0.75rem;
+        color: #6b7280;
+        text-transform: capitalize;
+        line-height: 1.2;
+      }
+
+      .dropdown-arrow {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.8rem;
+        transition: transform 0.3s ease;
+      }
+
+      .dropdown-arrow.rotated {
+        transform: rotate(180deg);
+      }
+
+      .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        padding: 0.5rem 0;
+        min-width: 200px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        margin-top: 0.5rem;
+      }
+
+      .user-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #4b5563;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+      }
+
+      .dropdown-item:hover {
+        background: #f3f4f6;
+        color: #6d28d9;
+      }
+
+      .dropdown-item i {
+        width: 16px;
+        font-size: 0.9rem;
+      }
+
+      .dropdown-item#logoutBtn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+
+      @media (max-width: 768px) {
         .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            margin-left: 1rem;
-        }
-
-        .user-profile:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .user-profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+          margin-left: 0;
+          padding: 0.4rem 0.8rem;
+          gap: 0.5rem;
         }
 
         .user-info {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+          display: flex;
         }
 
         .user-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #1f2937;
-            line-height: 1.2;
+          font-size: 0.8rem;
         }
 
         .user-role {
-            font-size: 0.75rem;
-            color: #6b7280;
-            text-transform: capitalize;
-            line-height: 1.2;
-        }
-
-        .dropdown-arrow {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.8rem;
-            transition: transform 0.3s ease;
-        }
-
-        .dropdown-arrow.rotated {
-            transform: rotate(180deg);
+          font-size: 0.7rem;
         }
 
         .user-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-            padding: 0.5rem 0;
-            min-width: 200px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            margin-top: 0.5rem;
+          right: -1rem;
         }
-
-        .user-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: #4b5563;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
-        }
-
-        .dropdown-item:hover {
-            background: #f3f4f6;
-            color: #6D28D9;
-        }
-
-        .dropdown-item i {
-            width: 16px;
-            font-size: 0.9rem;
-        }
-
-        .dropdown-item#logoutBtn:hover {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        @media (max-width: 768px) {
-            .user-profile {
-                margin-left: 0;
-                padding: 0.4rem 0.8rem;
-                gap: 0.5rem;
-            }
-            
-            .user-info {
-                display: flex;
-            }
-            
-            .user-name {
-                font-size: 0.8rem;
-            }
-            
-            .user-role {
-                font-size: 0.7rem;
-            }
-            
-            .user-dropdown {
-                right: -1rem;
-            }
-        }
+      }
     </style>
-</body>
-
+  </body>
 </html>

@@ -1,112 +1,112 @@
 // Limited Dashboard JavaScript
 
 // Mobile Navigation
-const hamburgerLimited = document.querySelector('.hamburger');
-const navLinksLimited = document.querySelector('.nav-links');
-const linksLimited = document.querySelectorAll('.nav-links li');
+const hamburgerLimited = document.querySelector(".hamburger");
+const navLinksLimited = document.querySelector(".nav-links");
+const linksLimited = document.querySelectorAll(".nav-links li");
 
 if (hamburgerLimited) {
-    hamburgerLimited.addEventListener('click', () => {
-        // Toggle Nav
-        navLinksLimited?.classList.toggle('open');
-        
-        // Animate Links
-        linksLimited.forEach((link, index) => {
-            const element = link as HTMLElement;
-            if (element.style.animation) {
-                element.style.animation = '';
-            } else {
-                element.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
-            }
-        });
-        
-        // Hamburger Animation
-        hamburgerLimited.classList.toggle('toggle');
+  hamburgerLimited.addEventListener("click", () => {
+    // Toggle Nav
+    navLinksLimited?.classList.toggle("open");
+
+    // Animate Links
+    linksLimited.forEach((link, index) => {
+      const element = link as HTMLElement;
+      if (element.style.animation) {
+        element.style.animation = "";
+      } else {
+        element.style.animation = `navLinkFade 0.5s ease forwards ${index / 7 + 0.3}s`;
+      }
     });
+
+    // Hamburger Animation
+    hamburgerLimited.classList.toggle("toggle");
+  });
 }
 
 // Close mobile menu when clicking on a nav link
-linksLimited.forEach(link => {
-    link.addEventListener('click', () => {
-        navLinksLimited?.classList.remove('open');
-        hamburgerLimited?.classList.remove('toggle');
-        linksLimited.forEach(link => {
-            (link as HTMLElement).style.animation = '';
-        });
+linksLimited.forEach((link) => {
+  link.addEventListener("click", () => {
+    navLinksLimited?.classList.remove("open");
+    hamburgerLimited?.classList.remove("toggle");
+    linksLimited.forEach((link) => {
+      (link as HTMLElement).style.animation = "";
     });
+  });
 });
 
 // Scroll Header Effect
-window.addEventListener('scroll', () => {
-    const header = document.querySelector('header');
-    if (header) {
-        header.classList.toggle('scrolled', window.scrollY > 50);
-    }
+window.addEventListener("scroll", () => {
+  const header = document.querySelector("header");
+  if (header) {
+    header.classList.toggle("scrolled", window.scrollY > 50);
+  }
 });
 
 // Feature Card Interactions
-const featureCards = document.querySelectorAll('.feature-card.locked');
+const featureCards = document.querySelectorAll(".feature-card.locked");
 
-featureCards.forEach(card => {
-    card.addEventListener('click', () => {
-        // Show tooltip or modal about verification requirement
-        showVerificationTooltip(card);
-    });
+featureCards.forEach((card) => {
+  card.addEventListener("click", () => {
+    // Show tooltip or modal about verification requirement
+    showVerificationTooltip(card);
+  });
 });
 
 function showVerificationTooltip(card) {
-    // Remove any existing tooltips
-    const existingTooltip = document.querySelector('.verification-tooltip');
-    if (existingTooltip) {
-        existingTooltip.remove();
-    }
-    
-    // Create tooltip
-    const tooltip = document.createElement('div');
-    tooltip.className = 'verification-tooltip';
-    tooltip.innerHTML = `
+  // Remove any existing tooltips
+  const existingTooltip = document.querySelector(".verification-tooltip");
+  if (existingTooltip) {
+    existingTooltip.remove();
+  }
+
+  // Create tooltip
+  const tooltip = document.createElement("div");
+  tooltip.className = "verification-tooltip";
+  tooltip.innerHTML = `
         <div class="tooltip-content">
             <i class="fas fa-lock"></i>
             <p>This feature requires verification. <a href="/verification_request">Request verification</a> to unlock.</p>
         </div>
     `;
-    
-    // Position tooltip
-    const rect = card.getBoundingClientRect();
-    tooltip.style.position = 'fixed';
-    tooltip.style.top = rect.top + 'px';
-    tooltip.style.left = rect.left + 'px';
-    tooltip.style.width = rect.width + 'px';
-    tooltip.style.height = rect.height + 'px';
-    tooltip.style.pointerEvents = 'none';
-    tooltip.style.zIndex = '1000';
-    
-    document.body.appendChild(tooltip);
-    
-    // Remove tooltip after 3 seconds
-    setTimeout(() => {
-        if (tooltip.parentNode) {
-            tooltip.remove();
-        }
-    }, 3000);
+
+  // Position tooltip
+  const rect = card.getBoundingClientRect();
+  tooltip.style.position = "fixed";
+  tooltip.style.top = rect.top + "px";
+  tooltip.style.left = rect.left + "px";
+  tooltip.style.width = rect.width + "px";
+  tooltip.style.height = rect.height + "px";
+  tooltip.style.pointerEvents = "none";
+  tooltip.style.zIndex = "1000";
+
+  document.body.appendChild(tooltip);
+
+  // Remove tooltip after 3 seconds
+  setTimeout(() => {
+    if (tooltip.parentNode) {
+      tooltip.remove();
+    }
+  }, 3000);
 }
 
 // Smooth scrolling for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  anchor.addEventListener("click", function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute("href"));
+    if (target) {
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  });
 });
 
 // Add CSS for tooltip
-const tooltipStyle = document.createElement('style');
+const tooltipStyle = document.createElement("style");
 tooltipStyle.textContent = `
     .verification-tooltip {
         background: rgba(0, 0, 0, 0.9);
@@ -179,7 +179,7 @@ tooltipStyle.textContent = `
 document.head.appendChild(tooltipStyle);
 
 // Add mobile navigation styles
-const mobileStyle = document.createElement('style');
+const mobileStyle = document.createElement("style");
 mobileStyle.textContent = `
     @media (max-width: 768px) {
         .nav-links {

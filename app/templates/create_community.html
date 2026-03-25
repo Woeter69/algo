@@ -1,228 +1,308 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Create Community - ALGO</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/create_community.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/home.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/compact-footer.css') }}">
-</head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/create_community.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/output.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/home.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/compact-footer.css') }}"
+    />
+  </head>
 
-<body>
+  <body>
     <!-- HEADER -->
     <header>
-        <div class="container">
-            <nav>
-                <a href="#" class="logo" id="home-link">algo</a>
-                <ul class="nav-links">
-                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
-                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                    <li><a href="#" data-section="jobs">Job Board</a></li>
-                    <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
-                    <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
-                </ul>
-                <div class="hamburger">
-                    <div class="line1"></div>
-                    <div class="line2"></div>
-                    <div class="line3"></div>
-                </div>
-            </nav>
-        </div>
+      <div class="container">
+        <nav>
+          <a href="#" class="logo" id="home-link">algo</a>
+          <ul class="nav-links">
+            <li>
+              <a href="{{ url_for('core.home')}}" class="active" data-section="home"
+                >Home</a
+              >
+            </li>
+            <li><a href="#" data-section="browse">Browse Alumni</a></li>
+            <li><a href="#" data-section="jobs">Job Board</a></li>
+            <li><a href="#" data-section="events">Events</a></li>
+            <li>
+              <a href="{{ url_for('core.contact') }}" class="active">Contact Us</a>
+            </li>
+            <li><a href="{{ url_for('core.about') }}">About Us</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+            <li>
+              <a href="{{ url_for('auth.register') }}" class="nav-signup">Sign Up</a>
+            </li>
+          </ul>
+          <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <!-- MAIN CONTENT -->
     <main class="create-community-main">
-        <div class="container">
-            <!-- Page Header -->
-            <div class="page-header">
-                <div class="header-content">
-                    <div class="breadcrumb">
-                        <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-arrow-left"></i> Back to Admin Dashboard</a>
-                    </div>
-                    <h1><i class="fas fa-university"></i> Create New Community</h1>
-                    <p>Add a new educational institution to the ALGO platform</p>
-                </div>
+      <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="header-content">
+            <div class="breadcrumb">
+              <a href="{{ url_for('dashboard.admin_dashboard') }}"
+                ><i class="fas fa-arrow-left"></i> Back to Admin Dashboard</a
+              >
             </div>
-
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="flash-messages">
-                        {% for category, message in messages %}
-                            <div class="flash-message flash-{{ category }}">
-                                <i class="fas fa-{% if category == 'error' %}exclamation-circle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
-                                <span>{{ message }}</span>
-                                <button class="close-flash" onclick="this.parentElement.remove()">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
-
-            <!-- Community Creation Form -->
-            <div class="form-container">
-                <div class="form-card">
-                    <div class="form-header">
-                        <h2><i class="fas fa-plus-circle"></i> Community Details</h2>
-                        <p>Please provide accurate information about the educational institution</p>
-                    </div>
-                    
-                    <form method="POST" id="createCommunityForm" class="community-form">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="community_name" class="required">
-                                    <i class="fas fa-university"></i>
-                                    Institution Name
-                                </label>
-                                <input type="text" 
-                                       id="community_name" 
-                                       name="community_name" 
-                                       placeholder="e.g., Indian Institute of Technology Delhi"
-                                       required
-                                       maxlength="255">
-                                <small class="form-help">Full official name of the educational institution</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="college_code" class="required">
-                                    <i class="fas fa-code"></i>
-                                    College Code
-                                </label>
-                                <input type="text" 
-                                       id="college_code" 
-                                       name="college_code" 
-                                       placeholder="e.g., IITD, DTU, NSUT"
-                                       required
-                                       maxlength="20"
-                                       style="text-transform: uppercase;">
-                                <small class="form-help">Unique identifier for the institution (will be converted to uppercase)</small>
-                            </div>
-
-                            <div class="form-group full-width">
-                                <label for="location" class="required">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    Location
-                                </label>
-                                <input type="text" 
-                                       id="location" 
-                                       name="location" 
-                                       placeholder="e.g., New Delhi, India"
-                                       required
-                                       maxlength="255">
-                                <small class="form-help">City and country where the institution is located</small>
-                            </div>
-
-                            <div class="form-group full-width">
-                                <label for="description">
-                                    <i class="fas fa-align-left"></i>
-                                    Description (Optional)
-                                </label>
-                                <textarea id="description" 
-                                          name="description" 
-                                          rows="4"
-                                          placeholder="Brief description about the institution, its specialties, or notable features..."
-                                          maxlength="1000"></textarea>
-                                <small class="form-help">Additional information about the institution (max 1000 characters)</small>
-                            </div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ url_for('admin_dashboard') }}';">
-                                <i class="fas fa-times"></i>
-                                Cancel
-                            </button>
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="fas fa-plus"></i>
-                                Create Community
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Guidelines Card -->
-                <div class="guidelines-card">
-                    <div class="guidelines-header">
-                        <h3><i class="fas fa-info-circle"></i> Guidelines</h3>
-                    </div>
-                    <div class="guidelines-content">
-                        <ul>
-                            <li><i class="fas fa-check"></i> Use the official name of the institution</li>
-                            <li><i class="fas fa-check"></i> College code should be unique and recognizable</li>
-                            <li><i class="fas fa-check"></i> Only one community per college code is allowed</li>
-                            <li><i class="fas fa-check"></i> Provide accurate location information</li>
-                            <li><i class="fas fa-check"></i> Description helps users understand the institution better</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <h1><i class="fas fa-university"></i> Create New Community</h1>
+            <p>Add a new educational institution to the ALGO platform</p>
+          </div>
         </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+          <div class="flash-message flash-{{ category }}">
+            <i
+              class="fas fa-{% if category == 'error' %}exclamation-circle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"
+            ></i>
+            <span>{{ message }}</span>
+            <button class="close-flash" onclick="this.parentElement.remove()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %} {% endwith %}
+
+        <!-- Community Creation Form -->
+        <div class="form-container">
+          <div class="form-card">
+            <div class="form-header">
+              <h2><i class="fas fa-plus-circle"></i> Community Details</h2>
+              <p>
+                Please provide accurate information about the educational
+                institution
+              </p>
+            </div>
+
+            <form method="POST" id="createCommunityForm" class="community-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="community_name" class="required">
+                    <i class="fas fa-university"></i>
+                    Institution Name
+                  </label>
+                  <input
+                    type="text"
+                    id="community_name"
+                    name="community_name"
+                    placeholder="e.g., Indian Institute of Technology Delhi"
+                    required
+                    maxlength="255"
+                  />
+                  <small class="form-help"
+                    >Full official name of the educational institution</small
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label for="college_code" class="required">
+                    <i class="fas fa-code"></i>
+                    College Code
+                  </label>
+                  <input
+                    type="text"
+                    id="college_code"
+                    name="college_code"
+                    placeholder="e.g., IITD, DTU, NSUT"
+                    required
+                    maxlength="20"
+                    style="text-transform: uppercase"
+                  />
+                  <small class="form-help"
+                    >Unique identifier for the institution (will be converted to
+                    uppercase)</small
+                  >
+                </div>
+
+                <div class="form-group full-width">
+                  <label for="location" class="required">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    placeholder="e.g., New Delhi, India"
+                    required
+                    maxlength="255"
+                  />
+                  <small class="form-help"
+                    >City and country where the institution is located</small
+                  >
+                </div>
+
+                <div class="form-group full-width">
+                  <label for="description">
+                    <i class="fas fa-align-left"></i>
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows="4"
+                    placeholder="Brief description about the institution, its specialties, or notable features..."
+                    maxlength="1000"
+                  ></textarea>
+                  <small class="form-help"
+                    >Additional information about the institution (max 1000
+                    characters)</small
+                  >
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  onclick="window.location.href='{{ url_for('dashboard.admin_dashboard') }}';"
+                >
+                  <i class="fas fa-times"></i>
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                  <i class="fas fa-plus"></i>
+                  Create Community
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Guidelines Card -->
+          <div class="guidelines-card">
+            <div class="guidelines-header">
+              <h3><i class="fas fa-info-circle"></i> Guidelines</h3>
+            </div>
+            <div class="guidelines-content">
+              <ul>
+                <li>
+                  <i class="fas fa-check"></i> Use the official name of the
+                  institution
+                </li>
+                <li>
+                  <i class="fas fa-check"></i> College code should be unique and
+                  recognizable
+                </li>
+                <li>
+                  <i class="fas fa-check"></i> Only one community per college
+                  code is allowed
+                </li>
+                <li>
+                  <i class="fas fa-check"></i> Provide accurate location
+                  information
+                </li>
+                <li>
+                  <i class="fas fa-check"></i> Description helps users
+                  understand the institution better
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Creating community...</p>
-        </div>
+      <div class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Creating community...</p>
+      </div>
     </div>
 
     <!-- FOOTER -->
     <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <span class="logo">algo</span>
-                    <p>Connecting students and alumni for career growth and opportunities.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="#" data-section="home">Home</a></li>
-                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                        <li><a href="#" data-section="jobs">Job Board</a></li>
-                        <li><a href="#" data-section="events">Events</a></li>
-                        <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Resources</h3>
-                    <ul>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Career Tips</a></li>
-                        <li><a href="#">Success Stories</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Support</h3>
-                    <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
-                </div>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <span class="logo">algo</span>
+            <p>
+              Connecting students and alumni for career growth and
+              opportunities.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="https://x.com/algo_pancho" target="_blank"
+                ><i class="fab fa-twitter"></i
+              ></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+              <a
+                href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                target="_blank"
+                ><i class="fab fa-instagram"></i
+              ></a>
             </div>
-            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+          </div>
+          <div class="footer-links">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="#" data-section="home">Home</a></li>
+              <li><a href="#" data-section="browse">Browse Alumni</a></li>
+              <li><a href="#" data-section="jobs">Job Board</a></li>
+              <li><a href="#" data-section="events">Events</a></li>
+              <li><a href="{{ url_for('core.about') }}">About Us</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Career Tips</a></li>
+              <li><a href="#">Success Stories</a></li>
+              <li><a href="#">FAQ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Support</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="{{ url_for('core.contact') }}">Contact Us</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
+          </div>
         </div>
+        <p class="copyright">
+          &copy; 2025 ALGO - Alumni Go. All rights reserved.
+        </p>
+      </div>
     </footer>
 
     <script src="{{ url_for('static', filename='js/create_community.js') }}"></script>
     <script src="{{ url_for('static', filename='js/home.js') }}"></script>
-</body>
+  </body>
 </html>
