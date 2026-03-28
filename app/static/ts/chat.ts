@@ -273,7 +273,7 @@ if ((window as any).chatInitialized) {
                 scrollToBottom();
             }
 
-            socket.sendMessage(message, otherUserId!);
+            socket.sendMessage(message, otherUserId!, {
                 client_message_id: `${currentUserId}-${Date.now()}-${Math.random().toString(36).slice(2)}`
             });
 

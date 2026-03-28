@@ -1,16 +1,5 @@
 // Go WebSocket Client - Replaces Socket.IO
 // This connects to our high-performance Go WebSocket server
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 class GoWebSocketClient {
     constructor() {
         this.ws = null;
@@ -43,11 +32,13 @@ class GoWebSocketClient {
         if (window.location.hostname === 'localhost' ||
             window.location.hostname === '127.0.0.1' ||
             window.location.hostname.startsWith('192.168.') ||
+            window.location.hostname.startsWith('10.') ||
             window.location.hostname.startsWith('172.')) {
             // Local development - Go server on port 8080
             const host = window.location.hostname;
             urls.push(`ws://${host}:8080/ws?${params}`);
-        } else {
+        }
+        else {
             // Production - Using Dockerfile with nginx proxy
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             // 1. Primary: Same domain with /ws endpoint (nginx proxies to Go server)
@@ -77,19 +68,19 @@ class GoWebSocketClient {
             clearTimeout(connectionTimeout);
             console.log(`✅ Connected to Go WebSocket server! (URL: ${wsUrl})`);
             console.log('⚡ Go server is much faster than Socket.IO');
-            this.connected = true;  // Set connected flag
+            this.connected = true;
             this.reconnectAttempts = 0;
             this.hideConnectionError();
             this.emit('connect', event);
         };
         this.ws.onmessage = (event) => {
-            console.log('📨 Raw WebSocket message received:', event.data);
             try {
-                const data = JSON.parse(event.data);
-                console.log('📨 Parsed WebSocket message:', data);
-                this.handleMessage(data);
-            } catch (error) {
-                console.error('❌ Error parsing WebSocket message:', error, 'Raw data:', event.data);
+                const message = JSON.parse(event.data);
+                console.log('📨 Received message:', message);
+                this.handleMessage(message);
+            }
+            catch (error) {
+                console.error('❌ Failed to parse message:', error);
             }
         };
         this.ws.onclose = (event) => {
@@ -110,23 +101,13 @@ class GoWebSocketClient {
     }
     // Handle incoming messages from Go server
     handleMessage(message) {
-        const { type } = message, data = __rest(message, ["type"]);
+        const { type, ...data } = message;
         switch (type) {
             case 'new_message':
                 this.emit('new_message', data);
                 break;
-            case 'new_chat_message':
-                console.log('📨 Emitting new_chat_message event:', data);
-                this.emit('new_chat_message', data);
-                break;
             case 'user_typing':
                 this.emit('user_typing', data);
-                break;
-            case 'typing_start':
-                this.emit('typing_start', data);
-                break;
-            case 'typing_stop':
-                this.emit('typing_stop', data);
                 break;
             case 'user_joined':
                 this.emit('user_joined', data);
@@ -140,36 +121,22 @@ class GoWebSocketClient {
             case 'user_offline':
                 this.emit('user_offline', data);
                 break;
-            case 'messages_history':
-                console.log('📋 Emitting messages_history event:', data);
-                this.emit('messages_history', data);
-                break;
             default:
                 console.log('📨 Unknown message type:', type, data);
         }
     }
-    // Send a message to the WebSocket server
+    // Send message to Go server
     send(type, data = {}) {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-            console.error('❌ WebSocket not connected, readyState:', this.ws?.readyState);
-            console.error('❌ WebSocket states: CONNECTING=0, OPEN=1, CLOSING=2, CLOSED=3');
+        if (!this.connected || !this.ws) {
+            console.error('❌ WebSocket not connected');
             return false;
         }
-        
-        const message = {
-            type: type,
-            user_id: parseInt(this.userId),
-            username: this.username,
-            timestamp: new Date().toISOString(),
-            ...data
-        };
-        
-        console.log('📤 Sending message to WebSocket:', message);
+        const message = Object.assign({ type: type, user_id: parseInt(this.userId), username: this.username, timestamp: new Date().toISOString() }, data);
         try {
             this.ws.send(JSON.stringify(message));
-            console.log('✅ Message sent successfully');
             return true;
-        } catch (error) {
+        }
+        catch (error) {
             console.error('❌ Failed to send message:', error);
             return false;
         }
@@ -182,23 +149,12 @@ class GoWebSocketClient {
     leaveChannel(channelId) {
         return this.send('leave_channel', { channel_id: channelId });
     }
-    // Send a chat message (for channels)
+    // Send a chat message
     sendMessage(content, channelId, messageId = null) {
         return this.send('send_message', {
             channel_id: channelId,
             content: content,
             message_id: messageId,
-            created_at: new Date().toISOString(),
-            message_type: 'text'
-        });
-    }
-    // Send a direct chat message
-    sendDirectMessage(content, receiverId, messageId = null) {
-        return this.send('chat_message', {
-            sender_id: parseInt(this.userId),
-            receiver_id: parseInt(receiverId),
-            content: content,
-            message_id: messageId || `${this.userId}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
             created_at: new Date().toISOString(),
             message_type: 'text'
         });

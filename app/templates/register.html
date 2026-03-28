@@ -40,6 +40,15 @@
                 <h2>Create Your Account</h2>
                 <p>Join the ALGO community and start connecting with alumni</p>
             </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" style="background-color: #fee; color: #c33; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #fcc;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             {% if error %}
                 <div class="error-message" style="background-color: #fee; color: #c33; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #fcc;">
                     {{ error }}

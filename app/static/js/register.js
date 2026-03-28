@@ -33,6 +33,38 @@ window.addEventListener('scroll', () => {
     const header = document.querySelector('header');
     header.classList.toggle('scrolled', window.scrollY > 50);
 });
+// Form Validation
+const registerForm = document.querySelector('.auth-form');
+if (registerForm) {
+    registerForm.addEventListener('submit', (e) => {
+        const firstname = document.getElementById('firstname')?.value;
+        const lastname = document.getElementById('lastname')?.value;
+        const email = document.getElementById('email')?.value;
+        const username = document.getElementById('username')?.value;
+        const password = document.getElementById('password')?.value;
+        if (!firstname || !lastname || !email || !username || !password) {
+            const error = 'Registration Error: All fields are required';
+            console.error(error);
+            alert(error);
+            e.preventDefault();
+            return;
+        }
+        if (password.length < 8) {
+            const error = 'Registration Error: Password must be at least 8 characters long';
+            console.error(error);
+            alert(error);
+            e.preventDefault();
+            return;
+        }
+        if (username.length < 3) {
+            const error = 'Registration Error: Username must be at least 3 characters long';
+            console.error(error);
+            alert(error);
+            e.preventDefault();
+            return;
+        }
+    });
+}
 // Chatbase Integration
 (function () { if (!window.chatbase || window.chatbase("getState") !== "initialized") {
     window.chatbase = (...arguments) => { if (!window.chatbase.q) {

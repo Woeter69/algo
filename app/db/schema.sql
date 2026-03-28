@@ -162,7 +162,9 @@ CREATE TABLE communities (
     location VARCHAR(255),
     established_year INT,
     website VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_by INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
 -- Admin permissions table

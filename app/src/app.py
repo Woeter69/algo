@@ -94,15 +94,17 @@ def login():
 
             
             cur.execute(
-                "SELECT user_id, password, login_count, username, pfp_path, role FROM users WHERE email=%s OR username=%s",
+                "SELECT user_id, password, login_count, username, pfp_path, role, verified FROM users WHERE email=%s OR username=%s",
                 (email_or_username, email_or_username)
             )
             row = cur.fetchone()
 
             if row:
-                user_id, hashed_password, login_count, username, pfp_path, role = row
-                hashed = bcrypt.generate_password_hash(hashed_password).decode('utf-8')
-                print(hashed)
+                user_id, hashed_password, login_count, username, pfp_path, role, verified = row
+                
+                if not verified:
+                    return render_template("login.html", error="Please verify your email address before logging in.")
+
                 if bcrypt.check_password_hash(hashed_password, password):
                     session['user_id'] = user_id
                     session['username'] = username
@@ -301,38 +303,45 @@ def register():
             mydb = connection.get_db_connection()
             cur = mydb.cursor()
             
-            # Check if email already exists
-            cur.execute("SELECT user_id, username FROM users WHERE email=%s", (email,))
-            existing_user = cur.fetchone()
-            
-            if existing_user:
-                cur.close()
-                mydb.close()
-                flash("This email is already registered. Please login instead.")
-                return redirect(url_for("login"))
-            
             # Check if username already exists
-            cur.execute("SELECT user_id FROM users WHERE username=%s", (username,))
+            cur.execute("SELECT user_id FROM users WHERE username=%s AND email != %s", (username, email))
             existing_username = cur.fetchone()
             
             if existing_username:
                 cur.close()
                 mydb.close()
+                flash("Username already taken. Please choose a different username.")
                 return render_template("register.html", error="Username already taken. Please choose a different username.")
-            
-            hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
-            session['register_data'] = {
-                "firstname": firstname,
-                "lastname": lastname,
-                "email": email,
-                "username": username,
-                "password": hashed_password,
-            }
+            # Check if email already exists
+            cur.execute("SELECT user_id, username, verified FROM users WHERE email=%s", (email,))
+            existing_user = cur.fetchone()
+            
+            if existing_user:
+                user_id, db_username, verified = existing_user
+                if verified:
+                    cur.close()
+                    mydb.close()
+                    flash("This email is already registered. Please login instead.")
+                    return redirect(url_for("login"))
+                else:
+                    # User exists but not verified. Update password and re-send verification.
+                    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+                    cur.execute("UPDATE users SET password=%s, firstname=%s, lastname=%s, username=%s WHERE user_id=%s", 
+                               (hashed_password, firstname, lastname, username, user_id))
+            else:
+                hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
+                # Insert user into users table with verified=False
+                cur.execute("""
+                    INSERT INTO users (firstname, lastname, email, username, password, verified)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (firstname, lastname, email, username, hashed_password, False))
 
             token = secrets.token_urlsafe(32)
             expiry = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
 
+            # Delete old tokens for this email if any
+            cur.execute("DELETE FROM verification_tokens WHERE email=%s", (email,))
             cur.execute("INSERT INTO verification_tokens (email,token,expiry) VALUES (%s,%s,%s)",(email,token,expiry))
             mydb.commit()
             cur.close()
@@ -345,7 +354,7 @@ def register():
             return redirect(url_for("check_email"))
     except Exception as e:
             app.logger.error(f"Error during register: {str(e)}")
-            flash("An unexpected error occurred while registering. Please try again.")
+            flash(f"An unexpected error occurred while registering: {str(e)}")
             
             session.pop('register_data', None)
             return render_template("register.html"), 500
@@ -519,10 +528,9 @@ def complete_profile():
             return redirect(url_for("interests"))
         return render_template('complete_profile.html',cities=cities,cutoff_date=cutoff_date)
     except Exception as e:
-            app.logger.error(f"Error during register: {str(e)}")
-            flash("An unexpected error occurred while registering. Please try again.")
-            session.pop('register_data', None)
-            return render_template("register.html"), 500
+            app.logger.error(f"Error during profile completion: {str(e)}")
+            flash("An unexpected error occurred while completing your profile. Please try again.")
+            return render_template("complete_profile.html", cities=utils.load_cities(), cutoff_date=datetime.datetime.utcnow().date().replace(year=datetime.datetime.utcnow().year - 16)), 500
     finally:
         if cur is not None:
             cur.close()
@@ -559,25 +567,21 @@ def verify(token):
         if datetime.datetime.utcnow() > expiry:
             return render_template("token_expired.html")
         
-        register_data = session.get("register_data")
-
-        if not register_data:
-            return redirect(url_for("register"))
-        cur.execute("""
-            insert into users (firstname, lastname, email, username, password,verified)
-            values (%s, %s, %s, %s, %s, %s)
-        """, (
-            register_data['firstname'],
-            register_data['lastname'],
-            register_data['email'],
-            register_data['username'],
-            register_data['password'],
-            True
-        ))
+        # Update user to verified=True
+        cur.execute("UPDATE users SET verified = TRUE WHERE email = %s", (email,))
         
         cur.execute("delete from verification_tokens WHERE token=%s",(token,))
         mydb.commit()
-        session.pop("register_data",None)
+        
+        # Optional: Log the user in automatically after verification
+        cur.execute("SELECT user_id, username, pfp_path, role FROM users WHERE email = %s", (email,))
+        user_row = cur.fetchone()
+        if user_row:
+            session['user_id'] = user_row[0]
+            session['username'] = user_row[1]
+            session['pfp_path'] = user_row[2]
+            session['role'] = user_row[3]
+
         return redirect(url_for("confirmation"))
 
 

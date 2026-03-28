@@ -1,35 +1,52 @@
--- Insert Cluster Innovation Centre community if not exists
-INSERT INTO communities (name, description, college_code, location, established_year, website)
-VALUES (
-    'Cluster Innovation Centre',
-    'Delhi University''s premier innovation hub fostering creativity, entrepreneurship, and technological advancement among students and alumni.',
-    'CIC',
-    'University of Delhi, North Campus',
-    2017,
-    'https://cic.du.ac.in'
-) ON CONFLICT (name) DO NOTHING;
-
--- Get the community ID for CIC
+-- Get the community ID for CIC and create it if not exists
 DO $$
 DECLARE
     cic_community_id INT;
     admin_user_id INT;
 BEGIN
+    -- Get an admin user
+    SELECT user_id INTO admin_user_id 
+    FROM users 
+    WHERE role = 'admin' 
+    ORDER BY user_id ASC
+    LIMIT 1;
+    
+    -- If no admin user exists, try to get the first user
+    IF admin_user_id IS NULL THEN
+        SELECT user_id INTO admin_user_id 
+        FROM users 
+        ORDER BY user_id ASC
+        LIMIT 1;
+    END IF;
+    
+    -- If still no user exists, create a default admin
+    IF admin_user_id IS NULL THEN
+        INSERT INTO users (firstname, lastname, email, username, password, role, verified, verification_status)
+        VALUES ('System', 'Admin', 'admin@cic.du.ac.in', 'admin', '$2b$12$6y/9P.P.O.v6Z.O.v6Z.O.v6Z.O.v6Z.O.v6Z.O.v6Z.O.v6Z.O.v6Z', 'admin', TRUE, 'verified')
+        RETURNING user_id INTO admin_user_id;
+    END IF;
+
+    -- Insert Cluster Innovation Centre community if not exists
+    INSERT INTO communities (name, description, college_code, location, established_year, website, created_by)
+    VALUES (
+        'Cluster Innovation Centre',
+        'Delhi University''s premier innovation hub fostering creativity, entrepreneurship, and technological advancement among students and alumni.',
+        'CIC',
+        'University of Delhi, North Campus',
+        2017,
+        'https://cic.du.ac.in',
+        admin_user_id
+    ) ON CONFLICT (name) DO NOTHING;
+
     -- Get CIC community ID
     SELECT community_id INTO cic_community_id 
     FROM communities 
     WHERE name = 'Cluster Innovation Centre';
     
-    -- Get an admin user (you can replace this with actual admin user ID)
-    SELECT user_id INTO admin_user_id 
-    FROM users 
-    WHERE role = 'admin' 
-    LIMIT 1;
-    
-    -- If no admin user exists, create a default one or use user_id = 1
-    IF admin_user_id IS NULL THEN
-        admin_user_id := 1;
-    END IF;
+    -- Ensure the admin user is a member of the CIC community
+    INSERT INTO community_members (community_id, user_id, role)
+    VALUES (cic_community_id, admin_user_id, 'admin')
+    ON CONFLICT (community_id, user_id) DO NOTHING;
     
     -- Create default channels for CIC
     INSERT INTO channels (community_id, name, description, channel_type, created_by, position_order) VALUES

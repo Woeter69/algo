@@ -42,12 +42,16 @@ window.addEventListener('scroll', () => {
 });
 function validateLoginForm(formData) {
     const { email, password } = formData;
-    if (!email || !email.includes('@')) {
-        console.error('Invalid email address');
+    if (!email) {
+        const error = 'Login Error: Username or email is required';
+        console.error(error);
+        alert(error);
         return false;
     }
     if (!password || password.length < 6) {
-        console.error('Password must be at least 6 characters');
+        const error = 'Login Error: Password must be at least 6 characters';
+        console.error(error);
+        alert(error);
         return false;
     }
     return true;

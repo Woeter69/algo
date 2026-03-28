@@ -154,6 +154,7 @@ class GoWebSocketClient {
     }
 
     // Send message to Go server
+    send(type: string, data: any = {}) {
         if (!this.connected || !this.ws) {
             console.error('❌ WebSocket not connected');
             return false;

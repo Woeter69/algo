@@ -4,16 +4,61 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	_ "github.com/lib/pq"
 )
+
+// Simple manual .env parser to avoid adding dependencies
+func loadEnv() {
+	// Try root .env first, then current dir .env
+	envFiles := []string{"../.env", ".env"}
+	for _, envFile := range envFiles {
+		file, err := os.Open(envFile)
+		if err != nil {
+			continue
+		}
+		defer file.Close()
+
+		log.Printf("📄 Reading environment from %s", envFile)
+		var content []byte
+		content, err = io.ReadAll(file)
+		if err != nil {
+			continue
+		}
+
+		lines := strings.Split(string(content), "\n")
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) != 2 {
+				continue
+			}
+
+			key := strings.TrimSpace(parts[0])
+			value := strings.TrimSpace(parts[1])
+			
+			// Remove quotes if present
+			value = strings.Trim(value, "\"'")
+
+			if os.Getenv(key) == "" {
+				os.Setenv(key, value)
+			}
+		}
+	}
+}
 
 // ============= WHAT IS GO? =============
 // Go is a programming language by Google that's:
@@ -708,14 +753,41 @@ func (c *Client) writePump() {
 func connectDB() *sql.DB {
 	// Get database URL from environment variable (Render sets this automatically)
 	connStr := os.Getenv("DATABASE_URL")
+	
+	if connStr == "" {
+		log.Println("⚠️  DATABASE_URL environment variable is empty")
+		return nil
+	}
+
+	// Mask password for logging
+	maskedURL := connStr
+	if strings.Contains(connStr, ":") && strings.Contains(connStr, "@") {
+		parts := strings.Split(connStr, "@")
+		if len(parts) > 1 {
+			prefix := parts[0]
+			lastColon := strings.LastIndex(prefix, ":")
+			if lastColon != -1 {
+				maskedURL = prefix[:lastColon] + ":****@" + parts[1]
+			}
+		}
+	}
+	log.Printf("🗄️  Attempting to connect to: %s", maskedURL)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal("❌ Failed to connect to database:", err)
+		log.Printf("❌ Failed to open database connection: %v", err)
+		return nil
 	}
 
+	// Set connection pool limits
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
 	if err := db.Ping(); err != nil {
-		log.Fatal("❌ Database ping failed:", err)
+		log.Printf("❌ Database ping failed: %v", err)
+		// Don't log.Fatal here, let the main function decide how to handle it
+		return db
 	}
 
 	log.Println("✅ Connected to PostgreSQL database")
@@ -746,6 +818,7 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	loadEnv()
 	log.Println("🚀 Starting Go WebSocket server...")
 
 	// Get port from environment variable (Render sets this)

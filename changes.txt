@@ -240,3 +240,16 @@ that can compete with Discord, Slack, and other professional chat platforms!
 
 ____________________________________________________________________________________________
 
+
+DATE: 2026-02-12
+NAME: Gemini CLI
+
+CHANGES:
+- Fixed registration and login redirect issue where users were stuck on the register page
+- Refactored registration flow to create user in database immediately (verified=False)
+- Removed session dependency for email verification, allowing cross-device verification
+- Fixed login.html dual 'name' attribute bug (email vs username)
+- Fixed login.ts validation which was incorrectly preventing usernames from being used
+- Added 'verified' status check to login process with helpful user feedback
+- Fixed critical bug in complete_profile exception handler that redirected users to register.html on error
+- Recompiled login.ts and register.ts to apply client-side fixes

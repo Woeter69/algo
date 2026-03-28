@@ -2,7 +2,7 @@ import os
 import smtplib 
 from email.mime.text import MIMEText #WTF is MIME?
 from dotenv import load_dotenv
-from flask import session, redirect, url_for, flash
+from flask import session, redirect, url_for, flash, request
 from functools import wraps
 
 
@@ -23,7 +23,7 @@ from functools import wraps
 # So that our dear Aditya's info is not shared publically. Also notice that we had put the .env file in gitignore as well.
 # Safer than hardcoding secrets in your code.
 
-# from flask import session, redirect, url_for, flash
+# from flask import session, redirect, url_for, flash, request
 # session: Stores data for a logged-in user between requests
 # redirect: Redirects a user to a different route.
 # url_for: Dynamically builds URLs for Flask routes.
