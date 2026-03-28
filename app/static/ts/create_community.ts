@@ -3,265 +3,299 @@
 
 // Prevent multiple initializations
 if ((window as any).createCommunityInitialized) {
-    console.log('Create Community already initialized, skipping...');
+  console.log("Create Community already initialized, skipping...");
 } else {
-    (window as any).createCommunityInitialized = true;
+  (window as any).createCommunityInitialized = true;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🏛️ Create Community TypeScript initializing - DOM ready');
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("🏛️ Create Community TypeScript initializing - DOM ready");
 
-        // Initialize components
-        initializeForm();
-        initializeValidation();
-        initializeMobileNavigation();
+    // Initialize components
+    initializeForm();
+    initializeValidation();
+    initializeMobileNavigation();
 
-        // Form initialization
-        function initializeForm(): void {
-            const form = document.getElementById('createCommunityForm') as HTMLFormElement;
-            const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
-            const collegeCodeInput = document.getElementById('college_code') as HTMLInputElement;
+    // Form initialization
+    function initializeForm(): void {
+      const form = document.getElementById(
+        "createCommunityForm",
+      ) as HTMLFormElement;
+      const submitBtn = document.getElementById(
+        "submitBtn",
+      ) as HTMLButtonElement;
+      const collegeCodeInput = document.getElementById(
+        "college_code",
+      ) as HTMLInputElement;
 
-            if (!form || !submitBtn || !collegeCodeInput) {
-                console.error('Required form elements not found');
-                return;
-            }
+      if (!form || !submitBtn || !collegeCodeInput) {
+        console.error("Required form elements not found");
+        return;
+      }
 
-            // Auto-uppercase college code
-            collegeCodeInput.addEventListener('input', function() {
-                this.value = this.value.toUpperCase();
-            });
+      // Auto-uppercase college code
+      collegeCodeInput.addEventListener("input", function () {
+        this.value = this.value.toUpperCase();
+      });
 
-            // Form submission
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                if (!validateForm()) {
-                    return;
-                }
+      // Form submission
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-                await handleFormSubmission();
-            });
+        if (!validateForm()) {
+          return;
         }
 
-        // Form validation
-        function initializeValidation(): void {
-            const requiredFields = document.querySelectorAll('input[required], textarea[required]');
-            
-            requiredFields.forEach(field => {
-                const inputField = field as HTMLInputElement | HTMLTextAreaElement;
-                
-                inputField.addEventListener('blur', function() {
-                    validateField(this);
-                });
+        await handleFormSubmission();
+      });
+    }
 
-                inputField.addEventListener('input', function() {
-                    clearFieldError(this);
-                });
-            });
+    // Form validation
+    function initializeValidation(): void {
+      const requiredFields = document.querySelectorAll(
+        "input[required], textarea[required]",
+      );
+
+      requiredFields.forEach((field) => {
+        const inputField = field as HTMLInputElement | HTMLTextAreaElement;
+
+        inputField.addEventListener("blur", function () {
+          validateField(this);
+        });
+
+        inputField.addEventListener("input", function () {
+          clearFieldError(this);
+        });
+      });
+    }
+
+    // Validate individual field
+    function validateField(
+      field: HTMLInputElement | HTMLTextAreaElement,
+    ): boolean {
+      const value = field.value.trim();
+      const fieldName = field.getAttribute("name") || "";
+      let isValid = true;
+      let errorMessage = "";
+
+      // Clear previous errors
+      clearFieldError(field);
+
+      // Required field validation
+      if (field.hasAttribute("required") && !value) {
+        isValid = false;
+        errorMessage = "This field is required";
+      }
+
+      // Specific field validations
+      switch (fieldName) {
+        case "community_name":
+          if (value && value.length < 3) {
+            isValid = false;
+            errorMessage =
+              "Institution name must be at least 3 characters long";
+          }
+          break;
+
+        case "college_code":
+          if (value && !/^[A-Z0-9]{2,20}$/.test(value)) {
+            isValid = false;
+            errorMessage =
+              "College code must be 2-20 characters, letters and numbers only";
+          }
+          break;
+
+        case "location":
+          if (value && value.length < 3) {
+            isValid = false;
+            errorMessage = "Location must be at least 3 characters long";
+          }
+          break;
+
+        case "description":
+          if (value && value.length > 1000) {
+            isValid = false;
+            errorMessage = "Description must not exceed 1000 characters";
+          }
+          break;
+      }
+
+      if (!isValid) {
+        showFieldError(field, errorMessage);
+      }
+
+      return isValid;
+    }
+
+    // Show field error
+    function showFieldError(
+      field: HTMLInputElement | HTMLTextAreaElement,
+      message: string,
+    ): void {
+      const formGroup = field.closest(".form-group");
+      if (!formGroup) return;
+
+      // Remove existing error
+      const existingError = formGroup.querySelector(".field-error");
+      if (existingError) {
+        existingError.remove();
+      }
+
+      // Add error class
+      field.classList.add("error");
+
+      // Create error element
+      const errorElement = document.createElement("div");
+      errorElement.className = "field-error";
+      errorElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+
+      // Insert after the field
+      field.parentNode?.insertBefore(errorElement, field.nextSibling);
+    }
+
+    // Clear field error
+    function clearFieldError(
+      field: HTMLInputElement | HTMLTextAreaElement,
+    ): void {
+      const formGroup = field.closest(".form-group");
+      if (!formGroup) return;
+
+      field.classList.remove("error");
+      const errorElement = formGroup.querySelector(".field-error");
+      if (errorElement) {
+        errorElement.remove();
+      }
+    }
+
+    // Validate entire form
+    function validateForm(): boolean {
+      const requiredFields = document.querySelectorAll(
+        "input[required], textarea[required]",
+      );
+      let isValid = true;
+
+      requiredFields.forEach((field) => {
+        const inputField = field as HTMLInputElement | HTMLTextAreaElement;
+        if (!validateField(inputField)) {
+          isValid = false;
         }
+      });
 
-        // Validate individual field
-        function validateField(field: HTMLInputElement | HTMLTextAreaElement): boolean {
-            const value = field.value.trim();
-            const fieldName = field.getAttribute('name') || '';
-            let isValid = true;
-            let errorMessage = '';
+      return isValid;
+    }
 
-            // Clear previous errors
-            clearFieldError(field);
+    // Handle form submission
+    async function handleFormSubmission(): Promise<void> {
+      const form = document.getElementById(
+        "createCommunityForm",
+      ) as HTMLFormElement;
+      const submitBtn = document.getElementById(
+        "submitBtn",
+      ) as HTMLButtonElement;
 
-            // Required field validation
-            if (field.hasAttribute('required') && !value) {
-                isValid = false;
-                errorMessage = 'This field is required';
+      if (!form || !submitBtn) return;
+
+      try {
+        showLoading(true);
+        submitBtn.disabled = true;
+
+        // Get form data
+        const formData = new FormData(form);
+
+        // Submit form
+        const response = await fetch("/create_community", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          // Check if response is a redirect (successful creation)
+          if (response.redirected || response.url.includes("admin_dashboard")) {
+            showNotification("Community created successfully!", "success");
+            setTimeout(() => {
+              window.location.href = "/admin_dashboard";
+            }, 1500);
+          } else {
+            // Parse response for any errors
+            const responseText = await response.text();
+            if (responseText.includes("already exists")) {
+              showNotification(
+                "A community with this college code already exists.",
+                "error",
+              );
+            } else {
+              showNotification("Community created successfully!", "success");
+              setTimeout(() => {
+                window.location.href = "/admin_dashboard";
+              }, 1500);
             }
-
-            // Specific field validations
-            switch (fieldName) {
-                case 'community_name':
-                    if (value && value.length < 3) {
-                        isValid = false;
-                        errorMessage = 'Institution name must be at least 3 characters long';
-                    }
-                    break;
-
-                case 'college_code':
-                    if (value && !/^[A-Z0-9]{2,20}$/.test(value)) {
-                        isValid = false;
-                        errorMessage = 'College code must be 2-20 characters, letters and numbers only';
-                    }
-                    break;
-
-                case 'location':
-                    if (value && value.length < 3) {
-                        isValid = false;
-                        errorMessage = 'Location must be at least 3 characters long';
-                    }
-                    break;
-
-                case 'description':
-                    if (value && value.length > 1000) {
-                        isValid = false;
-                        errorMessage = 'Description must not exceed 1000 characters';
-                    }
-                    break;
-            }
-
-            if (!isValid) {
-                showFieldError(field, errorMessage);
-            }
-
-            return isValid;
+          }
+        } else {
+          showNotification(
+            "Error creating community. Please try again.",
+            "error",
+          );
         }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        showNotification(
+          "Network error. Please check your connection and try again.",
+          "error",
+        );
+      } finally {
+        showLoading(false);
+        submitBtn.disabled = false;
+      }
+    }
 
-        // Show field error
-        function showFieldError(field: HTMLInputElement | HTMLTextAreaElement, message: string): void {
-            const formGroup = field.closest('.form-group');
-            if (!formGroup) return;
+    // Show/hide loading overlay
+    function showLoading(show: boolean): void {
+      const loadingOverlay = document.getElementById("loadingOverlay");
+      if (loadingOverlay) {
+        loadingOverlay.style.display = show ? "flex" : "none";
+      }
+    }
 
-            // Remove existing error
-            const existingError = formGroup.querySelector('.field-error');
-            if (existingError) {
-                existingError.remove();
-            }
+    // Mobile navigation
+    function initializeMobileNavigation(): void {
+      const hamburger = document.querySelector(".hamburger");
+      const navLinks = document.querySelector(".nav-links");
 
-            // Add error class
-            field.classList.add('error');
+      if (hamburger && navLinks) {
+        hamburger.addEventListener("click", () => {
+          hamburger.classList.toggle("toggle");
+          navLinks.classList.toggle("open");
+        });
+      }
+    }
 
-            // Create error element
-            const errorElement = document.createElement('div');
-            errorElement.className = 'field-error';
-            errorElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    // Notification system
+    function showNotification(
+      message: string,
+      type: "success" | "error" | "info" | "warning" = "info",
+    ): void {
+      const notification = document.createElement("div");
+      notification.className = `notification notification-${type}`;
 
-            // Insert after the field
-            field.parentNode?.insertBefore(errorElement, field.nextSibling);
-        }
+      const icons = {
+        success: "fas fa-check-circle",
+        error: "fas fa-exclamation-circle",
+        info: "fas fa-info-circle",
+        warning: "fas fa-exclamation-triangle",
+      };
 
-        // Clear field error
-        function clearFieldError(field: HTMLInputElement | HTMLTextAreaElement): void {
-            const formGroup = field.closest('.form-group');
-            if (!formGroup) return;
+      const colors = {
+        success: "#10b981",
+        error: "#ef4444",
+        info: "#6D28D9",
+        warning: "#f59e0b",
+      };
 
-            field.classList.remove('error');
-            const errorElement = formGroup.querySelector('.field-error');
-            if (errorElement) {
-                errorElement.remove();
-            }
-        }
-
-        // Validate entire form
-        function validateForm(): boolean {
-            const requiredFields = document.querySelectorAll('input[required], textarea[required]');
-            let isValid = true;
-
-            requiredFields.forEach(field => {
-                const inputField = field as HTMLInputElement | HTMLTextAreaElement;
-                if (!validateField(inputField)) {
-                    isValid = false;
-                }
-            });
-
-            return isValid;
-        }
-
-        // Handle form submission
-        async function handleFormSubmission(): Promise<void> {
-            const form = document.getElementById('createCommunityForm') as HTMLFormElement;
-            const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
-
-            if (!form || !submitBtn) return;
-
-            try {
-                showLoading(true);
-                submitBtn.disabled = true;
-
-                // Get form data
-                const formData = new FormData(form);
-                
-                // Submit form
-                const response = await fetch('/create_community', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    // Check if response is a redirect (successful creation)
-                    if (response.redirected || response.url.includes('admin_dashboard')) {
-                        showNotification('Community created successfully!', 'success');
-                        setTimeout(() => {
-                            window.location.href = '/admin_dashboard';
-                        }, 1500);
-                    } else {
-                        // Parse response for any errors
-                        const responseText = await response.text();
-                        if (responseText.includes('already exists')) {
-                            showNotification('A community with this college code already exists.', 'error');
-                        } else {
-                            showNotification('Community created successfully!', 'success');
-                            setTimeout(() => {
-                                window.location.href = '/admin_dashboard';
-                            }, 1500);
-                        }
-                    }
-                } else {
-                    showNotification('Error creating community. Please try again.', 'error');
-                }
-
-            } catch (error) {
-                console.error('Error submitting form:', error);
-                showNotification('Network error. Please check your connection and try again.', 'error');
-            } finally {
-                showLoading(false);
-                submitBtn.disabled = false;
-            }
-        }
-
-        // Show/hide loading overlay
-        function showLoading(show: boolean): void {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            if (loadingOverlay) {
-                loadingOverlay.style.display = show ? 'flex' : 'none';
-            }
-        }
-
-        // Mobile navigation
-        function initializeMobileNavigation(): void {
-            const hamburger = document.querySelector('.hamburger');
-            const navLinks = document.querySelector('.nav-links');
-
-            if (hamburger && navLinks) {
-                hamburger.addEventListener('click', () => {
-                    hamburger.classList.toggle('toggle');
-                    navLinks.classList.toggle('open');
-                });
-            }
-        }
-
-        // Notification system
-        function showNotification(message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info'): void {
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-
-            const icons = {
-                success: 'fas fa-check-circle',
-                error: 'fas fa-exclamation-circle',
-                info: 'fas fa-info-circle',
-                warning: 'fas fa-exclamation-triangle'
-            };
-
-            const colors = {
-                success: '#10b981',
-                error: '#ef4444',
-                info: '#6D28D9',
-                warning: '#f59e0b'
-            };
-
-            notification.innerHTML = `
+      notification.innerHTML = `
                 <i class="${icons[type]}"></i>
                 <span>${escapeHtml(message)}</span>
             `;
 
-            notification.style.cssText = `
+      notification.style.cssText = `
                 position: fixed; top: 20px; right: 20px; z-index: 10000;
                 background: ${colors[type]}; color: white; padding: 1rem 1.5rem;
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -270,58 +304,60 @@ if ((window as any).createCommunityInitialized) {
                 transform: translateX(100%); transition: transform 0.3s ease;
             `;
 
-            document.body.appendChild(notification);
+      document.body.appendChild(notification);
 
-            // Animate in
-            requestAnimationFrame(() => {
-                notification.style.transform = 'translateX(0)';
-            });
+      // Animate in
+      requestAnimationFrame(() => {
+        notification.style.transform = "translateX(0)";
+      });
 
-            // Auto remove
-            setTimeout(() => {
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => notification.remove(), 300);
-            }, 4000);
+      // Auto remove
+      setTimeout(() => {
+        notification.style.transform = "translateX(100%)";
+        setTimeout(() => notification.remove(), 300);
+      }, 4000);
+    }
+
+    // Utility function to escape HTML
+    function escapeHtml(text: string): string {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Character counter for description
+    const descriptionField = document.getElementById(
+      "description",
+    ) as HTMLTextAreaElement;
+    if (descriptionField) {
+      const maxLength = 1000;
+
+      // Create character counter
+      const counter = document.createElement("div");
+      counter.className = "character-counter";
+      counter.textContent = `0/${maxLength}`;
+
+      const formGroup = descriptionField.closest(".form-group");
+      if (formGroup) {
+        formGroup.appendChild(counter);
+      }
+
+      descriptionField.addEventListener("input", function () {
+        const currentLength = this.value.length;
+        counter.textContent = `${currentLength}/${maxLength}`;
+
+        if (currentLength > maxLength * 0.9) {
+          counter.style.color = "#ef4444";
+        } else if (currentLength > maxLength * 0.7) {
+          counter.style.color = "#f59e0b";
+        } else {
+          counter.style.color = "#6b7280";
         }
+      });
+    }
 
-        // Utility function to escape HTML
-        function escapeHtml(text: string): string {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Character counter for description
-        const descriptionField = document.getElementById('description') as HTMLTextAreaElement;
-        if (descriptionField) {
-            const maxLength = 1000;
-            
-            // Create character counter
-            const counter = document.createElement('div');
-            counter.className = 'character-counter';
-            counter.textContent = `0/${maxLength}`;
-            
-            const formGroup = descriptionField.closest('.form-group');
-            if (formGroup) {
-                formGroup.appendChild(counter);
-            }
-
-            descriptionField.addEventListener('input', function() {
-                const currentLength = this.value.length;
-                counter.textContent = `${currentLength}/${maxLength}`;
-                
-                if (currentLength > maxLength * 0.9) {
-                    counter.style.color = '#ef4444';
-                } else if (currentLength > maxLength * 0.7) {
-                    counter.style.color = '#f59e0b';
-                } else {
-                    counter.style.color = '#6b7280';
-                }
-            });
-        }
-
-        console.log('✅ Create Community TypeScript initialization complete');
-    });
+    console.log("✅ Create Community TypeScript initialization complete");
+  });
 }
 
 export {};

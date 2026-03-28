@@ -1,101 +1,135 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verify Your Email - ALGO</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/check_email.css') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/check_email.css') }}"
+    />
+  </head>
+  <body>
     <!-- HEADER -->
     <header>
-        <div class="container">
-            <nav>
-                <a href="#" class="logo" id="home-link">algo</a>
-                <ul class="nav-links">
-                    <li><a href="{{ url_for('home')}}" class="active" data-section="home">Home</a></li>
-                    <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                    <li><a href="#" data-section="jobs">Job Board</a></li>
-                    <li><a href="#" data-section="events">Events</a></li>
-                    <li><a href="{{ url_for('contact') }}" class="active">Contact Us</a></li>
-                    <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    <li><a href="{{ url_for('login') }}">Login</a></li>
-                    <li><a href="{{ url_for('register') }}" class="nav-signup">Sign Up</a></li>
-                </ul>
-                <div class="hamburger">
-                    <div class="line1"></div>
-                    <div class="line2"></div>
-                    <div class="line3"></div>
-                </div>
-            </nav>
-        </div>
+      <div class="container">
+        <nav>
+          <a href="#" class="logo" id="home-link">algo</a>
+          <ul class="nav-links">
+            <li>
+              <a href="{{ url_for('core.home')}}" class="active" data-section="home"
+                >Home</a
+              >
+            </li>
+            <li><a href="#" data-section="browse">Browse Alumni</a></li>
+            <li><a href="#" data-section="jobs">Job Board</a></li>
+            <li><a href="#" data-section="events">Events</a></li>
+            <li>
+              <a href="{{ url_for('core.contact') }}" class="active">Contact Us</a>
+            </li>
+            <li><a href="{{ url_for('core.about') }}">About Us</a></li>
+            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+            <li>
+              <a href="{{ url_for('auth.register') }}" class="nav-signup">Sign Up</a>
+            </li>
+          </ul>
+          <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <!-- CHECK EMAIL CONTENT -->
     <section class="check-email-container">
-        <div class="check-email-box">
-            <div class="email-icon">
-                <i class="fas fa-envelope"></i>
-            </div>
-            <div class="check-email-header">
-                <h2>Check your email 📧</h2>
-                <h3>We've sent a verification link to your email address.</h3>
-            </div>
-            <div class="check-email-content">
-                <p>Please click the link in the email we sent to verify your account and complete your registration.</p>
-                <p>If you don't see the email, please check your spam folder or request a new verification link.</p>
-            </div>
+      <div class="check-email-box">
+        <div class="email-icon">
+          <i class="fas fa-envelope"></i>
         </div>
+        <div class="check-email-header">
+          <h2>Check your email 📧</h2>
+          <h3>We've sent a verification link to your email address.</h3>
+        </div>
+        <div class="check-email-content">
+          <p>
+            Please click the link in the email we sent to verify your account
+            and complete your registration.
+          </p>
+          <p>
+            If you don't see the email, please check your spam folder or request
+            a new verification link.
+          </p>
+        </div>
+      </div>
     </section>
 
     <!-- FOOTER -->
     <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
-                    <span class="logo">algo</span>
-                    <p>Connecting students and alumni for career growth and opportunities.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://x.com/algo_pancho" target="_blank"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div>
-                <div class="footer-links">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="{{ url_for('home') }}">Home</a></li>
-                        <li><a href="#" data-section="browse">Browse Alumni</a></li>
-                        <li><a href="#" data-section="jobs">Job Board</a></li>
-                        <li><a href="#" data-section="events">Events</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Resources</h3>
-                    <ul>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Career Tips</a></li>
-                        <li><a href="#">Success Stories</a></li>
-                        <li><a href="#">FAQ</a></li>
-                    </ul>
-                </div>
-                <div class="footer-links">
-                    <h3>Support</h3>
-                    <ul>
-                        <li><a href="#">Help Center</a></li>
-                        <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                    </ul>
-                </div>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <span class="logo">algo</span>
+            <p>
+              Connecting students and alumni for career growth and
+              opportunities.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="https://x.com/algo_pancho" target="_blank"
+                ><i class="fab fa-twitter"></i
+              ></a>
+              <a href="#"><i class="fab fa-linkedin-in"></i></a>
+              <a
+                href="https://www.instagram.com/algo.pancho?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                target="_blank"
+                ><i class="fab fa-instagram"></i
+              ></a>
             </div>
-            <p class="copyright">&copy; 2025 ALGO - Alumni Go. All rights reserved.</p>
+          </div>
+          <div class="footer-links">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="{{ url_for('core.home') }}">Home</a></li>
+              <li><a href="#" data-section="browse">Browse Alumni</a></li>
+              <li><a href="#" data-section="jobs">Job Board</a></li>
+              <li><a href="#" data-section="events">Events</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Resources</h3>
+            <ul>
+              <li><a href="#">Blog</a></li>
+              <li><a href="#">Career Tips</a></li>
+              <li><a href="#">Success Stories</a></li>
+              <li><a href="#">FAQ</a></li>
+            </ul>
+          </div>
+          <div class="footer-links">
+            <h3>Support</h3>
+            <ul>
+              <li><a href="#">Help Center</a></li>
+              <li><a href="{{ url_for('core.contact') }}">Contact Us</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
+          </div>
         </div>
+        <p class="copyright">
+          &copy; 2025 ALGO - Alumni Go. All rights reserved.
+        </p>
+      </div>
     </footer>
 
     <script src="{{ url_for('static', filename='js/check_email.js') }}"></script>
-</body>
+  </body>
 </html>

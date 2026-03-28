@@ -10,7 +10,7 @@ import (
 // - CONCURRENT: Can handle thousands of connections at once
 // - SIMPLE: Easy to learn and read
 // - EFFICIENT: Uses less memory and CPU than Python
-// 
+//
 // Perfect for real-time chat because:
 // - WebSockets are built-in and super fast
 // - Can handle 10,000+ concurrent users easily
